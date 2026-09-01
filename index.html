@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAPA ELEITORAL ARAPONGAS 2024 &bull; Geointeligência & Gestão de Lideranças</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    
+    <!-- App Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app-root">
+
+    <!-- TOPBAR / CABEÇALHO -->
+    <header class="topbar">
+        <div class="brand-section">
+            <div class="brand-logo-badge">
+                <span>ARAPONGAS</span>
+            </div>
+            <div class="brand-info">
+                <h1>MAPA ELEITORAL 2024</h1>
+                <p>Geointeligência &bull; 29 Colégios &bull; Gestão de Lideranças com Alfinetes no Mapa</p>
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <!-- Alternador de Telas -->
+            <div class="view-tabs">
+                <button class="tab-btn active" id="tab-btn-map" onclick="switchView('map')">
+                    🗺️ Mapa
+                </button>
+                <button class="tab-btn" id="tab-btn-colegios" onclick="switchView('colegios')">
+                    🏫 29 Colégios
+                </button>
+                <button class="tab-btn" id="tab-btn-liderancas" onclick="switchView('liderancas')">
+                    📍 Lideranças
+                </button>
+                <button class="tab-btn" id="tab-btn-users" onclick="switchView('users')" style="display:none;">
+                    👥 Usuários
+                </button>
+            </div>
+
+            <!-- Camadas -->
+            <div style="display:flex; align-items:center; gap:8px; background:var(--bg-input); padding:5px 10px; border-radius:var(--radius-sm); border:1px solid var(--border-color); font-size:0.75rem;">
+                <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+                    <input type="checkbox" id="chk-layer-colegios" checked> 🏫 Colégios
+                </label>
+                <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+                    <input type="checkbox" id="chk-layer-liderancas" checked> 📍 Lideranças
+                </label>
+            </div>
+
+            <!-- Seletor de Candidato -->
+            <select id="cand-select" class="select-filter"></select>
+
+            <!-- Seletor de Vereadores (Apenas Master) -->
+            <select id="filter-liderancas-vereador" class="select-filter" style="display:none;"></select>
+
+            <!-- Botão Cadastrar Liderança -->
+            <button class="btn-new-lideranca" onclick="openModalNewLideranca()">
+                <span>+ Cadastrar Liderança</span>
+            </button>
+
+            <!-- Perfil do Usuário Ativo (Clique para trocar) -->
+            <div class="user-profile-pill" onclick="openModal('modal-switch-user')" title="Clique para alternar perfil ou fazer login">
+                <div class="user-avatar-badge" id="current-user-avatar">👑</div>
+                <div class="user-details">
+                    <span class="user-name" id="current-user-name">Everton Moreira</span>
+                    <span class="user-role-badge role-master" id="current-user-role">MASTER</span>
+                </div>
+            </div>
+
+            <!-- Botão Alterar Senha -->
+            <button class="btn-icon" onclick="openModal('modal-change-password')" title="🔑 Alterar Senha de Acesso">
+                🔑
+            </button>
+
+            <!-- Configurações Supabase / Deploy -->
+            <button class="btn-icon" onclick="openModal('modal-supabase-config')" title="Configurações Supabase & Deploy">
+                ⚙️
+            </button>
+        </div>
+    </header>
+
+    <!-- WORKSPACE PRINCIPAL -->
+    <div class="workspace-main">
+        
+        <!-- VISÃO 1: MAPA GEOELEITORAL -->
+        <div id="view-map-container">
+            <div id="map"></div>
+
+            <!-- Banner Flutuante de Modo Pin Drop -->
+            <div id="pin-drop-banner">
+                <span style="font-size:1.1rem;">📍</span>
+                <span style="font-size:0.85rem; font-weight:700; color:#fff;">Clique em qualquer ponto do mapa para fixar o alfinete da liderança!</span>
+                <button class="btn-secondary" id="btn-cancel-pin-drop" style="padding:4px 10px; font-size:0.75rem;">Cancelar</button>
+            </div>
+        </div>
+
+        <!-- VISÃO 2: TABELA DE COLÉGIOS ELEITORAIS -->
+        <div id="view-table-colegios" class="view-table-container">
+            <div style="margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+                <h2 style="font-size:1.1rem; font-weight:700;">🏫 Locais de Votação Oficiais de Arapongas (Eleições 2024)</h2>
+                <span style="font-size:0.8rem; color:var(--text-muted);">29 Colégios Eleitorais com Geolocalização</span>
+            </div>
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Colégio Eleitoral</th>
+                        <th>Endereço</th>
+                        <th>Seções</th>
+                        <th>Rafael Cita (PSD)</th>
+                        <th>Jair Milani (PL)</th>
+                        <th>Total Votos</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="table-colegios-body"></tbody>
+            </table>
+        </div>
+
+        <!-- VISÃO 3: TABELA GERAL DE LIDERANÇAS -->
+        <div id="view-table-liderancas" class="view-table-container">
+            <div style="margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+                <h2 style="font-size:1.1rem; font-weight:700;">📍 Relação Geral de Lideranças Cadastradas</h2>
+                <button class="btn-new-lideranca" onclick="openModalNewLideranca()">+ Nova Liderança</button>
+            </div>
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nome da Liderança</th>
+                        <th>Vereador Responsável</th>
+                        <th>Bairro</th>
+                        <th>WhatsApp</th>
+                        <th>Colégio Vinculado</th>
+                        <th>Meta Votos</th>
+                        <th>Categoria</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="table-liderancas-body"></tbody>
+            </table>
+        </div>
+
+        <!-- VISÃO 4: GESTÃO DE USUÁRIOS (RBAC) -->
+        <div id="view-users-management" class="view-table-container">
+            <div style="margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <h2 style="font-size:1.1rem; font-weight:700;">👥 Gestão de Usuários & Matriz de Acessos</h2>
+                    <p style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;">Hierarquia e permissões ativas (Master / Adm / Vereadores)</p>
+                </div>
+                <button class="btn-primary" onclick="openModal('modal-auth-flow')">+ Cadastrar Novo Vereador</button>
+            </div>
+            <div id="users-management-list"></div>
+        </div>
+
+        <!-- SIDEBAR LATERAL DE LIDERANÇAS & REDUTOS -->
+        <aside class="sidebar-panel">
+            <div class="sidebar-header">
+                <div style="font-weight:700; font-size:0.95rem; color:#fff; display:flex; justify-content:space-between; align-items:center;">
+                    <span>📍 Lideranças & Metas</span>
+                    <span class="user-role-badge role-vereador" style="font-size:0.7rem;">Georreferenciado</span>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-lbl">Lideranças</div>
+                        <div class="stat-val" id="stat-total-liderancas">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-lbl">Meta de Votos</div>
+                        <div class="stat-val" id="stat-total-meta-votos" style="color:var(--accent-emerald);">+0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="search-container">
+                <input type="text" id="search-liderancas-input" class="search-input-field" placeholder="🔍 Buscar por nome, bairro ou vereador...">
+            </div>
+
+            <div class="sidebar-list-content" id="sidebar-liderancas-list"></div>
+        </aside>
+
+    </div>
+
+</div>
+
+<!-- ==========================================================================
+     MODAIS
+     ========================================================================== -->
+
+<!-- MODAL: CADASTRO DE NOVA LIDERANÇA COM PIN NO MAPA -->
+<div class="modal-overlay" id="modal-new-lideranca">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 class="modal-title">📍 Cadastrar Nova Liderança</h3>
+            <button class="btn-close-modal" onclick="closeModal('modal-new-lideranca')">&times;</button>
+        </div>
+        <form id="form-new-lideranca">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Nome Completo da Liderança *</label>
+                    <input type="text" id="inp-lid-nome" class="form-input" required placeholder="Ex: Maria das Graças Oliveira">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">WhatsApp (com DDD) *</label>
+                        <input type="text" id="inp-lid-whatsapp" class="form-input" required placeholder="(43) 99999-9999">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Telefone Fixo / Outro</label>
+                        <input type="text" id="inp-lid-telefone" class="form-input" placeholder="(43) 3275-0000">
+                    </div>
+                </div>
+
+                <!-- CAMPO DE CEP COM BUSCA AUTOMÁTICA -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">CEP (Arapongas/PR)</label>
+                        <div style="display:flex; gap:6px;">
+                            <input type="text" id="inp-lid-cep" class="form-input" placeholder="86700-000" maxlength="9">
+                            <button type="button" class="btn-secondary" id="btn-search-cep" style="padding:0 12px; font-size:0.75rem; white-space:nowrap;">
+                                🔍 Buscar CEP
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Bairro *</label>
+                        <input type="text" id="inp-lid-bairro" class="form-input" required placeholder="Ex: Jardim Aeroporto">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="flex:2;">
+                        <label class="form-label">Nome da Rua / Logradouro *</label>
+                        <input type="text" id="inp-lid-logradouro" class="form-input" required placeholder="Ex: Rua Condor">
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label class="form-label">Número</label>
+                        <input type="text" id="inp-lid-numero" class="form-input" placeholder="Ex: 1150">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Meta de Votos / Influência *</label>
+                        <input type="number" id="inp-lid-meta" class="form-input" required value="30" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Categoria / Atuação</label>
+                        <select id="inp-lid-categoria" class="form-select">
+                            <option value="Comunitária">Comunitária / Bairro</option>
+                            <option value="Religiosa">Eclesiástica / Religiosa</option>
+                            <option value="Saúde">Saúde & Social</option>
+                            <option value="Esporte & Educação">Esporte & Educação</option>
+                            <option value="Empresarial / Comercial">Empresarial & Comércio</option>
+                            <option value="Familiar">Familiar / Núcleo Local</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Colégio Eleitoral de Referência (Reduto)</label>
+                    <select id="inp-lid-colegio" class="form-select"></select>
+                </div>
+
+                <!-- Coordenadas Geográficas e Status do Alfinete -->
+                <div style="background:rgba(30,41,59,0.7); padding:12px; border-radius:var(--radius-sm); border:1px solid var(--border-color); margin-bottom:14px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <span style="font-size:0.75rem; font-weight:700; color:#60a5fa; text-transform:uppercase;">🗺️ Geolocalização Exata do Alfinete</span>
+                        <button type="button" class="btn-primary" id="btn-pin-drop-map" style="font-size:0.7rem; padding:4px 8px;">
+                            📍 Ajustar no Mapa
+                        </button>
+                    </div>
+                    <div id="geocode-status-indicator" style="font-size:0.72rem; color:var(--accent-emerald); margin-bottom:6px; display:none;">
+                        ✅ Coordenadas calculadas automaticamente pelo endereço!
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label class="form-label" style="font-size:0.65rem;">Latitude</label>
+                            <input type="text" id="inp-lid-lat" class="form-input" required style="font-size:0.75rem; font-family:'JetBrains Mono',monospace;" value="-23.4150">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label class="form-label" style="font-size:0.65rem;">Longitude</label>
+                            <input type="text" id="inp-lid-lng" class="form-input" required style="font-size:0.75rem; font-family:'JetBrains Mono',monospace;" value="-51.4280">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Observações Estratégicas</label>
+                    <textarea id="inp-lid-obs" class="form-textarea" rows="2" placeholder="Informações de contato, histórico ou demandas do bairro..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeModal('modal-new-lideranca')">Cancelar</button>
+                <button type="submit" class="btn-primary">💾 Salvar & Criar Alfinete no Mapa</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: DISPARO DE WHATSAPP DIRETO -->
+<div class="modal-overlay" id="modal-whatsapp-sender">
+    <div class="modal-card" style="max-width:480px;">
+        <div class="modal-header">
+            <h3 class="modal-title">💬 Enviar Mensagem via WhatsApp</h3>
+            <button class="btn-close-modal" onclick="closeModal('modal-whatsapp-sender')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div style="background:rgba(30,41,59,0.8); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:10px; margin-bottom:14px;">
+                <div style="font-weight:700; color:#fff; font-size:0.9rem;" id="wa-recipient-name">Destinatário</div>
+                <div style="font-size:0.75rem; color:var(--text-muted);" id="wa-recipient-details">WhatsApp: (43) 99999-9999 &bull; Bairro</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Modelo de Mensagem Rápida</label>
+                <select id="wa-template-select" class="form-select" onchange="applyWhatsAppTemplate(this.value)">
+                    <option value="welcome">🤝 Boas-Vindas à Rede de Lideranças</option>
+                    <option value="meeting">📅 Convocação para Reunião no Bairro</option>
+                    <option value="align">🗳️ Alinhamento de Meta de Votos</option>
+                    <option value="custom">✍️ Mensagem Personalizada</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Texto da Mensagem</label>
+                <textarea id="wa-message-text" class="form-textarea" rows="4"></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeModal('modal-whatsapp-sender')">Cancelar</button>
+            <button class="btn-primary" style="background:linear-gradient(135deg, #25d366 0%, #128c7e 100%);" onclick="executeWhatsAppSend()">
+                🚀 Abrir WhatsApp & Enviar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: ALTERNADOR RÁPIDO DE USUÁRIO (DEMO DE RBAC) -->
+<div class="modal-overlay" id="modal-switch-user">
+    <div class="modal-card" style="max-width:480px;">
+        <div class="modal-header">
+            <h3 class="modal-title">👥 Alternar Perfil de Acesso (RBAC)</h3>
+            <button class="btn-close-modal" onclick="closeModal('modal-switch-user')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:14px;">
+                Selecione o perfil desejado para demonstrar o <strong>isolamento de segurança</strong> e a visualização de lideranças em tempo real:
+            </p>
+
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                <div class="lideranca-list-card" onclick="switchDemonstrationUser('usr_everton')" style="border-left:4px solid #fbbf24;">
+                    <div style="display:flex; align-items:center; justify-content:space-between;">
+                        <div>
+                            <strong>👑 Everton Moreira</strong> (Você)
+                            <div style="font-size:0.72rem; color:var(--text-muted);">Usuário Master Supremo &bull; Acesso a tudo</div>
+                        </div>
+                        <span class="user-role-badge role-master">MASTER</span>
+                    </div>
+                </div>
+
+                <div class="lideranca-list-card" onclick="switchDemonstrationUser('usr_rafael')" style="border-left:4px solid #fbbf24;">
+                    <div style="display:flex; align-items:center; justify-content:space-between;">
+                        <div>
+                            <strong>🏛️ Rafael Rodrigues</strong>
+                            <div style="font-size:0.72rem; color:var(--text-muted);">Gestor Executivo &bull; Usuário Master</div>
+                        </div>
+                        <span class="user-role-badge role-master">MASTER</span>
+                    </div>
+                </div>
+
+                <div class="lideranca-list-card" onclick="switchDemonstrationUser('usr_ronnie')" style="border-left:4px solid #60a5fa;">
+                    <div style="display:flex; align-items:center; justify-content:space-between;">
+                        <div>
+                            <strong>🛡️ Ronnie Onofre</strong>
+                            <div style="font-size:0.72rem; color:var(--text-muted);">Usuário Administrador (Adm) &bull; Não vê usuário do Everton</div>
+                        </div>
+                        <span class="user-role-badge role-adm">ADM</span>
+                    </div>
+                </div>
+
+                <div id="switch-user-registered-vereadores"></div>
+            </div>
+
+            <div style="margin-top:16px; padding-top:12px; border-top:1px solid var(--border-color); display:flex; gap:8px;">
+                <button class="btn-primary" style="flex:1;" onclick="closeModal('modal-switch-user'); openModal('modal-auth-flow');">
+                    🔐 Novo Cadastro / Login
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: ALTERAÇÃO DE SENHA DO USUÁRIO -->
+<div class="modal-overlay" id="modal-change-password">
+    <div class="modal-card" style="max-width:440px;">
+        <div class="modal-header">
+            <h3 class="modal-title">🔑 Alterar Senha de Acesso</h3>
+            <button class="btn-close-modal" onclick="closeModal('modal-change-password')">&times;</button>
+        </div>
+        <form id="form-change-password">
+            <div class="modal-body">
+                <div style="background:rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.25); border-radius:var(--radius-sm); padding:10px; margin-bottom:14px; font-size:0.75rem; color:#93c5fd;">
+                    ℹ️ A senha padrão inicial de todos os usuários é: <strong>Campanha@2026</strong>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Senha Atual *</label>
+                    <div class="pass-input-wrapper">
+                        <input type="password" id="chg-pass-current" class="form-input" required placeholder="Digite sua senha atual">
+                        <button type="button" class="btn-toggle-pass" onclick="togglePassVisibility('chg-pass-current', this)">👁️</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Nova Senha *</label>
+                    <div class="pass-input-wrapper">
+                        <input type="password" id="chg-pass-new" class="form-input" required placeholder="Digite a nova senha">
+                        <button type="button" class="btn-toggle-pass" onclick="togglePassVisibility('chg-pass-new', this)">👁️</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Confirmar Nova Senha *</label>
+                    <div class="pass-input-wrapper">
+                        <input type="password" id="chg-pass-confirm" class="form-input" required placeholder="Repita a nova senha">
+                        <button type="button" class="btn-toggle-pass" onclick="togglePassVisibility('chg-pass-confirm', this)">👁️</button>
+                    </div>
+                    <div id="chg-pass-match-indicator" class="pass-match-indicator" style="display:none;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeModal('modal-change-password')">Cancelar</button>
+                <button type="submit" id="btn-save-new-password" class="btn-primary">💾 Atualizar Minha Senha</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: PRIMEIRO ACESSO OBRIGATÓRIO (REDEFINIÇÃO DE SENHA MANDATÓRIA) -->
+<div class="modal-overlay" id="modal-force-change-password" style="display:none; z-index:99999; background:rgba(3, 7, 18, 0.96); backdrop-filter:blur(10px);">
+    <div class="modal-card" style="max-width:480px; border:2px solid rgba(245, 158, 11, 0.7); box-shadow:0 0 50px rgba(245, 158, 11, 0.25);">
+        <div class="modal-header" style="background:linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(15, 23, 42, 0.95)); border-bottom:1px solid rgba(245, 158, 11, 0.3);">
+            <div>
+                <div style="font-size:0.7rem; color:var(--accent-amber); font-weight:800; letter-spacing:0.05em;">● SEGURANÇA MANDATÓRIA</div>
+                <h3 class="modal-title" style="margin-top:2px; font-size:1.15rem; color:#fff;">🛡️ Primeiro Acesso: Defina sua Senha</h3>
+            </div>
+        </div>
+        <form id="form-force-change-password">
+            <div class="modal-body" style="padding:22px;">
+                <div style="background:rgba(245, 158, 11, 0.1); border:1px solid rgba(245, 158, 11, 0.3); border-radius:var(--radius-sm); padding:12px; margin-bottom:16px;">
+                    <div style="font-weight:700; color:#fbbf24; font-size:0.85rem;" id="force-pass-user-greeting">Olá, Vereador!</div>
+                    <div style="font-size:0.75rem; color:#cbd5e1; margin-top:4px; line-height:1.4;">
+                        Você realizou o primeiro acesso com a senha padrão (<strong>Campanha@2026</strong>). Para proteger os dados sigilosos das suas lideranças e liberar todas as funções do mapa, cadastre sua <strong>senha pessoal exclusiva</strong>.
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Senha Padrão Atual *</label>
+                    <div class="pass-input-wrapper">
+                        <input type="password" id="force-pass-current" class="form-input" required value="Campanha@2026" placeholder="Campanha@2026">
+                        <button type="button" class="btn-toggle-pass" onclick="togglePassVisibility('force-pass-current', this)">👁️</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Sua Nova Senha Pessoal *</label>
+                    <div class="pass-input-wrapper">
+                        <input type="password" id="force-pass-new" class="form-input" required placeholder="Digite sua nova senha (mínimo 4 caracteres)">
+                        <button type="button" class="btn-toggle-pass" onclick="togglePassVisibility('force-pass-new', this)">👁️</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Confirmar Nova Senha Pessoal *</label>
+                    <div class="pass-input-wrapper">
+                        <input type="password" id="force-pass-confirm" class="form-input" required placeholder="Repita exatamente a nova senha">
+                        <button type="button" class="btn-toggle-pass" onclick="togglePassVisibility('force-pass-confirm', this)">👁️</button>
+                    </div>
+                    <div id="force-pass-match-indicator" class="pass-match-indicator" style="display:none;"></div>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding:16px 22px;">
+                <button type="submit" id="btn-submit-force-pass" class="btn-primary" style="width:100%; padding:12px; font-size:0.9rem; background:linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                    🚀 Salvar Senha & Liberar Acesso ao Sistema
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: AUTENTICAÇÃO / LOGIN & CADASTRO DE VEREADOR (ABRE AUTOMATICAMENTE NA INICIALIZAÇÃO) -->
+<div class="modal-overlay" id="modal-auth-flow" style="display:flex;">
+    <div class="modal-card" style="max-width:490px; border:1px solid rgba(59, 130, 246, 0.4); box-shadow:0 20px 50px rgba(0,0,0,0.8), 0 0 30px rgba(59,130,246,0.2);">
+        <div class="modal-header" style="background:linear-gradient(135deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95));">
+            <div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="background:linear-gradient(135deg, #3b82f6, #06b6d4); color:#fff; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:4px;">ARAPONGAS 2024</span>
+                    <span style="font-size:0.72rem; color:var(--accent-emerald); font-weight:700;">● Sistema Ativo</span>
+                </div>
+                <h3 class="modal-title" style="margin-top:4px; font-size:1.15rem;">🏛️ Cadastro & Acesso de Vereadores</h3>
+            </div>
+            <button class="btn-close-modal" onclick="closeModal('modal-auth-flow')">&times;</button>
+        </div>
+        <div class="modal-body" style="padding:20px;">
+            <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:14px; line-height:1.4;">
+                Cadastre-se para ter acesso exclusivo aos seus <strong>redutos eleitorais</strong> e gerenciar suas <strong>lideranças com alfinetes georreferenciados no mapa</strong>.
+            </p>
+
+            <div class="auth-tabs" style="margin-bottom:16px;">
+                <button type="button" class="auth-tab-btn active" id="btn-tab-auth-register" onclick="toggleAuthTab('register')">📝 Cadastrar Vereador</button>
+                <button type="button" class="auth-tab-btn" id="btn-tab-auth-login" onclick="toggleAuthTab('login')">🔓 Entrar</button>
+                <button type="button" class="auth-tab-btn" id="btn-tab-auth-demo" onclick="toggleAuthTab('demo')">⚡ Acesso Rápido</button>
+            </div>
+
+            <!-- Formulário de Auto-Cadastro de Vereador (CAMPOS LIMPOS PARA DIGITAÇÃO) -->
+            <form id="form-auth-register">
+                <div class="form-group">
+                    <label class="form-label">Nome Completo do Vereador / Mandatário *</label>
+                    <input type="text" id="auth-reg-nome" class="form-input" required placeholder="Digite seu nome completo">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">E-mail Profissional *</label>
+                        <input type="text" id="auth-reg-email" class="form-input" required placeholder="ex: seunome@campanha.com.br">
+                        <div style="font-size:0.68rem; color:#93c5fd; margin-top:3px;">💡 Domínio oficial: <strong>@campanha.com.br</strong></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">WhatsApp *</label>
+                        <input type="text" id="auth-reg-whatsapp" class="form-input" required placeholder="(43) 99999-9999">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Partido Político *</label>
+                        <input type="text" id="auth-reg-partido" class="form-input" required placeholder="Ex: PP, PSD, PL, União, PODE, etc.">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Número de Urna</label>
+                        <input type="text" id="auth-reg-numero" class="form-input" placeholder="Ex: 55123">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Cargo / Mandato</label>
+                        <select id="auth-reg-cargo" class="form-select">
+                            <option value="Vereador">Vereador</option>
+                            <option value="Candidato a Vereador">Candidato a Vereador</option>
+                            <option value="Liderança Executiva">Liderança Executiva</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">CPF (Para autenticação)</label>
+                        <input type="text" id="auth-reg-cpf" class="form-input" placeholder="000.000.000-00">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Definir Senha de Acesso *</label>
+                    <div class="pass-input-wrapper">
+                        <input type="password" id="auth-reg-pass" class="form-input" required placeholder="Digite sua senha ou use Campanha@2026">
+                        <button type="button" class="btn-toggle-pass" onclick="togglePassVisibility('auth-reg-pass', this)">👁️</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Confirmar Senha de Acesso *</label>
+                    <div class="pass-input-wrapper">
+                        <input type="password" id="auth-reg-pass-confirm" class="form-input" required placeholder="Repita a senha digitada">
+                        <button type="button" class="btn-toggle-pass" onclick="togglePassVisibility('auth-reg-pass-confirm', this)">👁️</button>
+                    </div>
+                    <div id="pass-match-indicator" class="pass-match-indicator" style="display:none;"></div>
+                </div>
+
+                <button type="submit" id="btn-submit-register" class="btn-primary" style="width:100%; margin-top:8px; padding:11px; font-size:0.9rem;">
+                    ✨ Concluir Cadastro & Enviar Confirmação por E-mail
+                </button>
+            </form>
+
+            <!-- Formulário de Login -->
+            <form id="form-auth-login" style="display:none;">
+                <div class="form-group">
+                    <label class="form-label">E-mail Cadastrado ou Usuário</label>
+                    <input type="text" id="auth-login-email" class="form-input" required value="everton@campanha.com.br" placeholder="ex: everton@campanha.com.br ou everton">
+                    <div style="font-size:0.68rem; color:#93c5fd; margin-top:3px;">💡 Você pode digitar <strong>everton</strong> ou <strong>everton@campanha.com.br</strong></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Senha</label>
+                    <div class="pass-input-wrapper">
+                        <input type="password" id="auth-login-pass" class="form-input" required value="Campanha@2026" placeholder="Campanha@2026">
+                        <button type="button" class="btn-toggle-pass" onclick="togglePassVisibility('auth-login-pass', this)">👁️</button>
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary" style="width:100%; margin-top:10px; padding:11px; font-size:0.9rem;">
+                    🔓 Acessar Plataforma
+                </button>
+            </form>
+
+            <!-- Aba de Acesso Rápido -->
+            <div id="auth-demo-picker" style="display:none;">
+                <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px;">
+                    Selecione um usuário administrador ou master para entrar:
+                </p>
+                <div style="display:flex; flex-direction:column; gap:6px;">
+                    <div class="lideranca-list-card" onclick="quickLoginDemo('usr_everton')" style="border-left:4px solid #fbbf24; padding:8px 12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <strong>👑 Everton Moreira</strong>
+                                <div style="font-size:0.7rem; color:var(--text-muted);">Master Supremo &bull; Acesso geral</div>
+                            </div>
+                            <span class="user-role-badge role-master">MASTER</span>
+                        </div>
+                    </div>
+
+                    <div class="lideranca-list-card" onclick="quickLoginDemo('usr_rafael')" style="border-left:4px solid #fbbf24; padding:8px 12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <strong>🏛️ Rafael Rodrigues</strong>
+                                <div style="font-size:0.7rem; color:var(--text-muted);">Gestor Executivo &bull; Master</div>
+                            </div>
+                            <span class="user-role-badge role-master">MASTER</span>
+                        </div>
+                    </div>
+
+                    <div class="lideranca-list-card" onclick="quickLoginDemo('usr_ronnie')" style="border-left:4px solid #60a5fa; padding:8px 12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <strong>🛡️ Ronnie Onofre</strong>
+                                <div style="font-size:0.7rem; color:var(--text-muted);">Administrador (Adm) &bull; Não vê Everton</div>
+                            </div>
+                            <span class="user-role-badge role-adm">ADM</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: CONFIRMAÇÃO DE ACESSO POR E-MAIL (API DISPATCH) -->
+<div class="modal-overlay" id="modal-email-confirmation">
+    <div class="modal-card" style="max-width:520px; border:1px solid rgba(59, 130, 246, 0.5); box-shadow:0 25px 60px rgba(0,0,0,0.9);">
+        <div class="modal-header" style="background:linear-gradient(135deg, rgba(30,41,59,0.95), rgba(15,23,42,0.98));">
+            <div>
+                <div style="font-size:0.7rem; color:var(--accent-emerald); font-weight:700;">● API DE E-MAIL DISPARADA</div>
+                <h3 class="modal-title" style="margin-top:2px;">✉️ Confirmação de Acesso Enviada!</h3>
+            </div>
+            <button class="btn-close-modal" onclick="closeModal('modal-email-confirmation')">&times;</button>
+        </div>
+        <div class="modal-body" style="padding:20px;">
+            <div class="email-verification-badge">
+                <div style="font-size:0.85rem; color:#fff; font-weight:700; margin-bottom:4px;">
+                    Enviamos um e-mail de ativação oficial para:
+                </div>
+                <div style="font-size:0.95rem; color:#60a5fa; font-weight:800; font-family:'JetBrains Mono',monospace;" id="email-confirm-target">
+                    vereador@arapongas.pr.leg.br
+                </div>
+                <div style="font-size:0.72rem; color:var(--text-muted); margin-top:6px;">
+                    Verifique sua caixa de entrada e spam para ativar seu mandato e liberar o mapa.
+                </div>
+            </div>
+
+            <div style="text-align:center; margin-bottom:14px;">
+                <label class="form-label" style="font-size:0.75rem; text-transform:uppercase; color:#94a3b8;">Código de Segurança de 6 Dígitos</label>
+                <div class="pin-code-display" id="email-confirm-code-display">849 203</div>
+                <input type="text" id="inp-email-verify-code" class="form-input" placeholder="Digite o código recebido" style="text-align:center; font-size:1.1rem; letter-spacing:0.2em; font-weight:700; max-width:260px; margin:0 auto;" maxlength="6">
+            </div>
+
+            <!-- Preview do E-mail Oficial da API -->
+            <details style="background:rgba(15,23,42,0.6); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:10px; font-size:0.75rem; margin-bottom:12px;">
+                <summary style="cursor:pointer; color:#60a5fa; font-weight:700;">📄 Ver Template HTML do E-mail Disparado pela API</summary>
+                <div id="email-preview-rendered" style="margin-top:10px; background:#ffffff; color:#1e293b; padding:15px; border-radius:6px; font-family:sans-serif; font-size:0.78rem;">
+                    <!-- Renderizado dinamicamente pelo EmailService -->
+                </div>
+            </details>
+        </div>
+        <div class="modal-footer" style="padding:14px 20px;">
+            <button class="btn-secondary" onclick="resendConfirmationEmail()">🔄 Reenviar E-mail</button>
+            <button class="btn-primary" onclick="verifyAndActivateAccount()" style="padding:10px 20px; font-size:0.85rem;">
+                🚀 Confirmar Código & Acessar Mapa
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: CONFIGURAÇÕES SUPABASE / VERCEL -->
+<div class="modal-overlay" id="modal-supabase-config">
+    <div class="modal-card" style="max-width:500px;">
+        <div class="modal-header">
+            <h3 class="modal-title">⚙️ Conexão Supabase & Deploy Vercel</h3>
+            <button class="btn-close-modal" onclick="closeModal('modal-supabase-config')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:12px;">
+                O sistema já está funcionando em modo de <strong>alta disponibilidade local</strong> com sincronização instantânea. Para conectar ao seu banco de dados PostgreSQL na nuvem:
+            </p>
+            <div class="form-group">
+                <label class="form-label">Supabase Project URL</label>
+                <input type="text" id="cfg-supabase-url" class="form-input" placeholder="https://xyzcompany.supabase.co">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Supabase Anon Key</label>
+                <input type="password" id="cfg-supabase-key" class="form-input" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+            </div>
+            <div style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); padding:10px; border-radius:8px; font-size:0.75rem; color:#a7f3d0; margin-top:10px;">
+                ✅ <strong>Schema SQL Pronto:</strong> O script <code>supabase_schema.sql</code> está gerado com as tabelas de perfis, colégios e lideranças com políticas RLS ativas!
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeModal('modal-supabase-config')">Fechar</button>
+            <button class="btn-primary" onclick="handleSaveSupabaseConfig()">💾 Salvar Chaves</button>
+        </div>
+    </div>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<!-- Scripts da Aplicação -->
+<script src="supabase_client.js"></script>
+<script src="app.js"></script>
+
+<script>
+function toggleAuthTab(tab) {
+    const btnLogin = document.getElementById('btn-tab-auth-login');
+    const btnReg = document.getElementById('btn-tab-auth-register');
+    const btnDemo = document.getElementById('btn-tab-auth-demo');
+    const formLogin = document.getElementById('form-auth-login');
+    const formReg = document.getElementById('form-auth-register');
+    const demoPicker = document.getElementById('auth-demo-picker');
+
+    btnLogin.classList.remove('active');
+    btnReg.classList.remove('active');
+    if (btnDemo) btnDemo.classList.remove('active');
+
+    formLogin.style.display = 'none';
+    formReg.style.display = 'none';
+    if (demoPicker) demoPicker.style.display = 'none';
+
+    if (tab === 'login') {
+        btnLogin.classList.add('active');
+        formLogin.style.display = 'block';
+    } else if (tab === 'demo') {
+        if (btnDemo) btnDemo.classList.add('active');
+        if (demoPicker) demoPicker.style.display = 'block';
+    } else {
+        btnReg.classList.add('active');
+        formReg.style.display = 'block';
+    }
+}
+
+function quickLoginDemo(userId) {
+    window.switchDemonstrationUser(userId);
+    closeModal('modal-auth-flow');
+}
+
+function handleSaveSupabaseConfig() {
+    const url = document.getElementById('cfg-supabase-url').value.trim();
+    const key = document.getElementById('cfg-supabase-key').value.trim();
+    window.SupabaseService.saveConfig(url, key);
+    closeModal('modal-supabase-config');
+    alert('Configurações salvas com sucesso!');
+}
+</script>
+
+</body>
+</html>
