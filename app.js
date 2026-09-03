@@ -568,28 +568,90 @@ function focusLiderancaInMap(id) {
 // 9. TABELAS (Colégios & Lideranças)
 function renderTableColegios() {
     const tbody = document.getElementById('table-colegios-body');
+    const tableHeader = document.querySelector('#view-table-colegios thead tr');
     if (!tbody) return;
     tbody.innerHTML = '';
 
+    const selectedCandKey = state.selectedCandidate;
+    const isSpecificCand = selectedCandKey && selectedCandKey !== 'ALL';
+    const candInfo = isSpecificCand ? ELEICAO_2024_DATA.candidates[selectedCandKey] : null;
+
+    if (tableHeader) {
+        if (isSpecificCand && candInfo) {
+            tableHeader.innerHTML = `
+                <th>#</th>
+                <th>Colégio Eleitoral</th>
+                <th>Bairro / Endereço</th>
+                <th>Seções</th>
+                <th>Votos: ${candInfo.name} (${candInfo.party})</th>
+                <th>% Desempenho</th>
+                <th>Total Colégio</th>
+                <th>Lideranças Cadastradas</th>
+                <th>Ações</th>
+            `;
+        } else {
+            tableHeader.innerHTML = `
+                <th>#</th>
+                <th>Colégio Eleitoral</th>
+                <th>Bairro / Endereço</th>
+                <th>Seções</th>
+                <th>Rafael Cita (PSD)</th>
+                <th>Jair Milani (PL)</th>
+                <th>Total Votos</th>
+                <th>Lideranças Vinculadas</th>
+                <th>Ações</th>
+            `;
+        }
+    }
+
     ELEICAO_2024_DATA.locais.forEach((loc, idx) => {
         const tr = document.createElement('tr');
-        const cv = loc.votes['pref_cita'] || 0;
-        const mv = loc.votes['pref_milani'] || 0;
         
-        tr.innerHTML = `
-            <td><strong>${idx + 1}</strong></td>
-            <td><strong>${loc.name}</strong></td>
-            <td>${loc.address}</td>
-            <td>${loc.sections}</td>
-            <td style="color:#60a5fa; font-weight:600;">${cv.toLocaleString('pt-BR')}</td>
-            <td style="color:#f59e0b; font-weight:600;">${mv.toLocaleString('pt-BR')}</td>
-            <td><strong>${loc.total_pref.toLocaleString('pt-BR')}</strong></td>
-            <td>
-                <button class="btn-secondary" style="font-size:0.72rem; padding:4px 8px;" onclick="openNewLiderancaWithColegio('${loc.id}')">
-                    + Liderança
-                </button>
-            </td>
-        `;
+        // Conta lideranças e metas no colégio
+        const colegiosLids = state.liderancas.filter(l => l.colegioId === loc.id || (l.colegioNome && l.colegioNome.toLowerCase().includes(loc.name.toLowerCase().split(' ')[0])));
+        const countLids = colegiosLids.length;
+        let metaLidsSum = 0;
+        colegiosLids.forEach(l => metaLidsSum += l.metaVotos);
+
+        if (isSpecificCand && candInfo) {
+            const candVotes = loc.votes[selectedCandKey] || 0;
+            const pct = loc.total_pref > 0 ? ((candVotes / loc.total_pref) * 100).toFixed(1) : '0.0';
+            
+            tr.innerHTML = `
+                <td><strong>${idx + 1}</strong></td>
+                <td><strong>${loc.name}</strong></td>
+                <td>${loc.address}</td>
+                <td>${loc.sections}</td>
+                <td style="color:${candInfo.color || '#3b82f6'}; font-weight:700; font-size:0.9rem;">${candVotes.toLocaleString('pt-BR')} v</td>
+                <td><span style="background:rgba(59,130,246,0.15); color:#60a5fa; padding:2px 6px; border-radius:4px; font-weight:700; font-size:0.75rem;">${pct}%</span></td>
+                <td><strong>${loc.total_pref.toLocaleString('pt-BR')}</strong></td>
+                <td><span style="color:var(--accent-emerald); font-weight:700;">📍 ${countLids} lid. (+${metaLidsSum}v)</span></td>
+                <td>
+                    <button class="btn-secondary" style="font-size:0.72rem; padding:4px 8px;" onclick="openNewLiderancaWithColegio('${loc.id}')">
+                        + Liderança
+                    </button>
+                </td>
+            `;
+        } else {
+            const cv = loc.votes['pref_cita'] || 0;
+            const mv = loc.votes['pref_milani'] || 0;
+            
+            tr.innerHTML = `
+                <td><strong>${idx + 1}</strong></td>
+                <td><strong>${loc.name}</strong></td>
+                <td>${loc.address}</td>
+                <td>${loc.sections}</td>
+                <td style="color:#60a5fa; font-weight:600;">${cv.toLocaleString('pt-BR')}</td>
+                <td style="color:#f59e0b; font-weight:600;">${mv.toLocaleString('pt-BR')}</td>
+                <td><strong>${loc.total_pref.toLocaleString('pt-BR')}</strong></td>
+                <td><span style="color:var(--accent-emerald); font-weight:700;">📍 ${countLids} lid. (+${metaLidsSum}v)</span></td>
+                <td>
+                    <button class="btn-secondary" style="font-size:0.72rem; padding:4px 8px;" onclick="openNewLiderancaWithColegio('${loc.id}')">
+                        + Liderança
+                    </button>
+                </td>
+            `;
+        }
         tbody.appendChild(tr);
     });
 }
@@ -599,7 +661,25 @@ function renderTableLiderancas() {
     if (!tbody) return;
     tbody.innerHTML = '';
 
-    state.liderancas.forEach((lid, idx) => {
+    const catFilter = document.getElementById('sel-category-filter')?.value || 'ALL';
+
+    const filtered = state.liderancas.filter(lid => {
+        if (catFilter === 'ALL') return true;
+        return (lid.categoria || '').toLowerCase().includes(catFilter.toLowerCase());
+    });
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="9" style="text-align:center; padding:30px; color:var(--text-muted);">
+                    Nenhuma liderança encontrada para os filtros selecionados.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    filtered.forEach((lid, idx) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td><strong>${idx + 1}</strong></td>
@@ -627,6 +707,43 @@ function renderTableLiderancas() {
         `;
         tbody.appendChild(tr);
     });
+}
+
+function exportLiderancasCSV() {
+    const list = state.liderancas;
+    if (!list || list.length === 0) {
+        alert("Nenhuma liderança cadastrada para exportação.");
+        return;
+    }
+
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+    csvContent += "ID,Nome,Vereador,Partido,Bairro,WhatsApp,Colegio,MetaVotos,Categoria,Lat,Lng,CadastradoEm\n";
+
+    list.forEach(l => {
+        const row = [
+            `"${l.id}"`,
+            `"${(l.nome || '').replace(/"/g, '""')}"`,
+            `"${(l.vereadorNome || '').replace(/"/g, '""')}"`,
+            `"${(l.partido || '').replace(/"/g, '""')}"`,
+            `"${(l.bairro || '').replace(/"/g, '""')}"`,
+            `"${(l.whatsapp || '').replace(/"/g, '""')}"`,
+            `"${(l.colegioNome || '').replace(/"/g, '""')}"`,
+            l.metaVotos || 0,
+            `"${(l.categoria || '').replace(/"/g, '""')}"`,
+            l.lat,
+            l.lng,
+            `"${l.criadoEm || ''}"`
+        ].join(",");
+        csvContent += row + "\n";
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `liderancas_arapongas_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
 function renderUsersList() {

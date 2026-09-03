@@ -132,9 +132,27 @@
 
         <!-- VISÃO 3: TABELA GERAL DE LIDERANÇAS -->
         <div id="view-table-liderancas" class="view-table-container">
-            <div style="margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
-                <h2 style="font-size:1.1rem; font-weight:700;">📍 Relação Geral de Lideranças Cadastradas</h2>
-                <button class="btn-new-lideranca" onclick="openModalNewLideranca()">+ Nova Liderança</button>
+            <div style="margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <h2 style="font-size:1.1rem; font-weight:700;">📍 Relação Geral de Lideranças Cadastradas</h2>
+                    <p style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Gerenciamento de contatos com metas e geolocalização exata em Arapongas</p>
+                </div>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <select id="sel-category-filter" class="select-filter" onchange="renderTableLiderancas()">
+                        <option value="ALL">Todas as Categorias</option>
+                        <option value="Comunitária">🏡 Comunitária</option>
+                        <option value="Religiosa">⛪ Religiosa</option>
+                        <option value="Esportiva">⚽ Esportiva</option>
+                        <option value="Comércio">🏪 Comércio / Empresarial</option>
+                        <option value="Saúde">🏥 Saúde / Apoio</option>
+                        <option value="Familiar">👨‍👩‍👧‍👦 Familiar / Grupo</option>
+                        <option value="Educação">🎓 Educação</option>
+                    </select>
+                    <button class="btn-secondary" onclick="exportLiderancasCSV()" style="font-size:0.78rem; padding:6px 12px;">
+                        📥 Exportar CSV
+                    </button>
+                    <button class="btn-new-lideranca" onclick="openModalNewLideranca()">+ Nova Liderança</button>
+                </div>
             </div>
             <table class="custom-table">
                 <thead>
