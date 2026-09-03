@@ -43,54 +43,54 @@
         <div class="header-actions">
             <!-- Alternador de Telas -->
             <div class="view-tabs">
-                <button class="tab-btn active" id="tab-btn-map" onclick="switchView('map')">
+                <button class="tab-btn active" id="tab-btn-map" onclick="switchView('map')" title="Visualização do Mapa">
                     🗺️ Mapa
                 </button>
-                <button class="tab-btn" id="tab-btn-colegios" onclick="switchView('colegios')">
-                    🏫 29 Colégios
+                <button class="tab-btn" id="tab-btn-colegios" onclick="switchView('colegios')" title="29 Colégios Eleitorais">
+                    🏫 Colégios
                 </button>
-                <button class="tab-btn" id="tab-btn-liderancas" onclick="switchView('liderancas')">
+                <button class="tab-btn" id="tab-btn-liderancas" onclick="switchView('liderancas')" title="Lideranças Mapeadas">
                     📍 Lideranças
                 </button>
-                <button class="tab-btn" id="tab-btn-distritos" onclick="switchView('distritos')">
-                    🧭 Distritos & Redutos
+                <button class="tab-btn" id="tab-btn-distritos" onclick="switchView('distritos')" title="Distritos & Redutos de Campanha">
+                    🧭 Distritos
                 </button>
-                <button class="tab-btn" id="tab-btn-users" onclick="switchView('users')" style="display:none;">
+                <button class="tab-btn" id="tab-btn-users" onclick="switchView('users')" style="display:none;" title="Gestão de Usuários / Meu Perfil">
                     👥 Usuários
                 </button>
-                <button class="tab-btn" id="tab-btn-audit" onclick="switchView('audit')" style="display:none;">
-                    📋 Auditoria & Banco
+                <button class="tab-btn" id="tab-btn-audit" onclick="switchView('audit')" style="display:none;" title="Auditoria & Nuvem">
+                    📋 Auditoria
                 </button>
             </div>
 
-            <!-- Camadas -->
-            <div style="display:flex; align-items:center; gap:8px; background:var(--bg-input); padding:5px 10px; border-radius:var(--radius-sm); border:1px solid var(--border-color); font-size:0.75rem;">
-                <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+            <!-- Camadas Compactas -->
+            <div class="layers-box-compact">
+                <label class="layer-item-label" title="Exibir/Ocultar 29 Colégios Eleitorais">
                     <input type="checkbox" id="chk-layer-colegios" checked> 🏫 Colégios
                 </label>
-                <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+                <label class="layer-item-label" title="Exibir/Ocultar Alfinetes de Lideranças">
                     <input type="checkbox" id="chk-layer-liderancas" checked> 📍 Lideranças
                 </label>
             </div>
 
             <!-- Seletor de Candidato -->
-            <select id="cand-select" class="select-filter"></select>
+            <select id="cand-select" class="select-filter" title="Filtrar por Candidato"></select>
 
             <!-- Seletor de Vereadores (Apenas Master) -->
-            <select id="filter-liderancas-vereador" class="select-filter" style="display:none;"></select>
+            <select id="filter-liderancas-vereador" class="select-filter" style="display:none;" title="Filtrar por Vereador"></select>
 
             <!-- Botão Cadastrar Liderança -->
-            <button class="btn-new-lideranca" onclick="openModalNewLideranca()">
-                <span>+ Cadastrar Liderança</span>
+            <button class="btn-new-lideranca" onclick="openModalNewLideranca()" title="Cadastrar nova liderança">
+                <span>+ Liderança</span>
             </button>
 
             <!-- Botão Conectar / Disparador WhatsApp -->
-            <button class="btn-whatsapp-connect" onclick="openWhatsAppSenderModal()" title="💬 Conectar WhatsApp & Disparador de Mensagens">
-                <span>💬 Conectar WhatsApp</span>
+            <button class="btn-whatsapp-connect" onclick="openWhatsAppSenderModal()" title="💬 Conectar WhatsApp & Disparador">
+                <span>💬 WhatsApp</span>
             </button>
 
-            <!-- Perfil do Usuário Ativo (Clique para trocar) -->
-            <div class="user-profile-pill" onclick="openModal('modal-switch-user')" title="Clique para alternar perfil ou fazer login">
+            <!-- Perfil do Usuário Ativo -->
+            <div class="user-profile-pill" onclick="openModal('modal-switch-user')" title="Alternar Perfil ou Acessar Conta">
                 <div class="user-avatar-badge" id="current-user-avatar">👑</div>
                 <div class="user-details">
                     <span class="user-name" id="current-user-name">Everton Moreira</span>

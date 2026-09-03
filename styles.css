@@ -149,12 +149,17 @@ header.topbar {
     color: var(--text-muted);
 }
 
-/* CONTROLS & SWITCHERS */
+/* CONTROLS & SWITCHERS (LINHA ÚNICA NO DESKTOP) */
 .header-actions {
     display: flex;
     align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
+    gap: 6px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.header-actions::-webkit-scrollbar {
+    display: none;
 }
 
 .view-tabs {
@@ -162,23 +167,25 @@ header.topbar {
     background: var(--bg-input);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
-    padding: 3px;
-    gap: 3px;
+    padding: 2px;
+    gap: 2px;
+    flex-shrink: 0;
 }
 
 .tab-btn {
     background: transparent;
     border: none;
     color: var(--text-muted);
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 0.78rem;
+    padding: 5px 8px;
+    border-radius: 4px;
+    font-size: 0.74rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
+    white-space: nowrap;
 }
 
 .tab-btn:hover {
@@ -188,20 +195,61 @@ header.topbar {
 .tab-btn.active {
     background: var(--primary);
     color: #fff;
-    box-shadow: 0 2px 10px var(--primary-glow);
+    box-shadow: 0 2px 8px var(--primary-glow);
+}
+
+/* CAMADAS COMPACTAS */
+.layers-box-compact {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-input);
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    font-size: 0.72rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.layer-item-label {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    transition: color 0.15s ease;
+}
+
+.layer-item-label:hover {
+    color: #fff;
+}
+
+.layer-item-label input[type="checkbox"] {
+    cursor: pointer;
+    width: 12px;
+    height: 12px;
+    accent-color: var(--primary);
 }
 
 .select-filter {
     background: var(--bg-input);
     color: var(--text-main);
     border: 1px solid var(--border-color);
-    padding: 7px 12px;
+    padding: 5px 8px;
     border-radius: var(--radius-sm);
-    font-size: 0.82rem;
+    font-size: 0.74rem;
     font-weight: 600;
     outline: none;
     cursor: pointer;
-    min-width: 220px;
+    min-width: 110px;
+    max-width: 155px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    flex-shrink: 0;
     transition: border-color 0.2s ease;
 }
 
@@ -209,16 +257,17 @@ header.topbar {
     border-color: var(--primary);
 }
 
-/* USER PROFILE PILL */
+/* USER PROFILE PILL COMPACTA */
 .user-profile-pill {
     display: flex;
     align-items: center;
-    gap: 10px;
-    background: rgba(30, 41, 59, 0.8);
+    gap: 6px;
+    background: rgba(30, 41, 59, 0.85);
     border: 1px solid var(--border-color);
-    padding: 4px 12px 4px 6px;
+    padding: 2px 8px 2px 4px;
     border-radius: var(--radius-full);
     cursor: pointer;
+    flex-shrink: 0;
     transition: all 0.2s ease;
 }
 
@@ -228,14 +277,14 @@ header.topbar {
 }
 
 .user-avatar-badge {
-    width: 32px;
-    height: 32px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
     background: linear-gradient(135deg, #1e293b, #334155);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.1rem;
+    font-size: 0.95rem;
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
 }
 
@@ -245,65 +294,74 @@ header.topbar {
 }
 
 .user-name {
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 700;
     color: #fff;
-    line-height: 1.2;
+    line-height: 1.1;
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .user-role-badge {
-    font-size: 0.65rem;
-    font-weight: 700;
+    font-size: 0.58rem;
+    font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     display: inline-block;
+    line-height: 1;
 }
 
 .role-master { color: #fbbf24; }
 .role-adm { color: #60a5fa; }
 .role-vereador { color: #34d399; }
 
-/* ACTION BUTTONS */
+/* ACTION BUTTONS COMPACTOS */
 .btn-new-lideranca {
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: #fff;
     border: none;
-    padding: 7px 14px;
+    padding: 5px 10px;
     border-radius: var(--radius-sm);
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 700;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 6px;
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    gap: 4px;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    flex-shrink: 0;
+    white-space: nowrap;
     transition: all 0.2s ease;
 }
 
 .btn-new-lideranca:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
+    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
 }
 
 .btn-whatsapp-connect {
     background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
     color: #fff;
     border: none;
-    padding: 7px 14px;
+    padding: 5px 10px;
     border-radius: var(--radius-sm);
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 700;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 6px;
-    box-shadow: 0 4px 15px rgba(37, 211, 102, 0.35);
+    gap: 4px;
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+    flex-shrink: 0;
+    white-space: nowrap;
     transition: all 0.2s ease;
 }
 
 .btn-whatsapp-connect:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(37, 211, 102, 0.5);
+    box-shadow: 0 6px 18px rgba(37, 211, 102, 0.5);
     filter: brightness(1.08);
 }
 
@@ -311,14 +369,16 @@ header.topbar {
     background: rgba(239, 68, 68, 0.12);
     color: #f87171;
     border: 1px solid rgba(239, 68, 68, 0.35);
-    padding: 7px 12px;
+    padding: 5px 9px;
     border-radius: var(--radius-sm);
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 700;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
+    flex-shrink: 0;
+    white-space: nowrap;
     transition: all 0.2s ease;
 }
 
@@ -1025,19 +1085,21 @@ header.topbar {
 
 @media screen and (max-width: 768px) {
     header.topbar {
-        padding: 8px 10px;
+        padding: 6px 10px;
         flex-direction: column;
         align-items: stretch;
-        gap: 8px;
+        gap: 6px;
     }
 
     .brand-section {
+        display: flex;
+        align-items: center;
         justify-content: space-between;
         width: 100%;
     }
 
     .brand-info h1 {
-        font-size: 0.92rem;
+        font-size: 0.88rem;
     }
 
     .brand-info p {
@@ -1048,10 +1110,11 @@ header.topbar {
         display: flex;
         flex-wrap: nowrap;
         overflow-x: auto;
-        padding-bottom: 4px;
-        gap: 6px;
+        padding: 2px 0 4px 0;
+        gap: 5px;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
+        align-items: center;
     }
     .header-actions::-webkit-scrollbar {
         display: none;
@@ -1062,35 +1125,46 @@ header.topbar {
     }
 
     .tab-btn {
-        padding: 6px 10px;
+        padding: 5px 8px;
         font-size: 0.72rem;
-        min-height: 36px;
+        min-height: 32px;
         white-space: nowrap;
+    }
+
+    .layers-box-compact {
+        padding: 3px 6px;
+        font-size: 0.7rem;
     }
 
     .select-filter {
         flex-shrink: 0;
-        max-width: 140px;
+        max-width: 130px;
         font-size: 0.72rem;
-        min-height: 36px;
+        min-height: 32px;
     }
 
-    .btn-new-lideranca {
+    .btn-new-lideranca, .btn-whatsapp-connect {
         flex-shrink: 0;
-        padding: 6px 12px;
-        font-size: 0.75rem;
-        min-height: 36px;
+        padding: 5px 9px;
+        font-size: 0.72rem;
+        min-height: 32px;
         white-space: nowrap;
     }
 
     .user-profile-pill {
         flex-shrink: 0;
-        padding: 4px 8px;
-        min-height: 36px;
+        padding: 2px 6px;
+        min-height: 32px;
     }
 
     .user-name {
         display: none;
+    }
+
+    .btn-logout {
+        padding: 5px 8px;
+        font-size: 0.72rem;
+        min-height: 32px;
     }
 
     /* TABELAS COM SCROLL HORIZONTAL FLUIDO */
