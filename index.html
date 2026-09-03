@@ -89,11 +89,6 @@
             <button class="btn-icon" onclick="openModal('modal-change-password')" title="🔑 Alterar Senha de Acesso">
                 🔑
             </button>
-
-            <!-- Configurações Supabase / Deploy -->
-            <button class="btn-icon" onclick="openModal('modal-supabase-config')" title="Configurações Supabase & Deploy">
-                ⚙️
-            </button>
         </div>
     </header>
 
@@ -770,35 +765,6 @@
     </div>
 </div>
 
-<!-- MODAL: CONFIGURAÇÕES SUPABASE / VERCEL -->
-<div class="modal-overlay" id="modal-supabase-config">
-    <div class="modal-card" style="max-width:500px;">
-        <div class="modal-header">
-            <h3 class="modal-title">⚙️ Conexão Supabase & Deploy Vercel</h3>
-            <button class="btn-close-modal" onclick="closeModal('modal-supabase-config')">&times;</button>
-        </div>
-        <div class="modal-body">
-            <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:12px;">
-                O sistema já está funcionando em modo de <strong>alta disponibilidade local</strong> com sincronização instantânea. Para conectar ao seu banco de dados PostgreSQL na nuvem:
-            </p>
-            <div class="form-group">
-                <label class="form-label">Supabase Project URL</label>
-                <input type="text" id="cfg-supabase-url" class="form-input" placeholder="https://xyzcompany.supabase.co">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Supabase Anon Key</label>
-                <input type="password" id="cfg-supabase-key" class="form-input" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
-            </div>
-            <div style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); padding:10px; border-radius:8px; font-size:0.75rem; color:#a7f3d0; margin-top:10px;">
-                ✅ <strong>Schema SQL Pronto:</strong> O script <code>supabase_schema.sql</code> está gerado com as tabelas de perfis, colégios e lideranças com políticas RLS ativas!
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn-secondary" onclick="closeModal('modal-supabase-config')">Fechar</button>
-            <button class="btn-primary" onclick="handleSaveSupabaseConfig()">💾 Salvar Chaves</button>
-        </div>
-    </div>
-</div>
 
 <!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>

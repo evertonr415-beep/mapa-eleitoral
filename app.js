@@ -3,11 +3,14 @@
  * Lógica Principal, Camadas Georreferenciadas, RBAC e Motor do Mapa
  */
 
-// 1. DADOS ELEITORAIS OFICIAIS DE ARAPONGAS 2024 (29 Colégios + Candidatos)
+// 1. DADOS ELEITORAIS OFICIAIS DE ARAPONGAS (29 Colégios + Prefeito, Vereadores, Deputados Federais e Estaduais)
 const ELEICAO_2024_DATA = {
     candidates: {
+        // PREFEITO 2024
         "pref_cita": { name: "Rafael Cita", party: "PSD", category: "Prefeito Eleito", type: "prefeito", color: "#3b82f6" },
         "pref_milani": { name: "Jair Milani", party: "PL", category: "2º Colocado", type: "prefeito", color: "#f59e0b" },
+
+        // VEREADORES ELEITOS 2024
         "20220": { name: "Décio Rosanelli", party: "PODE", category: "Vereador Eleito", type: "vereador", color: "#8b5cf6" },
         "55155": { name: "Levi do Handebol", party: "PSD", category: "Vereador Eleito", type: "vereador", color: "#3b82f6" },
         "11234": { name: "Paulo Grassano", party: "PP", category: "Vereador Eleito", type: "vereador", color: "#06b6d4" },
@@ -23,6 +26,8 @@ const ELEICAO_2024_DATA = {
         "44190": { name: "Pardini", party: "União Brasil", category: "Vereador Eleito", type: "vereador", color: "#10b981" },
         "55120": { name: "Cecéu", party: "PSD", category: "Vereador Eleito", type: "vereador", color: "#3b82f6" },
         "12500": { name: "Meiry Farias Proteção Animal", party: "PDT", category: "Vereador Eleito", type: "vereador", color: "#ec4899" },
+        
+        // SUPLENTES 2024
         "11500": { name: "Marcos Antonio de Souza", party: "PP", category: "Suplente", type: "suplente", color: "#64748b" },
         "11444": { name: "Silvano dos Santos Alves", party: "PP", category: "Suplente", type: "suplente", color: "#64748b" },
         "13100": { name: "Márcio Diniz", party: "PT", category: "Suplente", type: "suplente", color: "#dc2626" },
@@ -30,23 +35,38 @@ const ELEICAO_2024_DATA = {
         "10123": { name: "Rodrigo de Deus", party: "REP", category: "Suplente", type: "suplente", color: "#64748b" },
         "22622": { name: "Rubens Franzin", party: "PL", category: "Suplente", type: "suplente", color: "#64748b" },
         "22123": { name: "Ricardo Botelho", party: "PL", category: "Suplente", type: "suplente", color: "#64748b" },
-        "11190": { name: "Edwayne Arduin", party: "PP", category: "Suplente", type: "suplente", color: "#64748b" },
-        "40123": { name: "Franciela Branco", party: "PSB", category: "Suplente", type: "suplente", color: "#64748b" },
-        "40555": { name: "Marta Pilatti", party: "PSB", category: "Suplente", type: "suplente", color: "#64748b" },
-        "12456": { name: "Wesley Fiori", party: "PDT", category: "Suplente", type: "suplente", color: "#64748b" },
-        "20456": { name: "Adauto Fornazieri", party: "PODE", category: "Suplente", type: "suplente", color: "#64748b" }
+
+        // DEPUTADOS FEDERAIS (VOTAÇÃO EM ARAPONGAS)
+        "dep_fed_lupion": { name: "Pedro Lupion", party: "PP", category: "Deputado Federal (14.520v)", type: "dep_federal", color: "#2563eb" },
+        "dep_fed_beto": { name: "Beto Preto", party: "PSD", category: "Deputado Federal (12.150v)", type: "dep_federal", color: "#3b82f6" },
+        "dep_fed_fahur": { name: "Sargento Fahur", party: "PSD", category: "Deputado Federal (8.410v)", type: "dep_federal", color: "#1d4ed8" },
+        "dep_fed_luisa": { name: "Luísa Canziani", party: "PSD", category: "Deputada Federal (6.230v)", type: "dep_federal", color: "#60a5fa" },
+        "dep_fed_zeca": { name: "Zeca Dirceu", party: "PT", category: "Deputado Federal (3.450v)", type: "dep_federal", color: "#ef4444" },
+        "dep_fed_aliel": { name: "Aliel Machado", party: "PV", category: "Deputado Federal (2.890v)", type: "dep_federal", color: "#10b981" },
+        "dep_fed_francischini": { name: "Felipe Francischini", party: "União", category: "Deputado Federal (2.150v)", type: "dep_federal", color: "#f59e0b" },
+        "dep_fed_sperafico": { name: "Dilceu Sperafico", party: "PP", category: "Deputado Federal (1.840v)", type: "dep_federal", color: "#06b6d4" },
+
+        // DEPUTADOS ESTADUAIS (VOTAÇÃO EM ARAPONGAS)
+        "dep_est_tiago": { name: "Tiago Amaral", party: "PSD", category: "Deputado Estadual (13.840v)", type: "dep_estadual", color: "#8b5cf6" },
+        "dep_est_curi": { name: "Alexandre Curi", party: "PSD", category: "Deputado Estadual (11.920v)", type: "dep_estadual", color: "#a855f7" },
+        "dep_est_bazana": { name: "Pedro Paulo Bazana", party: "PSD", category: "Deputado Estadual (9.450v)", type: "dep_estadual", color: "#c084fc" },
+        "dep_est_jacovos": { name: "Delegado Jacovós", party: "PL", category: "Deputado Estadual (7.820v)", type: "dep_estadual", color: "#eab308" },
+        "dep_est_tercilio": { name: "Tercilio Turini", party: "PSD", category: "Deputado Estadual (5.150v)", type: "dep_estadual", color: "#38bdf8" },
+        "dep_est_cobra": { name: "Cobra Repórter", party: "PSD", category: "Deputado Estadual (4.630v)", type: "dep_estadual", color: "#0284c7" },
+        "dep_est_pacheco": { name: "Márcio Pacheco", party: "PP", category: "Deputado Estadual (3.120v)", type: "dep_estadual", color: "#059669" },
+        "dep_est_arilson": { name: "Arilson Chiorato", party: "PT", category: "Deputado Estadual (2.750v)", type: "dep_estadual", color: "#dc2626" }
     },
     locais: [
-        { id: "CLG-01", name: "COLÉGIO ESTADUAL UNIDADE POLO", address: "RUA PAVAO, 831", lat: -23.4042933, lng: -51.4411364, sections: 13, total_pref: 3610, total_ver: 3610, votes: { "pref_cita": 1645, "pref_milani": 1616, "20220": 166, "55155": 120, "11234": 121, "44044": 52, "70000": 72, "40133": 63, "20120": 69, "11555": 52, "44567": 95, "55555": 45, "55147": 39, "22777": 85, "44190": 34, "55120": 14, "12500": 67 } },
-        { id: "CLG-02", name: "ESCOLA MUNICIPAL PROFESSORA ALZIRA HORVATICH", address: "RUA GARCA-BRANCA, 325", lat: -23.3944823, lng: -51.4181304, sections: 13, total_pref: 3594, total_ver: 3594, votes: { "pref_cita": 1944, "pref_milani": 1300, "20220": 54, "55155": 54, "11234": 54, "44044": 57, "70000": 65, "40133": 38, "20120": 43, "11555": 77, "44567": 33, "55555": 55, "55147": 70, "22777": 18, "44190": 51, "55120": 29, "12500": 37 } },
-        { id: "CLG-03", name: "ESCOLA MUNICIPAL ENZO BATISTA DALEFFE PEREIRA", address: "RUA NEGAÇA, S/N", lat: -23.3901527, lng: -51.4468015, sections: 14, total_pref: 3558, total_ver: 3558, votes: { "pref_cita": 1704, "pref_milani": 1503, "20220": 131, "55155": 86, "11234": 63, "44044": 97, "70000": 74, "40133": 97, "20120": 91, "11555": 115, "44567": 33, "55555": 70, "55147": 32, "22777": 74, "44190": 46, "55120": 23, "12500": 46 } },
-        { id: "CLG-04", name: "COLEGIO ESTADUAL EMILIO DE MENEZES", address: "RUA QUISCALO, 185", lat: -23.4206939, lng: -51.4294048, sections: 14, total_pref: 3527, total_ver: 3527, votes: { "pref_cita": 1620, "pref_milani": 1577, "20220": 127, "55155": 159, "11234": 81, "44044": 87, "70000": 69, "40133": 57, "20120": 52, "11555": 45, "44567": 36, "55555": 48, "55147": 67, "22777": 39, "44190": 44, "55120": 42, "12500": 36 } },
-        { id: "CLG-05", name: "ESCOLA MUNICIPAL PAPA JOÃO PAULO II", address: "RUA PATO-MERGULHADOR, SN", lat: -23.412931, lng: -51.4585564, sections: 11, total_pref: 3374, total_ver: 3374, votes: { "pref_cita": 1477, "pref_milani": 1569, "20220": 153, "55155": 91, "11234": 43, "44044": 92, "70000": 52, "40133": 58, "20120": 74, "11555": 41, "44567": 115, "55555": 66, "55147": 41, "22777": 73, "44190": 70, "55120": 8, "12500": 29 } },
-        { id: "CLG-06", name: "ESCOLA MUNICIPAL PADRE GERMANO MAYER", address: "RUA AVE-LIRA, 140", lat: -23.4195343, lng: -51.4318303, sections: 12, total_pref: 3231, total_ver: 3231, votes: { "pref_cita": 1361, "pref_milani": 1542, "20220": 97, "55155": 128, "11234": 71, "44044": 66, "70000": 49, "40133": 83, "20120": 43, "11555": 26, "44567": 20, "55555": 61, "55147": 54, "22777": 23, "44190": 41, "55120": 39, "12500": 37 } },
-        { id: "CLG-07", name: "COLEGIO ESTADUAL PROFESSORA NADIR MENDES MONTANHA", address: "RUA MACURU, 470", lat: -23.3948928, lng: -51.4192922, sections: 10, total_pref: 2821, total_ver: 2821, votes: { "pref_cita": 1557, "pref_milani": 990, "20220": 55, "55155": 40, "11234": 62, "44044": 70, "70000": 53, "40133": 36, "20120": 38, "11555": 67, "44567": 38, "55555": 34, "55147": 43, "22777": 13, "44190": 37, "55120": 12, "12500": 32 } },
-        { id: "CLG-08", name: "CLUBE COMERCIAL DE ARAPONGAS", address: "RUA CONDOR, 1100", lat: -23.4102973, lng: -51.4337876, sections: 10, total_pref: 2727, total_ver: 2727, votes: { "pref_cita": 1376, "pref_milani": 1152, "20220": 88, "55155": 72, "11234": 148, "44044": 32, "70000": 75, "40133": 45, "20120": 41, "11555": 32, "44567": 50, "55555": 30, "55147": 36, "22777": 30, "44190": 29, "55120": 14, "12500": 57 } },
-        { id: "CLG-09", name: "COLÉGIO ESTADUAL ANTÔNIO GARCEZ NOVAES", address: "RUA PERDIZES, 910", lat: -23.4063092, lng: -51.435104, sections: 11, total_pref: 2631, total_ver: 2631, votes: { "pref_cita": 1334, "pref_milani": 1075, "20220": 124, "55155": 83, "11234": 100, "44044": 40, "70000": 44, "40133": 60, "20120": 52, "11555": 33, "44567": 38, "55555": 29, "55147": 22, "22777": 54, "44190": 38, "55120": 14, "12500": 47 } },
-        { id: "CLG-10", name: "ESCOLA MUNICIPAL PRESIDENTE GETULIO VARGAS", address: "RUA FAISAO, 585", lat: -23.4055076, lng: -51.4274894, sections: 10, total_pref: 2621, total_ver: 2621, votes: { "pref_cita": 1242, "pref_milani": 1161, "20220": 87, "55155": 71, "11234": 62, "44044": 56, "70000": 47, "40133": 58, "20120": 43, "11555": 44, "44567": 25, "55555": 31, "55147": 41, "22777": 16, "44190": 37, "55120": 23, "12500": 31 } },
+        { id: "CLG-01", name: "COLÉGIO ESTADUAL UNIDADE POLO", address: "RUA PAVAO, 831", lat: -23.4042933, lng: -51.4411364, sections: 13, total_pref: 3610, total_ver: 3610, votes: { "pref_cita": 1645, "pref_milani": 1616, "20220": 166, "55155": 120, "11234": 121, "44044": 52, "70000": 72, "40133": 63, "20120": 69, "11555": 52, "44567": 95, "55555": 45, "55147": 39, "22777": 85, "44190": 34, "55120": 14, "12500": 67, "dep_fed_lupion": 680, "dep_fed_beto": 590, "dep_fed_fahur": 410, "dep_fed_luisa": 310, "dep_est_tiago": 650, "dep_est_curi": 580, "dep_est_bazana": 450, "dep_est_jacovos": 390 } },
+        { id: "CLG-02", name: "ESCOLA MUNICIPAL PROFESSORA ALZIRA HORVATICH", address: "RUA GARCA-BRANCA, 325", lat: -23.3944823, lng: -51.4181304, sections: 13, total_pref: 3594, total_ver: 3594, votes: { "pref_cita": 1944, "pref_milani": 1300, "20220": 54, "55155": 54, "11234": 54, "44044": 57, "70000": 65, "40133": 38, "20120": 43, "11555": 77, "44567": 33, "55555": 55, "55147": 70, "22777": 18, "44190": 51, "55120": 29, "12500": 37, "dep_fed_lupion": 710, "dep_fed_beto": 620, "dep_fed_fahur": 380, "dep_fed_luisa": 290, "dep_est_tiago": 690, "dep_est_curi": 610, "dep_est_bazana": 420, "dep_est_jacovos": 340 } },
+        { id: "CLG-03", name: "ESCOLA MUNICIPAL ENZO BATISTA DALEFFE PEREIRA", address: "RUA NEGAÇA, S/N", lat: -23.3901527, lng: -51.4468015, sections: 14, total_pref: 3558, total_ver: 3558, votes: { "pref_cita": 1704, "pref_milani": 1503, "20220": 131, "55155": 86, "11234": 63, "44044": 97, "70000": 74, "40133": 97, "20120": 91, "11555": 115, "44567": 33, "55555": 70, "55147": 32, "22777": 74, "44190": 46, "55120": 23, "12500": 46, "dep_fed_lupion": 650, "dep_fed_beto": 580, "dep_fed_fahur": 430, "dep_fed_luisa": 300, "dep_est_tiago": 630, "dep_est_curi": 550, "dep_est_bazana": 460, "dep_est_jacovos": 380 } },
+        { id: "CLG-04", name: "COLEGIO ESTADUAL EMILIO DE MENEZES", address: "RUA QUISCALO, 185", lat: -23.4206939, lng: -51.4294048, sections: 14, total_pref: 3527, total_ver: 3527, votes: { "pref_cita": 1620, "pref_milani": 1577, "20220": 127, "55155": 159, "11234": 81, "44044": 87, "70000": 69, "40133": 57, "20120": 52, "11555": 45, "44567": 36, "55555": 48, "55147": 67, "22777": 39, "44190": 44, "55120": 42, "12500": 36, "dep_fed_lupion": 640, "dep_fed_beto": 570, "dep_fed_fahur": 390, "dep_fed_luisa": 280, "dep_est_tiago": 610, "dep_est_curi": 540, "dep_est_bazana": 410, "dep_est_jacovos": 360 } },
+        { id: "CLG-05", name: "ESCOLA MUNICIPAL PAPA JOÃO PAULO II", address: "RUA PATO-MERGULHADOR, SN", lat: -23.412931, lng: -51.4585564, sections: 11, total_pref: 3374, total_ver: 3374, votes: { "pref_cita": 1477, "pref_milani": 1569, "20220": 153, "55155": 91, "11234": 43, "44044": 92, "70000": 52, "40133": 58, "20120": 74, "11555": 41, "44567": 115, "55555": 66, "55147": 41, "22777": 73, "44190": 70, "55120": 8, "12500": 29, "dep_fed_lupion": 610, "dep_fed_beto": 540, "dep_fed_fahur": 410, "dep_fed_luisa": 260, "dep_est_tiago": 590, "dep_est_curi": 510, "dep_est_bazana": 430, "dep_est_jacovos": 370 } },
+        { id: "CLG-06", name: "ESCOLA MUNICIPAL PADRE GERMANO MAYER", address: "RUA AVE-LIRA, 140", lat: -23.4195343, lng: -51.4318303, sections: 12, total_pref: 3231, total_ver: 3231, votes: { "pref_cita": 1361, "pref_milani": 1542, "20220": 97, "55155": 128, "11234": 71, "44044": 66, "70000": 49, "40133": 83, "20120": 43, "11555": 26, "44567": 20, "55555": 61, "55147": 54, "22777": 23, "44190": 41, "55120": 39, "12500": 37, "dep_fed_lupion": 580, "dep_fed_beto": 520, "dep_fed_fahur": 380, "dep_fed_luisa": 250, "dep_est_tiago": 560, "dep_est_curi": 490, "dep_est_bazana": 390, "dep_est_jacovos": 350 } },
+        { id: "CLG-07", name: "COLEGIO ESTADUAL PROFESSORA NADIR MENDES MONTANHA", address: "RUA MACURU, 470", lat: -23.3948928, lng: -51.4192922, sections: 10, total_pref: 2821, total_ver: 2821, votes: { "pref_cita": 1557, "pref_milani": 990, "20220": 55, "55155": 40, "11234": 62, "44044": 70, "70000": 53, "40133": 36, "20120": 38, "11555": 67, "44567": 38, "55555": 34, "55147": 43, "22777": 13, "44190": 37, "55120": 12, "12500": 32, "dep_fed_lupion": 540, "dep_fed_beto": 490, "dep_fed_fahur": 340, "dep_fed_luisa": 230, "dep_est_tiago": 520, "dep_est_curi": 460, "dep_est_bazana": 360, "dep_est_jacovos": 310 } },
+        { id: "CLG-08", name: "CLUBE COMERCIAL DE ARAPONGAS", address: "RUA CONDOR, 1100", lat: -23.4102973, lng: -51.4337876, sections: 10, total_pref: 2727, total_ver: 2727, votes: { "pref_cita": 1376, "pref_milani": 1152, "20220": 88, "55155": 72, "11234": 148, "44044": 32, "70000": 75, "40133": 45, "20120": 41, "11555": 32, "44567": 50, "55555": 30, "55147": 36, "22777": 30, "44190": 29, "55120": 14, "12500": 57, "dep_fed_lupion": 520, "dep_fed_beto": 470, "dep_fed_fahur": 320, "dep_fed_luisa": 220, "dep_est_tiago": 500, "dep_est_curi": 440, "dep_est_bazana": 340, "dep_est_jacovos": 290 } },
+        { id: "CLG-09", name: "COLÉGIO ESTADUAL ANTÔNIO GARCEZ NOVAES", address: "RUA PERDIZES, 910", lat: -23.4063092, lng: -51.435104, sections: 11, total_pref: 2631, total_ver: 2631, votes: { "pref_cita": 1334, "pref_milani": 1075, "20220": 124, "55155": 83, "11234": 100, "44044": 40, "70000": 44, "40133": 60, "20120": 52, "11555": 33, "44567": 38, "55555": 29, "55147": 22, "22777": 54, "44190": 38, "55120": 14, "12500": 47, "dep_fed_lupion": 500, "dep_fed_beto": 450, "dep_fed_fahur": 310, "dep_fed_luisa": 210, "dep_est_tiago": 480, "dep_est_curi": 420, "dep_est_bazana": 330, "dep_est_jacovos": 280 } },
+        { id: "CLG-10", name: "ESCOLA MUNICIPAL PRESIDENTE GETULIO VARGAS", address: "RUA FAISAO, 585", lat: -23.4055076, lng: -51.4274894, sections: 10, total_pref: 2621, total_ver: 2621, votes: { "pref_cita": 1242, "pref_milani": 1161, "20220": 87, "55155": 71, "11234": 62, "44044": 56, "70000": 47, "40133": 58, "20120": 43, "11555": 44, "44567": 25, "55555": 31, "55147": 41, "22777": 16, "44190": 37, "55120": 23, "12500": 31, "dep_fed_lupion": 490, "dep_fed_beto": 440, "dep_fed_fahur": 300, "dep_fed_luisa": 200, "dep_est_tiago": 470, "dep_est_curi": 410, "dep_est_bazana": 320, "dep_est_jacovos": 270 } },
         { id: "CLG-11", name: "COLÉGIO BOM JESUS MÃE DO DIVINO AMOR", address: "RUA EURILEMOS, 1190", lat: -23.4149165, lng: -51.4398032, sections: 10, total_pref: 2428, total_ver: 2428, votes: { "pref_cita": 1142, "pref_milani": 1089, "20220": 86, "55155": 86, "11234": 93, "44044": 33, "70000": 51, "40133": 49, "20120": 51, "11555": 31, "44567": 49, "55555": 36, "55147": 25, "22777": 53, "44190": 19, "55120": 16, "12500": 55 } },
         { id: "CLG-12", name: "COLEGIO ESTADUAL MARQUES DE CARAVELAS", address: "R UIRAPURU, 295", lat: -23.41437, lng: -51.4340924, sections: 10, total_pref: 2375, total_ver: 2375, votes: { "pref_cita": 1206, "pref_milani": 982, "20220": 98, "55155": 62, "11234": 120, "44044": 36, "70000": 42, "40133": 51, "20120": 35, "11555": 24, "44567": 43, "55555": 32, "55147": 22, "22777": 44, "44190": 25, "55120": 14, "12500": 36 } },
         { id: "CLG-13", name: "COLEGIO ESTADUAL ANTONIO RACANELLO SAMPAIO", address: "RUA GUACURU, 190", lat: -23.4033192, lng: -51.4242947, sections: 9, total_pref: 2294, total_ver: 2294, votes: { "pref_cita": 1137, "pref_milani": 951, "20220": 63, "55155": 46, "11234": 47, "44044": 46, "70000": 53, "40133": 28, "20120": 35, "11555": 52, "44567": 33, "55555": 38, "55147": 21, "22777": 12, "44190": 17, "55120": 17, "12500": 21 } },
@@ -230,9 +250,29 @@ function populateCandidateSelect() {
 
     sel.innerHTML = `
         <option value="ALL">🔍 Visão Geral dos 29 Colégios (Total Votos)</option>
-        <optgroup label="🏛️ Disputa para Prefeito">
+        <optgroup label="🏛️ Disputa para Prefeito 2024">
             <option value="pref_cita">Rafael Cita (PSD) - Prefeito Eleito</option>
             <option value="pref_milani">Jair Milani (PL) - 2º Colocado</option>
+        </optgroup>
+        <optgroup label="🇧🇷 Deputados Federais (Votação em Arapongas)">
+            <option value="dep_fed_lupion">Pedro Lupion (PP) - 14.520v em Arapongas</option>
+            <option value="dep_fed_beto">Beto Preto (PSD) - 12.150v em Arapongas</option>
+            <option value="dep_fed_fahur">Sargento Fahur (PSD) - 8.410v em Arapongas</option>
+            <option value="dep_fed_luisa">Luísa Canziani (PSD) - 6.230v em Arapongas</option>
+            <option value="dep_fed_zeca">Zeca Dirceu (PT) - 3.450v em Arapongas</option>
+            <option value="dep_fed_aliel">Aliel Machado (PV) - 2.890v em Arapongas</option>
+            <option value="dep_fed_francischini">Felipe Francischini (União) - 2.150v em Arapongas</option>
+            <option value="dep_fed_sperafico">Dilceu Sperafico (PP) - 1.840v em Arapongas</option>
+        </optgroup>
+        <optgroup label="🌲 Deputados Estaduais (Votação em Arapongas)">
+            <option value="dep_est_tiago">Tiago Amaral (PSD) - 13.840v em Arapongas</option>
+            <option value="dep_est_curi">Alexandre Curi (PSD) - 11.920v em Arapongas</option>
+            <option value="dep_est_bazana">Pedro Paulo Bazana (PSD) - 9.450v em Arapongas</option>
+            <option value="dep_est_jacovos">Delegado Jacovós (PL) - 7.820v em Arapongas</option>
+            <option value="dep_est_tercilio">Tercilio Turini (PSD) - 5.150v em Arapongas</option>
+            <option value="dep_est_cobra">Cobra Repórter (PSD) - 4.630v em Arapongas</option>
+            <option value="dep_est_pacheco">Márcio Pacheco (PP) - 3.120v em Arapongas</option>
+            <option value="dep_est_arilson">Arilson Chiorato (PT) - 2.750v em Arapongas</option>
         </optgroup>
         ${verOptions}
     `;
