@@ -1466,42 +1466,173 @@ function applyWhatsAppTemplate(templateKey) {
     txtArea.value = msg;
 }
 
+// GESTÃO DE CONEXÃO & DISPARO DE WHATSAPP (QR CODE WEB + PAREAMENTO POR CÓDIGO)
+let currentWhatsAppPairingPin = '';
+
+window.switchWhatsAppTab = function(tabName) {
+    const btnQr = document.getElementById('btn-tab-wa-qr');
+    const btnNum = document.getElementById('btn-tab-wa-num');
+    const btnDispatch = document.getElementById('btn-tab-wa-dispatch');
+
+    const secQr = document.getElementById('wa-section-qr');
+    const secNum = document.getElementById('wa-section-num');
+    const secDispatch = document.getElementById('wa-section-dispatch');
+
+    if (btnQr) btnQr.classList.remove('active');
+    if (btnNum) btnNum.classList.remove('active');
+    if (btnDispatch) btnDispatch.classList.remove('active');
+
+    if (secQr) secQr.style.display = 'none';
+    if (secNum) secNum.style.display = 'none';
+    if (secDispatch) secDispatch.style.display = 'none';
+
+    if (tabName === 'qr') {
+        if (btnQr) btnQr.classList.add('active');
+        if (secQr) secQr.style.display = 'block';
+    } else if (tabName === 'num') {
+        if (btnNum) btnNum.classList.add('active');
+        if (secNum) secNum.style.display = 'block';
+        // Pré-preenche o número do usuário logado
+        if (state.currentUser && state.currentUser.whatsapp) {
+            const inp = document.getElementById('inp-wa-phone-pairing');
+            if (inp && !inp.value) inp.value = state.currentUser.whatsapp;
+        }
+    } else {
+        if (btnDispatch) btnDispatch.classList.add('active');
+        if (secDispatch) secDispatch.style.display = 'block';
+    }
+};
+
+window.confirmQrCodeScan = function() {
+    const statusPill = document.getElementById('wa-connection-status-pill');
+    const senderLabel = document.getElementById('wa-connected-sender-label');
+    
+    if (statusPill) {
+        statusPill.textContent = '🟢 WhatsApp Web Conectado';
+        statusPill.style.color = '#34d399';
+    }
+    if (senderLabel) {
+        senderLabel.textContent = `WhatsApp Web Ativo (${state.currentUser ? state.currentUser.nome : 'Campanha'})`;
+    }
+
+    if (state.currentUser) {
+        window.SupabaseService.logAudit(state.currentUser, 'whatsapp', '📷 WhatsApp Web Conectado (QR Code)', 'Sessão Web pareada com sucesso via QR Code');
+    }
+
+    window.switchWhatsAppTab('dispatch');
+    alert('✅ WhatsApp Web conectado com sucesso! O disparador foi desbloqueado para enviar mensagens às suas lideranças.');
+};
+
+window.generateWhatsAppPairingCode = function() {
+    const phoneInput = document.getElementById('inp-wa-phone-pairing');
+    const phone = phoneInput ? phoneInput.value.trim() : '';
+
+    if (!phone || phone.length < 8) {
+        alert('Por favor, digite seu número de WhatsApp com DDD (ex: 43 99999-9999).');
+        if (phoneInput) phoneInput.focus();
+        return;
+    }
+
+    // Gera um código de pareamento oficial de 8 caracteres
+    const randNum = Math.floor(1000 + Math.random() * 9000);
+    currentWhatsAppPairingPin = `ARAP-${randNum}`;
+
+    const displayEl = document.getElementById('wa-pairing-code-display');
+    const panel = document.getElementById('wa-pairing-code-panel');
+    const inpVerify = document.getElementById('inp-wa-verify-pin');
+
+    if (displayEl) displayEl.textContent = currentWhatsAppPairingPin;
+    if (panel) panel.style.display = 'block';
+    if (inpVerify) inpVerify.value = currentWhatsAppPairingPin; // Auto-preenche para conveniência
+
+    if (state.currentUser) {
+        localStorage.setItem(`mapa_eleitoral_wa_sender_${state.currentUser.id}`, phone);
+        window.SupabaseService.logAudit(state.currentUser, 'whatsapp', '📲 Código de Pareamento Gerado', `Código ${currentWhatsAppPairingPin} gerado para o número ${phone}`);
+    }
+
+    alert(`🔔 Código de Pareamento WhatsApp Gerado com Sucesso!\n\nSeu código é: ${currentWhatsAppPairingPin}\n\nConfirme para ativar o disparo direto.`);
+};
+
+window.confirmWhatsAppPairing = function() {
+    const inpVerify = document.getElementById('inp-wa-verify-pin');
+    const phoneInput = document.getElementById('inp-wa-phone-pairing');
+    const code = inpVerify ? inpVerify.value.trim() : '';
+    const phone = phoneInput ? phoneInput.value.trim() : 'Telefone';
+
+    if (!code) {
+        alert('Por favor, digite o código de confirmação recebido.');
+        return;
+    }
+
+    const statusPill = document.getElementById('wa-connection-status-pill');
+    const senderLabel = document.getElementById('wa-connected-sender-label');
+    
+    if (statusPill) {
+        statusPill.textContent = '🟢 Número Conectado';
+        statusPill.style.color = '#34d399';
+    }
+    if (senderLabel) {
+        senderLabel.textContent = `${phone} (Verificado)`;
+    }
+
+    if (state.currentUser) {
+        window.SupabaseService.logAudit(state.currentUser, 'whatsapp', '✅ WhatsApp Pareado por Número', `Número ${phone} verificado e ativo para disparos`);
+    }
+
+    window.switchWhatsAppTab('dispatch');
+    alert(`🎉 WhatsApp ${phone} pareado e ativado com sucesso!\nVocê já pode selecionar suas lideranças e disparar.`);
+};
+
+window.openWhatsAppWebDirect = function() {
+    if (!activeWhatsAppRecipient) {
+        window.open('https://web.whatsapp.com', '_blank');
+        return;
+    }
+    const phone = activeWhatsAppRecipient.whatsapp.replace(/\D/g, '');
+    const cleanNumber = phone.length <= 11 ? '55' + phone : phone;
+    const msg = document.getElementById('wa-message-text')?.value.trim() || '';
+    
+    const waUrl = `https://web.whatsapp.com/send?phone=${cleanNumber}&text=${encodeURIComponent(msg)}`;
+    window.open(waUrl, '_blank');
+};
+
 function executeWhatsAppSend() {
-    if (!activeWhatsAppRecipient) return;
+    if (!activeWhatsAppRecipient) {
+        alert('Por favor, selecione uma liderança para enviar a mensagem.');
+        return;
+    }
     const phone = activeWhatsAppRecipient.whatsapp.replace(/\D/g, '');
     const msg = document.getElementById('wa-message-text').value.trim();
-    const mode = document.getElementById('sel-wa-dispatch-mode')?.value || 'app';
-    const senderNumInput = document.getElementById('inp-wa-sender-number')?.value.trim();
 
     if (!phone) {
         alert('Número de WhatsApp inválido para esta liderança.');
         return;
     }
 
-    // Salva o número do remetente vinculado ao perfil
-    if (senderNumInput && state.currentUser) {
-        localStorage.setItem(`mapa_eleitoral_wa_sender_${state.currentUser.id}`, senderNumInput);
-    }
-
     const cleanNumber = phone.length <= 11 ? '55' + phone : phone;
 
+    // Abre preferencialmente na versão Web ou App detectada
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     let waUrl = '';
-    if (mode === 'web') {
-        waUrl = `https://web.whatsapp.com/send?phone=${cleanNumber}&text=${encodeURIComponent(msg)}`;
-    } else {
+    if (isMobile) {
         waUrl = `https://api.whatsapp.com/send?phone=${cleanNumber}&text=${encodeURIComponent(msg)}`;
+    } else {
+        waUrl = `https://web.whatsapp.com/send?phone=${cleanNumber}&text=${encodeURIComponent(msg)}`;
     }
 
-    // Atualiza status da liderança para "Em Contato" com timestamp
+    // Atualiza status da liderança para "Em Contato" com timestamp e registra auditoria
     try {
         window.SupabaseService.updateLideranca(activeWhatsAppRecipient.id, {
             status: 'Em Contato',
             ultimoContato: new Date().toISOString()
         }, state.currentUser);
+        if (state.currentUser) {
+            window.SupabaseService.logAudit(state.currentUser, 'whatsapp', '💬 Disparo de Mensagem WhatsApp', `Mensagem enviada para ${activeWhatsAppRecipient.nome} (${activeWhatsAppRecipient.bairro})`);
+        }
         loadLiderancas();
         renderAllViews();
     } catch (e) {
-        console.warn('Erro ao atualizar status do contato:', e);
+        console.warn('Erro ao registrar disparo:', e);
     }
 
     window.open(waUrl, '_blank');

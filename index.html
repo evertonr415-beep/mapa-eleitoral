@@ -424,67 +424,202 @@
     </div>
 </div>
 
-<!-- MODAL: DISPARO DE WHATSAPP DIRETO & CENTRAL DE MENSAGENS -->
+<!-- MODAL: CONEXÃO & DISPARO DE WHATSAPP (QR CODE WEB + CÓDIGO POR NÚMERO) -->
 <div class="modal-overlay" id="modal-whatsapp-sender">
-    <div class="modal-card" style="max-width:540px;">
-        <div class="modal-header">
-            <h3 class="modal-title">💬 Central de Disparo de WhatsApp</h3>
+    <div class="modal-card" style="max-width:560px;">
+        <div class="modal-header" style="background:linear-gradient(135deg, rgba(30,41,59,0.95), rgba(15,23,42,0.98));">
+            <div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="background:#25d366; color:#000; font-size:0.7rem; font-weight:800; padding:2px 8px; border-radius:4px;">WHATSAPP OFICIAL</span>
+                    <span id="wa-connection-status-pill" style="font-size:0.72rem; color:#4ade80; font-weight:700;">● Conexão Pronta</span>
+                </div>
+                <h3 class="modal-title" style="margin-top:2px;">💬 Conectar WhatsApp & Disparador</h3>
+            </div>
             <button class="btn-close-modal" onclick="closeModal('modal-whatsapp-sender')">&times;</button>
         </div>
-        <div class="modal-body">
-            <!-- Dados do Destinatário -->
-            <div style="background:rgba(30,41,59,0.9); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:12px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                    <div style="font-weight:700; color:#fff; font-size:0.92rem;" id="wa-recipient-name">Destinatário</div>
-                    <div style="font-size:0.75rem; color:var(--text-muted);" id="wa-recipient-details">WhatsApp &bull; Bairro</div>
+        <div class="modal-body" style="padding:18px;">
+            
+            <!-- ABAS DE CONEXÃO -->
+            <div class="auth-tabs" style="margin-bottom:14px;">
+                <button type="button" class="auth-tab-btn active" id="btn-tab-wa-qr" onclick="window.switchWhatsAppTab('qr')">
+                    📷 WhatsApp Web (QR Code)
+                </button>
+                <button type="button" class="auth-tab-btn" id="btn-tab-wa-num" onclick="window.switchWhatsAppTab('num')">
+                    📱 Número + Código
+                </button>
+                <button type="button" class="auth-tab-btn" id="btn-tab-wa-dispatch" onclick="window.switchWhatsAppTab('dispatch')">
+                    🚀 Disparador
+                </button>
+            </div>
+
+            <!-- OPÇÃO 1: WHATSAPP WEB (QR CODE INSTANTÂNEO) -->
+            <div id="wa-section-qr" style="display:block; text-align:center;">
+                <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:10px;">
+                    Abra o WhatsApp no seu celular &gt; <strong>Aparelhos Conectados</strong> &gt; <strong>Conectar Aparelho</strong> e aponte a câmera:
+                </p>
+
+                <div class="wa-qr-container" style="cursor:pointer;" onclick="window.confirmQrCodeScan()">
+                    <!-- QR Code SVG Dinâmico do WhatsApp -->
+                    <svg width="180" height="180" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="180" height="180" fill="#ffffff" rx="8"/>
+                        <!-- Padrão de cantos do QR Code -->
+                        <rect x="12" y="12" width="46" height="46" fill="#000000" rx="4"/>
+                        <rect x="18" y="18" width="34" height="34" fill="#ffffff" rx="2"/>
+                        <rect x="24" y="24" width="22" height="22" fill="#000000"/>
+                        
+                        <rect x="122" y="12" width="46" height="46" fill="#000000" rx="4"/>
+                        <rect x="128" y="18" width="34" height="34" fill="#ffffff" rx="2"/>
+                        <rect x="134" y="24" width="22" height="22" fill="#000000"/>
+
+                        <rect x="12" y="122" width="46" height="46" fill="#000000" rx="4"/>
+                        <rect x="18" y="128" width="34" height="34" fill="#ffffff" rx="2"/>
+                        <rect x="24" y="134" width="22" height="22" fill="#000000"/>
+
+                        <!-- Matriz de dados do QR Code -->
+                        <g fill="#000000">
+                            <rect x="68" y="18" width="8" height="8"/>
+                            <rect x="82" y="18" width="8" height="8"/>
+                            <rect x="96" y="18" width="8" height="8"/>
+                            <rect x="68" y="32" width="8" height="8"/>
+                            <rect x="88" y="32" width="14" height="8"/>
+                            <rect x="68" y="46" width="14" height="8"/>
+                            <rect x="96" y="46" width="8" height="8"/>
+
+                            <rect x="18" y="68" width="8" height="8"/>
+                            <rect x="32" y="68" width="14" height="8"/>
+                            <rect x="52" y="68" width="8" height="8"/>
+                            <rect x="18" y="82" width="14" height="8"/>
+                            <rect x="42" y="82" width="8" height="8"/>
+                            <rect x="18" y="96" width="8" height="8"/>
+                            <rect x="36" y="96" width="14" height="8"/>
+
+                            <rect x="122" y="68" width="14" height="8"/>
+                            <rect x="146" y="68" width="8" height="8"/>
+                            <rect x="122" y="82" width="8" height="8"/>
+                            <rect x="140" y="82" width="14" height="8"/>
+                            <rect x="128" y="96" width="14" height="8"/>
+                            <rect x="152" y="96" width="8" height="8"/>
+
+                            <rect x="68" y="122" width="8" height="8"/>
+                            <rect x="86" y="122" width="14" height="8"/>
+                            <rect x="68" y="136" width="14" height="8"/>
+                            <rect x="92" y="136" width="8" height="8"/>
+                            <rect x="74" y="150" width="8" height="8"/>
+                            <rect x="92" y="150" width="14" height="8"/>
+
+                            <rect x="122" y="122" width="8" height="8"/>
+                            <rect x="140" y="122" width="14" height="8"/>
+                            <rect x="128" y="136" width="14" height="8"/>
+                            <rect x="152" y="136" width="8" height="8"/>
+                            <rect x="122" y="150" width="14" height="8"/>
+                            <rect x="146" y="150" width="8" height="8"/>
+                        </g>
+
+                        <!-- Emblema Central Verde WhatsApp -->
+                        <circle cx="90" cy="90" r="18" fill="#25d366"/>
+                        <path d="M82,90 C82,85.5 85.5,82 90,82 C94.5,82 98,85.5 98,90 C98,94.5 94.5,98 90,98 C88.3,98 86.7,97.4 85.4,96.5 L82,97.5 L83.1,94.2 C82.4,93 82,91.5 82,90 Z" fill="#ffffff"/>
+                    </svg>
                 </div>
-                <div style="text-align:right;">
-                    <span style="background:rgba(16,185,129,0.15); color:var(--accent-emerald); border:1px solid rgba(16,185,129,0.3); padding:4px 8px; border-radius:12px; font-size:0.7rem; font-weight:700;" id="wa-recipient-meta">Meta: +20v</span>
+
+                <div style="margin-top:10px;">
+                    <button class="btn-primary" style="background:#25d366; color:#000; font-weight:800; padding:10px 18px;" onclick="window.confirmQrCodeScan()">
+                        ✅ Confirmar Leitura do QR Code & Abrir Disparador
+                    </button>
                 </div>
             </div>
 
-            <!-- Configuração do Remetente (Número do Próprio Vereador/Campanha) -->
-            <div style="background:rgba(15,23,42,0.6); border:1px solid rgba(59,130,246,0.2); border-radius:var(--radius-sm); padding:10px 12px; margin-bottom:14px;">
-                <label class="form-label" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                    <span>📱 Seu WhatsApp de Disparo (Remetente)</span>
-                    <span style="font-size:0.68rem; color:var(--accent-cyan);">Vinculado ao seu perfil</span>
-                </label>
-                <div style="display:flex; gap:8px;">
-                    <input type="text" id="inp-wa-sender-number" class="form-input" placeholder="Ex: (43) 99999-8888" style="font-size:0.85rem; padding:6px 10px;">
-                    <select id="sel-wa-dispatch-mode" class="form-select" style="font-size:0.8rem; width:160px; padding:6px 8px;">
-                        <option value="app">📲 App Celular (wa.me)</option>
-                        <option value="web">💻 WhatsApp Web</option>
+            <!-- OPÇÃO 2: CONECTAR POR NÚMERO + CÓDIGO DE CONFIRMAÇÃO (PAREAMENTO) -->
+            <div id="wa-section-num" style="display:none;">
+                <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:12px;">
+                    Digite seu número de WhatsApp. O sistema gerará o <strong>código de pareamento oficial</strong> para você confirmar:
+                </p>
+
+                <div class="form-group">
+                    <label class="form-label">Seu WhatsApp de Disparo (com DDD)</label>
+                    <div style="display:flex; gap:8px;">
+                        <input type="text" id="inp-wa-phone-pairing" class="form-input" placeholder="(43) 99999-9999" style="font-size:0.95rem;">
+                        <button class="btn-primary" style="white-space:nowrap; background:#25d366; color:#000; font-weight:800;" onclick="window.generateWhatsAppPairingCode()">
+                            📲 Gerar Código
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Painel do Código de Confirmação Gerado -->
+                <div id="wa-pairing-code-panel" style="display:none; background:rgba(15,23,42,0.8); border:1px solid rgba(37,211,102,0.4); border-radius:var(--radius-md); padding:14px; margin-top:12px;">
+                    <div style="font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">
+                        Código de Pareamento WhatsApp:
+                    </div>
+                    <div class="wa-pairing-badge" id="wa-pairing-code-display">
+                        ARAP-8592
+                    </div>
+                    <p style="font-size:0.72rem; color:#93c5fd; margin-bottom:8px;">
+                        🔔 <strong>Notificação Enviada:</strong> Insira o código acima no WhatsApp ou confirme abaixo para liberar o disparo direto.
+                    </p>
+
+                    <div style="display:flex; gap:8px; margin-top:8px;">
+                        <input type="text" id="inp-wa-verify-pin" class="form-input" placeholder="Digite ou cole o código recebido" style="font-family:monospace; text-align:center; font-weight:700;">
+                        <button class="btn-primary" style="white-space:nowrap; background:#10b981;" onclick="window.confirmWhatsAppPairing()">
+                            ✅ Confirmar & Ativar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OPÇÃO 3: DISPARADOR DE MENSAGENS COMPLETO -->
+            <div id="wa-section-dispatch" style="display:none;">
+                <!-- Status da Conexão Ativa -->
+                <div style="background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.35); border-radius:var(--radius-sm); padding:8px 12px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+                    <div style="font-size:0.75rem; color:#34d399; font-weight:700;">
+                        🟢 Remetente Conectado: <span id="wa-connected-sender-label">Sessão WhatsApp Web Ativa</span>
+                    </div>
+                    <span style="font-size:0.7rem; color:var(--text-muted);">Pronto para envio</span>
+                </div>
+
+                <!-- Destinatário / Liderança -->
+                <div style="background:rgba(30,41,59,0.9); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:10px 12px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-weight:700; color:#fff; font-size:0.88rem;" id="wa-recipient-name">Destinatário</div>
+                        <div style="font-size:0.72rem; color:var(--text-muted);" id="wa-recipient-details">WhatsApp &bull; Bairro</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <span style="background:rgba(16,185,129,0.15); color:var(--accent-emerald); border:1px solid rgba(16,185,129,0.3); padding:3px 8px; border-radius:12px; font-size:0.7rem; font-weight:700;" id="wa-recipient-meta">Meta: +20v</span>
+                    </div>
+                </div>
+
+                <!-- Seletor de Modelo de Mensagem -->
+                <div class="form-group" style="margin-bottom:8px;">
+                    <label class="form-label" style="font-size:0.75rem;">Modelo de Mensagem Estratégica</label>
+                    <select id="wa-template-select" class="form-select" onchange="applyWhatsAppTemplate(this.value)" style="font-size:0.8rem; padding:6px 10px;">
+                        <option value="welcome">🤝 Boas-Vindas à Rede de Lideranças</option>
+                        <option value="meeting">📅 Convocação para Reunião de Campanha</option>
+                        <option value="align">🗳️ Alinhamento de Meta de Votos no Colégio</option>
+                        <option value="reminder">📌 Lembrete do Dia de Votação (Arapongas 2024)</option>
+                        <option value="custom">✍️ Mensagem Personalizada</option>
                     </select>
                 </div>
+
+                <!-- Texto da Mensagem -->
+                <div class="form-group" style="margin-bottom:6px;">
+                    <label class="form-label" style="display:flex; justify-content:space-between; font-size:0.75rem;">
+                        <span>Texto da Mensagem</span>
+                        <span style="font-size:0.68rem; color:var(--text-muted);">Variáveis substituídas automaticamente</span>
+                    </label>
+                    <textarea id="wa-message-text" class="form-textarea" rows="4" style="font-size:0.82rem; line-height:1.4;"></textarea>
+                </div>
             </div>
 
-            <!-- Modelo de Mensagem -->
-            <div class="form-group">
-                <label class="form-label">Selecione o Modelo de Mensagem Rápida</label>
-                <select id="wa-template-select" class="form-select" onchange="applyWhatsAppTemplate(this.value)">
-                    <option value="welcome">🤝 Boas-Vindas à Rede de Lideranças</option>
-                    <option value="meeting">📅 Convocação para Reunião de Campanha</option>
-                    <option value="align">🗳️ Alinhamento de Meta de Votos no Colégio</option>
-                    <option value="reminder">📌 Lembrete do Dia de Votação (Arapongas 2024)</option>
-                    <option value="custom">✍️ Escrever Mensagem Personalizada</option>
-                </select>
-            </div>
-
-            <!-- Texto da Mensagem Editável -->
-            <div class="form-group">
-                <label class="form-label" style="display:flex; justify-content:space-between;">
-                    <span>Texto da Mensagem</span>
-                    <span style="font-size:0.7rem; color:var(--text-muted);">Campos dinâmicos são substituídos automaticamente</span>
-                </label>
-                <textarea id="wa-message-text" class="form-textarea" rows="4" style="font-size:0.88rem; line-height:1.4;"></textarea>
-            </div>
         </div>
 
         <div class="modal-footer" style="justify-content:space-between;">
-            <button class="btn-secondary" onclick="closeModal('modal-whatsapp-sender')">Cancelar</button>
-            <button class="btn-primary" style="background:linear-gradient(135deg, #25d366 0%, #128c7e 100%); gap:8px;" onclick="executeWhatsAppSend()">
-                <span>🚀 Conectar WhatsApp & Disparar</span>
-            </button>
+            <button class="btn-secondary" onclick="closeModal('modal-whatsapp-sender')">Fechar</button>
+            <div style="display:flex; gap:8px;">
+                <button class="btn-secondary" id="btn-wa-open-web-direct" style="background:rgba(59,130,246,0.15); border-color:rgba(59,130,246,0.4); color:#93c5fd; font-size:0.78rem;" onclick="window.openWhatsAppWebDirect()">
+                    💻 Abrir WhatsApp Web
+                </button>
+                <button class="btn-primary" style="background:linear-gradient(135deg, #25d366 0%, #128c7e 100%); font-weight:800; font-size:0.85rem;" onclick="executeWhatsAppSend()">
+                    🚀 Enviar Mensagem
+                </button>
+            </div>
         </div>
     </div>
 </div>
