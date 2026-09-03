@@ -7,8 +7,7 @@
  * - nenhuma conta Master automatica;
  * - nenhuma senha universal/padrao;
  * - nenhuma sincronizacao de dados via GitHub;
- * - suporte a Supabase Auth + RLS quando configurado;
- * - preview segura com dados ficticios quando ainda nao ha Supabase dedicado.
+ * - Supabase Auth + PostgreSQL + RLS como fonte de verdade.
  */
 
 const STORAGE_PREFIX = 'mapa_eleitoral_secure_v6';
@@ -20,21 +19,10 @@ const LOCAL_STORAGE_DISTRICTS = `${STORAGE_PREFIX}_districts`;
 const SUPABASE_CONFIG_KEY = `${STORAGE_PREFIX}_supabase_config`;
 const DEFAULT_EMAIL_DOMAIN = '@campanha.com.br';
 
-const PREVIEW_USER = Object.freeze({
-    id: 'preview-master',
-    nome: 'Preview Segura',
-    email: 'preview@votofortearapongas.local',
-    cpf: '',
-    whatsapp: '',
-    cargo: 'Ambiente de Preview',
-    partido: 'Preview',
-    numeroCandidato: 'PREVIEW',
-    role: 'master',
-    avatar: '🛡️',
-    primeiroAcesso: false,
-    isPreview: true
-});
-const PREVIEW_PASSWORD = 'Preview@2026';
+// Esta e uma chave PUBLISHABLE, propria para uso no navegador.
+// A seguranca dos dados e garantida pelo Supabase Auth + RLS.
+const DEFAULT_SUPABASE_URL = 'https://aufsewqtybpothlrsjij.supabase.co';
+const DEFAULT_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_Xh-qzcyJY0-IzHHgri8XNw_f00aJ_sP';
 
 function clone(value) {
     return value == null ? value : JSON.parse(JSON.stringify(value));
@@ -69,20 +57,24 @@ class SecureSupabaseService {
         this.config = this.loadConfig();
         this.client = null;
         this.remoteMode = Boolean(this.config.url && this.config.publishableKey);
-        this.remoteReady = this.initRemote();
         this.initStorage();
+        this.remoteReady = this.initRemote();
     }
 
     loadConfig() {
         const fromWindow = window.VOTO_FORTE_CONFIG || {};
         const fromStorage = safeJsonParse(localStorage.getItem(SUPABASE_CONFIG_KEY), {});
-        const url = String(fromWindow.supabaseUrl || fromStorage.url || '').trim();
+        const url = String(
+            fromWindow.supabaseUrl ||
+            fromStorage.url ||
+            DEFAULT_SUPABASE_URL
+        ).trim();
         const publishableKey = String(
             fromWindow.supabasePublishableKey ||
             fromWindow.supabaseAnonKey ||
             fromStorage.publishableKey ||
             fromStorage.anonKey ||
-            ''
+            DEFAULT_SUPABASE_PUBLISHABLE_KEY
         ).trim();
         return { url, publishableKey, anonKey: publishableKey, connected: Boolean(url && publishableKey) };
     }
@@ -130,9 +122,16 @@ class SecureSupabaseService {
                 }
             });
 
-            const { data } = await this.client.auth.getSession();
+            const { data, error } = await this.client.auth.getSession();
+            if (error) throw error;
             if (data && data.session && data.session.user) {
-                await this.refreshRemoteCache(data.session.user.id);
+                const profile = await this.fetchOwnProfile(data.session.user.id);
+                if (profile) this.setCurrentUser(profile);
+                await this.refreshRemoteCache();
+            } else {
+                localStorage.removeItem(LOCAL_STORAGE_SESSION);
+                this.setAllUsersRaw([]);
+                this.setAllLiderancasRaw([]);
             }
             return true;
         } catch (error) {
@@ -142,16 +141,15 @@ class SecureSupabaseService {
         }
     }
 
-    // Compatibilidade: GitHub deixou de ser banco. Estes metodos agora apenas atualizam o cache remoto quando houver Supabase.
     initCloudSync() { return false; }
     notifyLocalChange() { return true; }
+
     async pullFromCloud() {
-        if (this.remoteMode && this.client) {
-            const current = this.getCurrentUser();
-            if (current && current.id && !current.isPreview) await this.refreshRemoteCache(current.id);
-        }
+        await this.remoteReady;
+        if (this.client && this.getCurrentUser()) await this.refreshRemoteCache();
         return true;
     }
+
     async pushToCloud() { return true; }
 
     getAllUsersRaw() {
@@ -185,36 +183,34 @@ class SecureSupabaseService {
 
     async logout() {
         try {
+            await this.remoteReady;
             if (this.client) await this.client.auth.signOut();
         } catch (_) {}
         localStorage.removeItem(LOCAL_STORAGE_SESSION);
+        this.setAllUsersRaw([]);
+        this.setAllLiderancasRaw([]);
     }
 
     async signIn(inputEmailOrUser, password) {
         const email = normalizeEmail(inputEmailOrUser);
         const suppliedPassword = String(password || '');
-
-        // Preview isolada: credencial conhecida, mas sem qualquer dado real ou acesso de producao.
-        if (!this.remoteMode) {
-            if (email !== PREVIEW_USER.email || suppliedPassword !== PREVIEW_PASSWORD) {
-                throw new Error('Preview segura: use a credencial de teste informada na revisao. Nenhuma conta real e carregada aqui.');
-            }
-            this.setAllUsersRaw([PREVIEW_USER]);
-            this.setCurrentUser(PREVIEW_USER);
-            this.logAudit(PREVIEW_USER, 'login', 'Preview autenticada', 'Acesso ao ambiente isolado de demonstracao');
-            return clone(PREVIEW_USER);
-        }
-
         await this.remoteReady;
         if (!this.client) throw new Error('Nao foi possivel conectar ao Supabase.');
-        const { data, error } = await this.client.auth.signInWithPassword({ email, password: suppliedPassword });
-        if (error) throw new Error('E-mail ou senha invalidos.');
-        if (!data.user) throw new Error('Sessao de usuario nao criada.');
+
+        const { data, error } = await this.client.auth.signInWithPassword({
+            email,
+            password: suppliedPassword
+        });
+        if (error || !data.user) throw new Error('E-mail ou senha invalidos.');
 
         const profile = await this.fetchOwnProfile(data.user.id);
-        if (!profile) throw new Error('Perfil de acesso nao encontrado. Contate um administrador.');
+        if (!profile || profile.ativo === false) {
+            await this.client.auth.signOut();
+            throw new Error('Perfil de acesso nao encontrado ou inativo.');
+        }
+
         this.setCurrentUser(profile);
-        await this.refreshRemoteCache(data.user.id);
+        await this.refreshRemoteCache();
         this.logAudit(profile, 'login', 'Autenticacao realizada', `Login seguro para ${profile.email}`);
         return clone(profile);
     }
@@ -223,7 +219,7 @@ class SecureSupabaseService {
         if (!this.client) return null;
         const { data, error } = await this.client
             .from('perfis_usuarios')
-            .select('id,nome,email,whatsapp,cpf,partido,numero_candidato,cargo,role,avatar_url,adm_vinculado_id,criado_em,atualizado_em')
+            .select('id,nome,email,whatsapp,cpf,partido,numero_candidato,cargo,role,avatar_url,adm_vinculado_id,ativo,criado_em,atualizado_em')
             .eq('id', userId)
             .maybeSingle();
         if (error) throw error;
@@ -243,7 +239,8 @@ class SecureSupabaseService {
             role: row.role || 'vereador',
             avatar: row.avatar_url || '🗳️',
             admVinculadoId: row.adm_vinculado_id || null,
-            primeiroAcesso: false
+            primeiroAcesso: false,
+            ativo: row.ativo !== false
         };
     }
 
@@ -276,7 +273,7 @@ class SecureSupabaseService {
     async refreshRemoteCache() {
         if (!this.client) return false;
         const [{ data: profiles, error: profilesError }, { data: leaders, error: leadersError }] = await Promise.all([
-            this.client.from('perfis_usuarios').select('id,nome,email,whatsapp,cpf,partido,numero_candidato,cargo,role,avatar_url,adm_vinculado_id,criado_em,atualizado_em'),
+            this.client.from('perfis_usuarios').select('id,nome,email,whatsapp,cpf,partido,numero_candidato,cargo,role,avatar_url,adm_vinculado_id,ativo,criado_em,atualizado_em'),
             this.client.from('liderancas').select('*')
         ]);
         if (profilesError) throw profilesError;
@@ -287,52 +284,64 @@ class SecureSupabaseService {
     }
 
     async registerVereador(formData) {
-        if (!this.remoteMode) {
-            throw new Error('Cadastro real desativado na preview isolada. O cadastro sera habilitado somente no Supabase seguro.');
-        }
         await this.remoteReady;
         if (!this.client) throw new Error('Nao foi possivel conectar ao Supabase.');
 
         const email = normalizeEmail(formData.email);
         const password = String(formData.senha || '');
+        if (!email || !email.includes('@')) throw new Error('Informe um e-mail valido.');
         if (password.length < 8) throw new Error('A senha deve ter no minimo 8 caracteres.');
+
+        const metadata = {
+            nome: String(formData.nome || '').trim(),
+            whatsapp: String(formData.whatsapp || '').replace(/\D/g, ''),
+            cpf: String(formData.cpf || '').replace(/\D/g, ''),
+            partido: String(formData.partido || 'Independente'),
+            numeroCandidato: String(formData.numeroCandidato || ''),
+            cargo: String(formData.cargo || 'Vereador')
+        };
 
         const { data, error } = await this.client.auth.signUp({
             email,
             password,
-            options: {
-                data: { nome: String(formData.nome || '').trim() }
-            }
+            options: { data: metadata }
         });
         if (error) throw new Error(error.message);
         if (!data.user) throw new Error('Nao foi possivel criar o usuario.');
 
         const profilePayload = {
             id: data.user.id,
-            nome: String(formData.nome || '').trim(),
+            nome: metadata.nome || email.split('@')[0],
             email,
-            whatsapp: String(formData.whatsapp || '').replace(/\D/g, ''),
-            cpf: String(formData.cpf || '').replace(/\D/g, ''),
-            partido: String(formData.partido || 'Independente'),
-            numero_candidato: String(formData.numeroCandidato || ''),
-            cargo: String(formData.cargo || 'Vereador'),
+            whatsapp: metadata.whatsapp,
+            cpf: metadata.cpf,
+            partido: metadata.partido,
+            numero_candidato: metadata.numeroCandidato,
+            cargo: metadata.cargo,
             role: 'vereador',
-            avatar_url: '🗳️'
+            avatar_url: '🗳️',
+            ativo: true
         };
 
-        // Se confirmacao de e-mail estiver ativa, a sessao pode nao existir ainda; o trigger do banco cria o perfil minimo.
         if (data.session) {
             const { error: profileError } = await this.client
                 .from('perfis_usuarios')
-                .upsert(profilePayload, { onConflict: 'id' });
+                .update({
+                    nome: profilePayload.nome,
+                    whatsapp: profilePayload.whatsapp,
+                    cpf: profilePayload.cpf,
+                    partido: profilePayload.partido,
+                    numero_candidato: profilePayload.numero_candidato,
+                    avatar_url: profilePayload.avatar_url
+                })
+                .eq('id', data.user.id);
             if (profileError) throw new Error(profileError.message);
+            const profile = await this.fetchOwnProfile(data.user.id);
+            this.setCurrentUser(profile);
+            await this.refreshRemoteCache();
         }
 
         const user = this.mapProfileFromDb(profilePayload);
-        if (data.session) {
-            this.setCurrentUser(user);
-            await this.refreshRemoteCache();
-        }
         return {
             user,
             emailResult: {
@@ -348,14 +357,12 @@ class SecureSupabaseService {
         const current = this.getCurrentUser();
         if (!current || current.id !== userId) throw new Error('Sessao invalida.');
 
-        if (!this.remoteMode) {
-            if (current.isPreview) throw new Error('Alteracao de senha desativada na preview isolada.');
-            throw new Error('Supabase seguro ainda nao configurado.');
-        }
-
         await this.remoteReady;
-        const email = current.email;
-        const { error: verifyError } = await this.client.auth.signInWithPassword({ email, password: String(currentPass || '') });
+        if (!this.client) throw new Error('Nao foi possivel conectar ao Supabase.');
+        const { error: verifyError } = await this.client.auth.signInWithPassword({
+            email: current.email,
+            password: String(currentPass || '')
+        });
         if (verifyError) throw new Error('A senha atual informada esta incorreta.');
         const { error } = await this.client.auth.updateUser({ password: String(newPass) });
         if (error) throw new Error(error.message);
@@ -413,7 +420,7 @@ class SecureSupabaseService {
         this.setAllLiderancasRaw(all);
         this.logAudit(currentUser, 'lideranca', 'Lideranca criada', `${item.nome} - ${item.bairro}`);
 
-        if (this.remoteMode && this.client && !currentUser.isPreview) {
+        if (this.client) {
             this.client.from('liderancas').insert({
                 id: item.id,
                 vereador_id: currentUser.id,
@@ -448,7 +455,7 @@ class SecureSupabaseService {
         this.setAllLiderancasRaw(all);
         this.logAudit(currentUser, 'lideranca', 'Lideranca atualizada', all[index].nome);
 
-        if (this.remoteMode && this.client && !currentUser.isPreview) {
+        if (this.client) {
             const patch = {};
             if ('status' in updatedData) patch.status_contato = updatedData.status;
             if ('observacoes' in updatedData) patch.observacoes = updatedData.observacoes;
@@ -469,7 +476,7 @@ class SecureSupabaseService {
         }
         this.setAllLiderancasRaw(all.filter(row => row.id !== id));
         this.logAudit(currentUser, 'lideranca', 'Lideranca excluida', item.nome);
-        if (this.remoteMode && this.client && !currentUser.isPreview) {
+        if (this.client) {
             this.client.from('liderancas').delete().eq('id', id)
                 .then(({ error }) => { if (error) console.error('Falha ao excluir lideranca:', error); });
         }
@@ -492,7 +499,7 @@ class SecureSupabaseService {
         };
         logs.unshift(entry);
         localStorage.setItem(LOCAL_STORAGE_AUDIT, JSON.stringify(logs.slice(0, 500)));
-        if (this.remoteMode && this.client && user && !user.isPreview) {
+        if (this.client && user) {
             this.client.from('audit_logs').insert({
                 id: entry.id,
                 user_id: user.id,
@@ -531,7 +538,7 @@ class SecureSupabaseService {
         };
         localStorage.setItem(LOCAL_STORAGE_DISTRICTS, JSON.stringify(assignments));
         this.logAudit(currentUser, 'sistema', 'Distrito atribuido', `${districtId} -> ${vereadorNome || 'Livre'}`);
-        if (this.remoteMode && this.client && !currentUser.isPreview) {
+        if (this.client) {
             this.client.from('district_assignments').upsert({
                 distrito_id: districtId,
                 vereador_id: vereadorId || null,
@@ -563,14 +570,32 @@ class SafeEmailService {
 window.EmailService = new SafeEmailService();
 window.SupabaseService = new SecureSupabaseService();
 
-// Guarda complementar: desativa rotas legadas que permitiam trocar de usuario sem autenticacao
-// e o falso fluxo biometrico que fazia fallback para qualquer conta local.
+// Remove ou bloqueia visualmente os mecanismos antigos inseguros.
 window.addEventListener('DOMContentLoaded', () => {
     const blocked = () => alert('Funcao desativada por seguranca. Use o login autenticado.');
     window.switchDemonstrationUser = blocked;
     window.quickLoginDemo = blocked;
-    window.handleBiometricLogin = () => alert('Biometria temporariamente desativada. Ela sera reativada somente com WebAuthn/passkey vinculada a uma sessao autenticada.');
+    window.handleBiometricLogin = () => alert('Biometria temporariamente desativada. Ela sera reativada somente com Passkey/WebAuthn vinculada ao Supabase Auth.');
 
     const picker = document.getElementById('auth-demo-picker');
-    if (picker) picker.style.display = 'none';
+    if (picker) picker.remove();
+
+    const switchModal = document.getElementById('modal-switch-user');
+    if (switchModal) switchModal.remove();
+
+    const profilePill = document.querySelector('.user-profile-pill');
+    if (profilePill) {
+        profilePill.onclick = () => {
+            const current = window.SupabaseService.getCurrentUser();
+            if (!current) openModal('modal-auth-flow');
+        };
+        profilePill.title = 'Conta autenticada';
+    }
+
+    document.querySelectorAll('div, p, span').forEach((el) => {
+        const text = (el.textContent || '').trim();
+        if (text.includes('A senha padrão inicial de todos os usuários')) {
+            el.textContent = '🔐 Sua senha e protegida pelo Supabase Auth e nunca e armazenada no codigo do site.';
+        }
+    });
 });
