@@ -594,13 +594,25 @@
                 <!-- Status da Conexão Ativa -->
                 <div style="background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.35); border-radius:var(--radius-sm); padding:8px 12px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
                     <div style="font-size:0.75rem; color:#34d399; font-weight:700;">
-                        🟢 Remetente Conectado: <span id="wa-connected-sender-label">Sessão WhatsApp Web Ativa</span>
+                        🟢 Conexão: <span id="wa-connected-sender-label">Sessão WhatsApp Ativa</span>
                     </div>
-                    <span style="font-size:0.7rem; color:var(--text-muted);">Pronto para envio</span>
+                    <span style="font-size:0.7rem; color:#93c5fd; font-weight:600;">● Pronto para disparo</span>
                 </div>
 
-                <!-- Destinatário / Liderança -->
-                <div style="background:rgba(30,41,59,0.9); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:10px 12px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+                <!-- Seletor de Destinatário / Liderança -->
+                <div class="form-group" style="margin-bottom:10px;">
+                    <label class="form-label" style="display:flex; justify-content:space-between; font-size:0.75rem;">
+                        <span>👤 Selecione a Liderança de Destino</span>
+                        <span style="font-size:0.68rem; color:var(--accent-emerald);">Mapeadas em Arapongas</span>
+                    </label>
+                    <select id="wa-recipient-dropdown" class="form-select" onchange="window.onWhatsAppRecipientChanged(this.value)" style="font-size:0.82rem; padding:6px 10px;">
+                        <!-- Populado dinamicamente com todas as lideranças -->
+                    </select>
+                    <input type="text" id="inp-wa-custom-target-phone" class="form-input" placeholder="Digite o número com DDD: (43) 99999-9999" style="display:none; margin-top:8px; font-size:0.85rem;">
+                </div>
+
+                <!-- Card de Dados do Destinatário Ativo -->
+                <div id="wa-recipient-card-box" style="background:rgba(30,41,59,0.9); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:10px 12px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
                     <div>
                         <div style="font-weight:700; color:#fff; font-size:0.88rem;" id="wa-recipient-name">Destinatário</div>
                         <div style="font-size:0.72rem; color:var(--text-muted);" id="wa-recipient-details">WhatsApp &bull; Bairro</div>

@@ -1482,20 +1482,21 @@ async function handleSaveLideranca(e) {
 
 // 11. SISTEMA DE DISPARO DE WHATSAPP DIRETO & CENTRAL DE MENSAGENS
 function openWhatsAppSenderModal(liderancaId) {
+    populateWhatsAppRecipientsDropdown(liderancaId);
+
     let lid = null;
     if (liderancaId) {
         lid = state.liderancas.find(l => l.id === liderancaId);
-    } else if (state.liderancas.length > 0) {
+    } else if (state.liderancas && state.liderancas.length > 0) {
         lid = state.liderancas[0];
     } else {
-        // Mock default para teste e conexão
         lid = {
             id: 'temp_conn',
-            nome: 'Liderança Exemplo',
+            nome: 'Liderança de Arapongas',
             whatsapp: '(43) 99999-9999',
             bairro: 'Centro - Arapongas',
-            colegioNome: 'Unidade Polo',
-            metaVotos: 30,
+            colegioNome: 'Colégio Eleitoral',
+            metaVotos: 20,
             categoria: 'Comunitária'
         };
     }
@@ -1503,28 +1504,98 @@ function openWhatsAppSenderModal(liderancaId) {
     activeWhatsAppRecipient = lid;
 
     const u = state.currentUser;
-    const savedSenderNumberKey = `mapa_eleitoral_wa_sender_${u.id}`;
-    const savedSenderNum = localStorage.getItem(savedSenderNumberKey) || u.whatsapp || '';
+    const savedSenderNumberKey = u ? `mapa_eleitoral_wa_sender_${u.id}` : 'mapa_eleitoral_wa_sender_default';
+    const savedSenderNum = localStorage.getItem(savedSenderNumberKey) || (u ? u.whatsapp : '') || '';
 
-    document.getElementById('wa-recipient-name').textContent = `Destinatário: 👤 ${lid.nome} (${lid.categoria})`;
-    document.getElementById('wa-recipient-details').textContent = `📱 ${lid.whatsapp} • 🏡 Bairro: ${lid.bairro} • 🏫 ${lid.colegioNome || 'Colégio Eleitoral'}`;
-    document.getElementById('wa-recipient-meta').textContent = `Meta: +${lid.metaVotos} votos`;
+    const nameEl = document.getElementById('wa-recipient-name');
+    if (nameEl) nameEl.textContent = `Destinatário: 👤 ${lid.nome} (${lid.categoria})`;
+    const detailsEl = document.getElementById('wa-recipient-details');
+    if (detailsEl) detailsEl.textContent = `📱 ${lid.whatsapp} • 🏡 Bairro: ${lid.bairro} • 🏫 ${lid.colegioNome || 'Colégio Eleitoral'}`;
+    const metaEl = document.getElementById('wa-recipient-meta');
+    if (metaEl) metaEl.textContent = `Meta: +${lid.metaVotos} votos`;
 
-    const inpSender = document.getElementById('inp-wa-sender-number');
-    if (inpSender) {
-        inpSender.value = savedSenderNum;
+    const inpPairing = document.getElementById('inp-wa-phone-pairing');
+    if (inpPairing && !inpPairing.value && savedSenderNum) {
+        inpPairing.value = savedSenderNum;
     }
 
-    document.getElementById('wa-template-select').value = 'welcome';
+    const tplSel = document.getElementById('wa-template-select');
+    if (tplSel) tplSel.value = 'welcome';
     applyWhatsAppTemplate('welcome');
+
     openModal('modal-whatsapp-sender');
 }
 
+function populateWhatsAppRecipientsDropdown(selectedId) {
+    const sel = document.getElementById('wa-recipient-dropdown');
+    if (!sel) return;
+    sel.innerHTML = '';
+
+    const list = state.liderancas || [];
+    if (list.length > 0) {
+        list.forEach(l => {
+            const opt = document.createElement('option');
+            opt.value = l.id;
+            opt.textContent = `📍 ${l.nome} (${l.bairro} - ${l.whatsapp})`;
+            if (selectedId && l.id === selectedId) opt.selected = true;
+            sel.appendChild(opt);
+        });
+    }
+
+    const customOpt = document.createElement('option');
+    customOpt.value = 'CUSTOM';
+    customOpt.textContent = '📱 Digitar Outro Número Manualmente...';
+    if (!selectedId && list.length === 0) customOpt.selected = true;
+    sel.appendChild(customOpt);
+}
+
+window.onWhatsAppRecipientChanged = function(val) {
+    const inpCustom = document.getElementById('inp-wa-custom-target-phone');
+    const cardBox = document.getElementById('wa-recipient-card-box');
+
+    if (val === 'CUSTOM') {
+        if (inpCustom) {
+            inpCustom.style.display = 'block';
+            inpCustom.focus();
+        }
+        activeWhatsAppRecipient = {
+            id: 'custom_target',
+            nome: 'Contato Personalizado',
+            whatsapp: inpCustom ? inpCustom.value : '',
+            bairro: 'Arapongas',
+            colegioNome: 'Colégio',
+            metaVotos: 10,
+            categoria: 'Contato'
+        };
+        if (cardBox) cardBox.style.display = 'none';
+        applyWhatsAppTemplate(document.getElementById('wa-template-select')?.value || 'welcome');
+    } else {
+        if (inpCustom) inpCustom.style.display = 'none';
+        if (cardBox) cardBox.style.display = 'flex';
+        const found = (state.liderancas || []).find(l => l.id === val);
+        if (found) {
+            activeWhatsAppRecipient = found;
+            const nameEl = document.getElementById('wa-recipient-name');
+            if (nameEl) nameEl.textContent = `Destinatário: 👤 ${found.nome} (${found.categoria})`;
+            const detailsEl = document.getElementById('wa-recipient-details');
+            if (detailsEl) detailsEl.textContent = `📱 ${found.whatsapp} • 🏡 Bairro: ${found.bairro} • 🏫 ${found.colegioNome || 'Colégio Eleitoral'}`;
+            const metaEl = document.getElementById('wa-recipient-meta');
+            if (metaEl) metaEl.textContent = `Meta: +${found.metaVotos} votos`;
+            applyWhatsAppTemplate(document.getElementById('wa-template-select')?.value || 'welcome');
+        }
+    }
+};
+
 function applyWhatsAppTemplate(templateKey) {
-    if (!activeWhatsAppRecipient) return;
-    const lid = activeWhatsAppRecipient;
-    const u = state.currentUser;
+    const lid = activeWhatsAppRecipient || {
+        nome: 'Amigo(a)',
+        bairro: 'Arapongas',
+        colegioNome: 'nosso colégio eleitoral',
+        metaVotos: '20'
+    };
+    const u = state.currentUser || { nome: 'Everton Moreira', partido: 'Arapongas' };
     const txtArea = document.getElementById('wa-message-text');
+    if (!txtArea) return;
 
     const nome = lid.nome || 'Amigo(a)';
     const bairro = lid.bairro || 'Arapongas';
@@ -1575,7 +1646,6 @@ window.switchWhatsAppTab = function(tabName) {
     } else if (tabName === 'num') {
         if (btnNum) btnNum.classList.add('active');
         if (secNum) secNum.style.display = 'block';
-        // Pré-preenche o número do usuário logado
         if (state.currentUser && state.currentUser.whatsapp) {
             const inp = document.getElementById('inp-wa-phone-pairing');
             if (inp && !inp.value) inp.value = state.currentUser.whatsapp;
@@ -1603,7 +1673,6 @@ window.confirmQrCodeScan = function() {
     }
 
     window.switchWhatsAppTab('dispatch');
-    alert('✅ WhatsApp Web conectado com sucesso! O disparador foi desbloqueado para enviar mensagens às suas lideranças.');
 };
 
 window.generateWhatsAppPairingCode = function() {
@@ -1616,7 +1685,6 @@ window.generateWhatsAppPairingCode = function() {
         return;
     }
 
-    // Gera um código de pareamento oficial de 8 caracteres
     const randNum = Math.floor(1000 + Math.random() * 9000);
     currentWhatsAppPairingPin = `ARAP-${randNum}`;
 
@@ -1626,26 +1694,17 @@ window.generateWhatsAppPairingCode = function() {
 
     if (displayEl) displayEl.textContent = currentWhatsAppPairingPin;
     if (panel) panel.style.display = 'block';
-    if (inpVerify) inpVerify.value = currentWhatsAppPairingPin; // Auto-preenche para conveniência
+    if (inpVerify) inpVerify.value = currentWhatsAppPairingPin;
 
     if (state.currentUser) {
         localStorage.setItem(`mapa_eleitoral_wa_sender_${state.currentUser.id}`, phone);
         window.SupabaseService.logAudit(state.currentUser, 'whatsapp', '📲 Código de Pareamento Gerado', `Código ${currentWhatsAppPairingPin} gerado para o número ${phone}`);
     }
-
-    alert(`🔔 Código de Pareamento WhatsApp Gerado com Sucesso!\n\nSeu código é: ${currentWhatsAppPairingPin}\n\nConfirme para ativar o disparo direto.`);
 };
 
 window.confirmWhatsAppPairing = function() {
-    const inpVerify = document.getElementById('inp-wa-verify-pin');
     const phoneInput = document.getElementById('inp-wa-phone-pairing');
-    const code = inpVerify ? inpVerify.value.trim() : '';
     const phone = phoneInput ? phoneInput.value.trim() : 'Telefone';
-
-    if (!code) {
-        alert('Por favor, digite o código de confirmação recebido.');
-        return;
-    }
 
     const statusPill = document.getElementById('wa-connection-status-pill');
     const senderLabel = document.getElementById('wa-connected-sender-label');
@@ -1663,59 +1722,84 @@ window.confirmWhatsAppPairing = function() {
     }
 
     window.switchWhatsAppTab('dispatch');
-    alert(`🎉 WhatsApp ${phone} pareado e ativado com sucesso!\nVocê já pode selecionar suas lideranças e disparar.`);
 };
 
 window.openWhatsAppWebDirect = function() {
-    if (!activeWhatsAppRecipient) {
-        window.open('https://web.whatsapp.com', '_blank');
-        return;
+    let targetPhone = '';
+    const inpCustom = document.getElementById('inp-wa-custom-target-phone');
+    const selRecipient = document.getElementById('wa-recipient-dropdown');
+
+    if (selRecipient && selRecipient.value === 'CUSTOM' && inpCustom && inpCustom.value.trim()) {
+        targetPhone = inpCustom.value.trim();
+    } else if (activeWhatsAppRecipient && activeWhatsAppRecipient.whatsapp) {
+        targetPhone = activeWhatsAppRecipient.whatsapp;
+    } else {
+        const pairingInp = document.getElementById('inp-wa-phone-pairing');
+        if (pairingInp && pairingInp.value.trim()) {
+            targetPhone = pairingInp.value.trim();
+        }
     }
-    const phone = activeWhatsAppRecipient.whatsapp.replace(/\D/g, '');
-    const cleanNumber = phone.length <= 11 ? '55' + phone : phone;
-    const msg = document.getElementById('wa-message-text')?.value.trim() || '';
-    
-    const waUrl = `https://web.whatsapp.com/send?phone=${cleanNumber}&text=${encodeURIComponent(msg)}`;
+
+    const cleanNumber = targetPhone.replace(/\D/g, '');
+    const finalNumber = cleanNumber.length <= 11 ? '55' + cleanNumber : cleanNumber;
+    const msg = document.getElementById('wa-message-text')?.value.trim() || 'Olá!';
+
+    let waUrl = '';
+    if (finalNumber.length > 2) {
+        waUrl = `https://web.whatsapp.com/send?phone=${finalNumber}&text=${encodeURIComponent(msg)}`;
+    } else {
+        waUrl = `https://web.whatsapp.com/`;
+    }
+
     window.open(waUrl, '_blank');
 };
 
 function executeWhatsAppSend() {
-    if (!activeWhatsAppRecipient) {
-        alert('Por favor, selecione uma liderança para enviar a mensagem.');
-        return;
+    let targetPhone = '';
+    const inpCustom = document.getElementById('inp-wa-custom-target-phone');
+    const selRecipient = document.getElementById('wa-recipient-dropdown');
+
+    if (selRecipient && selRecipient.value === 'CUSTOM' && inpCustom && inpCustom.value.trim()) {
+        targetPhone = inpCustom.value.trim();
+    } else if (activeWhatsAppRecipient && activeWhatsAppRecipient.whatsapp) {
+        targetPhone = activeWhatsAppRecipient.whatsapp;
+    } else {
+        const pairingInp = document.getElementById('inp-wa-phone-pairing');
+        if (pairingInp && pairingInp.value.trim()) {
+            targetPhone = pairingInp.value.trim();
+        }
     }
-    const phone = activeWhatsAppRecipient.whatsapp.replace(/\D/g, '');
-    const msg = document.getElementById('wa-message-text').value.trim();
 
-    if (!phone) {
-        alert('Número de WhatsApp inválido para esta liderança.');
-        return;
+    if (!targetPhone || targetPhone.replace(/\D/g, '').length < 8) {
+        targetPhone = prompt('Digite o número de WhatsApp para enviar a mensagem (com DDD):', '43');
+        if (!targetPhone) return;
     }
 
-    const cleanNumber = phone.length <= 11 ? '55' + phone : phone;
+    const cleanNumber = targetPhone.replace(/\D/g, '');
+    const finalNumber = cleanNumber.length <= 11 ? '55' + cleanNumber : cleanNumber;
+    const msg = document.getElementById('wa-message-text')?.value.trim() || 'Olá!';
 
-    // Abre preferencialmente na versão Web ou App detectada
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     let waUrl = '';
     if (isMobile) {
-        waUrl = `https://api.whatsapp.com/send?phone=${cleanNumber}&text=${encodeURIComponent(msg)}`;
+        waUrl = `https://api.whatsapp.com/send?phone=${finalNumber}&text=${encodeURIComponent(msg)}`;
     } else {
-        waUrl = `https://web.whatsapp.com/send?phone=${cleanNumber}&text=${encodeURIComponent(msg)}`;
+        waUrl = `https://web.whatsapp.com/send?phone=${finalNumber}&text=${encodeURIComponent(msg)}`;
     }
 
-    // Atualiza status da liderança para "Em Contato" com timestamp e registra auditoria
-    try {
-        window.SupabaseService.updateLideranca(activeWhatsAppRecipient.id, {
-            status: 'Em Contato',
-            ultimoContato: new Date().toISOString()
-        }, state.currentUser);
-        if (state.currentUser) {
-            window.SupabaseService.logAudit(state.currentUser, 'whatsapp', '💬 Disparo de Mensagem WhatsApp', `Mensagem enviada para ${activeWhatsAppRecipient.nome} (${activeWhatsAppRecipient.bairro})`);
-        }
-        loadLiderancas();
-        renderAllViews();
-    } catch (e) {
-        console.warn('Erro ao registrar disparo:', e);
+    if (activeWhatsAppRecipient && activeWhatsAppRecipient.id !== 'custom_target' && activeWhatsAppRecipient.id !== 'temp_conn') {
+        try {
+            window.SupabaseService.updateLideranca(activeWhatsAppRecipient.id, {
+                status: 'Em Contato',
+                ultimoContato: new Date().toISOString()
+            }, state.currentUser);
+            loadLiderancas();
+            renderAllViews();
+        } catch (e) {}
+    }
+
+    if (state.currentUser) {
+        window.SupabaseService.logAudit(state.currentUser, 'whatsapp', '💬 Disparo de Mensagem WhatsApp', `Mensagem disparada para ${finalNumber}`);
     }
 
     window.open(waUrl, '_blank');
