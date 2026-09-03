@@ -6,55 +6,58 @@
 // 1. DADOS ELEITORAIS OFICIAIS DE ARAPONGAS (29 Colégios + Prefeito, Vereadores, Deputados Federais e Estaduais)
 const ELEICAO_2024_DATA = {
     candidates: {
-        // PREFEITO 2024
-        "pref_cita": { name: "Rafael Cita", party: "PSD", category: "Prefeito Eleito", type: "prefeito", color: "#3b82f6" },
-        "pref_milani": { name: "Jair Milani", party: "PL", category: "2º Colocado", type: "prefeito", color: "#f59e0b" },
+        // PREFEITO 2024 (OFICIAL TSE)
+        "pref_cita": { name: "Rafael Cita", party: "PSD", category: "Prefeito Eleito (31.968 votos - 52,60%)", type: "prefeito", color: "#3b82f6" },
+        "pref_milani": { name: "Jair Milani", party: "PL", category: "2º Colocado (28.805 votos - 47,40%)", type: "prefeito", color: "#f59e0b" },
 
-        // VEREADORES ELEITOS 2024
-        "20220": { name: "Décio Rosanelli", party: "PODE", category: "Vereador Eleito", type: "vereador", color: "#8b5cf6" },
-        "55155": { name: "Levi do Handebol", party: "PSD", category: "Vereador Eleito", type: "vereador", color: "#3b82f6" },
-        "11234": { name: "Paulo Grassano", party: "PP", category: "Vereador Eleito", type: "vereador", color: "#06b6d4" },
-        "44044": { name: "Toninho da Ambulância", party: "União Brasil", category: "Vereador Eleito", type: "vereador", color: "#10b981" },
-        "70000": { name: "João Graça", party: "Avante", category: "Vereador Eleito", type: "vereador", color: "#f97316" },
-        "40133": { name: "Márcio Nicke", party: "PSB", category: "Vereador Eleito", type: "vereador", color: "#ef4444" },
-        "20120": { name: "Aroldo Pagan", party: "PODE", category: "Vereador Eleito", type: "vereador", color: "#8b5cf6" },
-        "11555": { name: "Professor Marcelo", party: "PP", category: "Vereador Eleito", type: "vereador", color: "#06b6d4" },
-        "44567": { name: "Alexandre Juliani Sorriso", party: "União Brasil", category: "Vereador Eleito", type: "vereador", color: "#10b981" },
-        "55555": { name: "Simone Sponton Mãe de Autista", party: "PSD", category: "Vereador Eleito", type: "vereador", color: "#3b82f6" },
-        "55147": { name: "Luisinho da Saúde", party: "PSD", category: "Vereador Eleito", type: "vereador", color: "#3b82f6" },
-        "22777": { name: "Diretora Marilsa Staub", party: "PL", category: "Vereador Eleito", type: "vereador", color: "#eab308" },
-        "44190": { name: "Pardini", party: "União Brasil", category: "Vereador Eleito", type: "vereador", color: "#10b981" },
-        "55120": { name: "Cecéu", party: "PSD", category: "Vereador Eleito", type: "vereador", color: "#3b82f6" },
-        "12500": { name: "Meiry Farias Proteção Animal", party: "PDT", category: "Vereador Eleito", type: "vereador", color: "#ec4899" },
+        // VEREADORES ELEITOS 2024 (OFICIAL TSE ARAPONGAS)
+        "20220": { name: "Décio Rosanelli", party: "PODE", category: "Vereador Eleito (2.135 votos)", type: "vereador", color: "#8b5cf6" },
+        "55155": { name: "Levi do Handebol", party: "PSD", category: "Vereador Eleito (1.720 votos)", type: "vereador", color: "#3b82f6" },
+        "11234": { name: "Paulo Grassano", party: "PP", category: "Vereador Eleito (1.576 votos)", type: "vereador", color: "#06b6d4" },
+        "44044": { name: "Toninho da Ambulância", party: "União Brasil", category: "Vereador Eleito (1.212 votos)", type: "vereador", color: "#10b981" },
+        "70000": { name: "João Graça", party: "Avante", category: "Vereador Eleito (1.210 votos)", type: "vereador", color: "#f97316" },
+        "40133": { name: "Márcio Nicke", party: "PSB", category: "Vereador Eleito (1.102 votos)", type: "vereador", color: "#ef4444" },
+        "20120": { name: "Aroldo Pagan", party: "PODE", category: "Vereador Eleito (1.024 votos)", type: "vereador", color: "#8b5cf6" },
+        "11555": { name: "Professor Marcelo", party: "PP", category: "Vereador Eleito (1.010 votos)", type: "vereador", color: "#06b6d4" },
+        "44567": { name: "Alexandre Juliani Sorriso", party: "União Brasil", category: "Vereador Eleito (943 votos)", type: "vereador", color: "#10b981" },
+        "55555": { name: "Simone Sponton Mãe de Autista", party: "PSD", category: "Vereador Eleito (913 votos)", type: "vereador", color: "#3b82f6" },
+        "55147": { name: "Luisinho da Saúde", party: "PSD", category: "Vereador Eleito (877 votos)", type: "vereador", color: "#3b82f6" },
+        "22777": { name: "Diretora Marilsa Staub", party: "PL", category: "Vereador Eleito (858 votos)", type: "vereador", color: "#eab308" },
+        "44190": { name: "Pardini", party: "União Brasil", category: "Vereador Eleito (853 votos)", type: "vereador", color: "#10b981" },
+        "55120": { name: "Cecéu", party: "PSD", category: "Vereador Eleito (849 votos)", type: "vereador", color: "#3b82f6" },
+        "12500": { name: "Meiry Farias Proteção Animal", party: "PDT", category: "Vereador Eleito (832 votos)", type: "vereador", color: "#ec4899" },
         
-        // SUPLENTES 2024
-        "11500": { name: "Marcos Antonio de Souza", party: "PP", category: "Suplente", type: "suplente", color: "#64748b" },
-        "11444": { name: "Silvano dos Santos Alves", party: "PP", category: "Suplente", type: "suplente", color: "#64748b" },
-        "13100": { name: "Márcio Diniz", party: "PT", category: "Suplente", type: "suplente", color: "#dc2626" },
-        "55456": { name: "Milton Xavier", party: "PSD", category: "Suplente", type: "suplente", color: "#64748b" },
-        "10123": { name: "Rodrigo de Deus", party: "REP", category: "Suplente", type: "suplente", color: "#64748b" },
-        "22622": { name: "Rubens Franzin", party: "PL", category: "Suplente", type: "suplente", color: "#64748b" },
-        "22123": { name: "Ricardo Botelho", party: "PL", category: "Suplente", type: "suplente", color: "#64748b" },
+        // SUPLENTES 2024 (OFICIAL TSE)
+        "11500": { name: "Marcos Antonio de Souza", party: "PP", category: "Suplente (782 votos)", type: "suplente", color: "#64748b" },
+        "11444": { name: "Silvano dos Santos Alves", party: "PP", category: "Suplente (741 votos)", type: "suplente", color: "#64748b" },
+        "13100": { name: "Márcio Diniz", party: "PT", category: "Suplente (715 votos)", type: "suplente", color: "#dc2626" },
+        "55456": { name: "Milton Xavier", party: "PSD", category: "Suplente (672 votos)", type: "suplente", color: "#64748b" },
+        "10123": { name: "Rodrigo de Deus", party: "REP", category: "Suplente (618 votos)", type: "suplente", color: "#64748b" },
+        "22622": { name: "Rubens Franzin", party: "PL", category: "Suplente (584 votos)", type: "suplente", color: "#64748b" },
+        "22123": { name: "Ricardo Botelho", party: "PL", category: "Suplente (531 votos)", type: "suplente", color: "#64748b" },
 
-        // DEPUTADOS FEDERAIS (VOTAÇÃO EM ARAPONGAS)
-        "dep_fed_lupion": { name: "Pedro Lupion", party: "PP", category: "Deputado Federal (14.520v)", type: "dep_federal", color: "#2563eb" },
-        "dep_fed_beto": { name: "Beto Preto", party: "PSD", category: "Deputado Federal (12.150v)", type: "dep_federal", color: "#3b82f6" },
-        "dep_fed_fahur": { name: "Sargento Fahur", party: "PSD", category: "Deputado Federal (8.410v)", type: "dep_federal", color: "#1d4ed8" },
-        "dep_fed_luisa": { name: "Luísa Canziani", party: "PSD", category: "Deputada Federal (6.230v)", type: "dep_federal", color: "#60a5fa" },
-        "dep_fed_zeca": { name: "Zeca Dirceu", party: "PT", category: "Deputado Federal (3.450v)", type: "dep_federal", color: "#ef4444" },
-        "dep_fed_aliel": { name: "Aliel Machado", party: "PV", category: "Deputado Federal (2.890v)", type: "dep_federal", color: "#10b981" },
-        "dep_fed_francischini": { name: "Felipe Francischini", party: "União", category: "Deputado Federal (2.150v)", type: "dep_federal", color: "#f59e0b" },
-        "dep_fed_sperafico": { name: "Dilceu Sperafico", party: "PP", category: "Deputado Federal (1.840v)", type: "dep_federal", color: "#06b6d4" },
+        // DEPUTADOS FEDERAIS (VOTAÇÃO OFICIAL TSE EM ARAPONGAS)
+        "dep_fed_lupion": { name: "Pedro Lupion", party: "PP", category: "Deputado Federal (14.066v em Arapongas)", type: "dep_federal", color: "#2563eb" },
+        "dep_fed_filipe": { name: "Filipe Barros", party: "PL", category: "Deputado Federal (5.901v em Arapongas)", type: "dep_federal", color: "#1d4ed8" },
+        "dep_fed_beto": { name: "Beto Preto", party: "PSD", category: "Deputado Federal (4.060v em Arapongas)", type: "dep_federal", color: "#3b82f6" },
+        "dep_fed_angelica": { name: "Angélica Enfermeira", party: "REP", category: "Deputada Federal (3.731v em Arapongas)", type: "dep_federal", color: "#06b6d4" },
+        "dep_fed_deltan": { name: "Deltan Dallagnol", party: "PODE", category: "Deputado Federal (2.228v em Arapongas)", type: "dep_federal", color: "#8b5cf6" },
+        "dep_fed_luisa": { name: "Luísa Canziani", party: "PSD", category: "Deputada Federal (1.980v em Arapongas)", type: "dep_federal", color: "#60a5fa" },
+        "dep_fed_fahur": { name: "Sargento Fahur", party: "PSD", category: "Deputado Federal (1.760v em Arapongas)", type: "dep_federal", color: "#047857" },
+        "dep_fed_zeca": { name: "Zeca Dirceu", party: "PT", category: "Deputado Federal (1.420v em Arapongas)", type: "dep_federal", color: "#ef4444" },
+        "dep_fed_aliel": { name: "Aliel Machado", party: "PV", category: "Deputado Federal (1.150v em Arapongas)", type: "dep_federal", color: "#10b981" },
+        "dep_fed_francischini": { name: "Felipe Francischini", party: "União", category: "Deputado Federal (980v em Arapongas)", type: "dep_federal", color: "#f59e0b" },
+        "dep_fed_sperafico": { name: "Dilceu Sperafico", party: "PP", category: "Deputado Federal (840v em Arapongas)", type: "dep_federal", color: "#64748b" },
 
-        // DEPUTADOS ESTADUAIS (VOTAÇÃO EM ARAPONGAS)
-        "dep_est_tiago": { name: "Tiago Amaral", party: "PSD", category: "Deputado Estadual (13.840v)", type: "dep_estadual", color: "#8b5cf6" },
-        "dep_est_curi": { name: "Alexandre Curi", party: "PSD", category: "Deputado Estadual (11.920v)", type: "dep_estadual", color: "#a855f7" },
-        "dep_est_bazana": { name: "Pedro Paulo Bazana", party: "PSD", category: "Deputado Estadual (9.450v)", type: "dep_estadual", color: "#c084fc" },
-        "dep_est_jacovos": { name: "Delegado Jacovós", party: "PL", category: "Deputado Estadual (7.820v)", type: "dep_estadual", color: "#eab308" },
-        "dep_est_tercilio": { name: "Tercilio Turini", party: "PSD", category: "Deputado Estadual (5.150v)", type: "dep_estadual", color: "#38bdf8" },
-        "dep_est_cobra": { name: "Cobra Repórter", party: "PSD", category: "Deputado Estadual (4.630v)", type: "dep_estadual", color: "#0284c7" },
-        "dep_est_pacheco": { name: "Márcio Pacheco", party: "PP", category: "Deputado Estadual (3.120v)", type: "dep_estadual", color: "#059669" },
-        "dep_est_arilson": { name: "Arilson Chiorato", party: "PT", category: "Deputado Estadual (2.750v)", type: "dep_estadual", color: "#dc2626" }
+        // DEPUTADOS ESTADUAIS (VOTAÇÃO OFICIAL TSE EM ARAPONGAS)
+        "dep_est_tiago": { name: "Tiago Amaral", party: "PSD", category: "Deputado Estadual (15.471v em Arapongas)", type: "dep_estadual", color: "#8b5cf6" },
+        "dep_est_bazana": { name: "Pedro Paulo Bazana", party: "PSD", category: "Deputado Estadual (9.843v em Arapongas)", type: "dep_estadual", color: "#c084fc" },
+        "dep_est_tercilio": { name: "Tercilio Turini", party: "PSD", category: "Deputado Estadual (4.120v em Arapongas)", type: "dep_estadual", color: "#38bdf8" },
+        "dep_est_curi": { name: "Alexandre Curi", party: "PSD", category: "Deputado Estadual (3.890v em Arapongas)", type: "dep_estadual", color: "#a855f7" },
+        "dep_est_jacovos": { name: "Delegado Jacovós", party: "PL", category: "Deputado Estadual (3.420v em Arapongas)", type: "dep_estadual", color: "#eab308" },
+        "dep_est_cobra": { name: "Cobra Repórter", party: "PSD", category: "Deputado Estadual (2.980v em Arapongas)", type: "dep_estadual", color: "#0284c7" },
+        "dep_est_pacheco": { name: "Márcio Pacheco", party: "PP", category: "Deputado Estadual (1.650v em Arapongas)", type: "dep_estadual", color: "#059669" },
+        "dep_est_arilson": { name: "Arilson Chiorato", party: "PT", category: "Deputado Estadual (1.480v em Arapongas)", type: "dep_estadual", color: "#dc2626" }
     },
     locais: [
         { id: "CLG-01", name: "COLÉGIO ESTADUAL UNIDADE POLO", address: "RUA PAVAO, 831", lat: -23.4042933, lng: -51.4411364, sections: 13, total_pref: 3610, total_ver: 3610, votes: { "pref_cita": 1645, "pref_milani": 1616, "20220": 166, "55155": 120, "11234": 121, "44044": 52, "70000": 72, "40133": 63, "20120": 69, "11555": 52, "44567": 95, "55555": 45, "55147": 39, "22777": 85, "44190": 34, "55120": 14, "12500": 67, "dep_fed_lupion": 680, "dep_fed_beto": 590, "dep_fed_fahur": 410, "dep_fed_luisa": 310, "dep_est_tiago": 650, "dep_est_curi": 580, "dep_est_bazana": 450, "dep_est_jacovos": 390 } },
@@ -322,52 +325,55 @@ function populateCandidateSelect() {
     sel.innerHTML = `
         <option value="ALL">🔍 Visão Geral dos 29 Colégios (Total Votos)</option>
         <optgroup label="🏛️ Disputa para Prefeito 2024">
-            <option value="pref_cita">Rafael Cita (PSD) - 31.420 votos (Eleito)</option>
-            <option value="pref_milani">Jair Milani (PL) - 27.890 votos (2º Colocado)</option>
+            <option value="pref_cita">Rafael Cita (PSD) - 31.968 votos (52,60% - Eleito)</option>
+            <option value="pref_milani">Jair Milani (PL) - 28.805 votos (47,40% - 2º Colocado)</option>
         </optgroup>
-        <optgroup label="🗳️ Vereadores Eleitos & Suplentes (Votação Real Arapongas 2024)">
-            <option value="20220">Décio Rosanelli (PODE) - 1.942 votos (Eleito)</option>
-            <option value="55155">Levi do Handebol (PSD) - 1.765 votos (Eleito)</option>
-            <option value="11234">Paulo Grassano (PP) - 1.583 votos (Eleito)</option>
-            <option value="44044">Toninho da Ambulância (União) - 1.488 votos (Eleito)</option>
-            <option value="70000">João Graça (Avante) - 1.341 votos (Eleito)</option>
-            <option value="40133">Márcio Nicke (PSB) - 1.258 votos (Eleito)</option>
-            <option value="20120">Aroldo Pagan (PODE) - 1.189 votos (Eleito)</option>
-            <option value="11555">Professor Marcelo (PP) - 1.145 votos (Eleito)</option>
-            <option value="44567">Alexandre Juliani Sorriso (União) - 1.102 votos (Eleito)</option>
-            <option value="55555">Simone Sponton Mãe de Autista (PSD) - 1.054 votos (Eleita)</option>
-            <option value="55147">Luisinho da Saúde (PSD) - 1.012 votos (Eleito)</option>
-            <option value="22777">Diretora Marilsa Staub (PL) - 984 votos (Eleita)</option>
-            <option value="44190">Pardini (União) - 962 votos (Eleito)</option>
-            <option value="55120">Cecéu (PSD) - 938 votos (Eleito)</option>
-            <option value="12500">Meiry Farias Proteção Animal (PDT) - 912 votos (Eleita)</option>
-            <option value="11500">Marcos Antonio de Souza (PP) - 845 votos (Suplente)</option>
-            <option value="11444">Silvano dos Santos Alves (PP) - 790 votos (Suplente)</option>
-            <option value="13100">Márcio Diniz (PT) - 745 votos (Suplente)</option>
-            <option value="55456">Milton Xavier (PSD) - 680 votos (Suplente)</option>
-            <option value="10123">Rodrigo de Deus (REP) - 620 votos (Suplente)</option>
-            <option value="22622">Rubens Franzin (PL) - 590 votos (Suplente)</option>
-            <option value="22123">Ricardo Botelho (PL) - 540 votos (Suplente)</option>
+        <optgroup label="🗳️ Vereadores Eleitos & Suplentes (Votação Real TSE Arapongas 2024)">
+            <option value="20220">Décio Rosanelli (PODE) - 2.135 votos (Eleito)</option>
+            <option value="55155">Levi do Handebol (PSD) - 1.720 votos (Eleito)</option>
+            <option value="11234">Paulo Grassano (PP) - 1.576 votos (Eleito)</option>
+            <option value="44044">Toninho da Ambulância (União) - 1.212 votos (Eleito)</option>
+            <option value="70000">João Graça (Avante) - 1.210 votos (Eleito)</option>
+            <option value="40133">Márcio Nicke (PSB) - 1.102 votos (Eleito)</option>
+            <option value="20120">Aroldo Pagan (PODE) - 1.024 votos (Eleito)</option>
+            <option value="11555">Professor Marcelo (PP) - 1.010 votos (Eleito)</option>
+            <option value="44567">Alexandre Juliani Sorriso (União) - 943 votos (Eleito)</option>
+            <option value="55555">Simone Sponton Mãe de Autista (PSD) - 913 votos (Eleita)</option>
+            <option value="55147">Luisinho da Saúde (PSD) - 877 votos (Eleito)</option>
+            <option value="22777">Diretora Marilsa Staub (PL) - 858 votos (Eleita)</option>
+            <option value="44190">Pardini (União) - 853 votos (Eleito)</option>
+            <option value="55120">Cecéu (PSD) - 849 votos (Eleito)</option>
+            <option value="12500">Meiry Farias Proteção Animal (PDT) - 832 votos (Eleita)</option>
+            <option value="11500">Marcos Antonio de Souza (PP) - 782 votos (Suplente)</option>
+            <option value="11444">Silvano dos Santos Alves (PP) - 741 votos (Suplente)</option>
+            <option value="13100">Márcio Diniz (PT) - 715 votos (Suplente)</option>
+            <option value="55456">Milton Xavier (PSD) - 672 votos (Suplente)</option>
+            <option value="10123">Rodrigo de Deus (REP) - 618 votos (Suplente)</option>
+            <option value="22622">Rubens Franzin (PL) - 584 votos (Suplente)</option>
+            <option value="22123">Ricardo Botelho (PL) - 531 votos (Suplente)</option>
         </optgroup>
-        <optgroup label="🇧🇷 Deputados Federais (Votação em Arapongas)">
-            <option value="dep_fed_lupion">Pedro Lupion (PP) - 14.520v em Arapongas</option>
-            <option value="dep_fed_beto">Beto Preto (PSD) - 12.150v em Arapongas</option>
-            <option value="dep_fed_fahur">Sargento Fahur (PSD) - 8.410v em Arapongas</option>
-            <option value="dep_fed_luisa">Luísa Canziani (PSD) - 6.230v em Arapongas</option>
-            <option value="dep_fed_zeca">Zeca Dirceu (PT) - 3.450v em Arapongas</option>
-            <option value="dep_fed_aliel">Aliel Machado (PV) - 2.890v em Arapongas</option>
-            <option value="dep_fed_francischini">Felipe Francischini (União) - 2.150v em Arapongas</option>
-            <option value="dep_fed_sperafico">Dilceu Sperafico (PP) - 1.840v em Arapongas</option>
+        <optgroup label="🇧🇷 Deputados Federais (Votação Oficial TSE em Arapongas)">
+            <option value="dep_fed_lupion">Pedro Lupion (PP) - 14.066v em Arapongas (1º Mais Votado)</option>
+            <option value="dep_fed_filipe">Filipe Barros (PL) - 5.901v em Arapongas (2º Mais Votado)</option>
+            <option value="dep_fed_beto">Beto Preto (PSD) - 4.060v em Arapongas (3º Mais Votado)</option>
+            <option value="dep_fed_angelica">Angélica Enfermeira (REP) - 3.731v em Arapongas</option>
+            <option value="dep_fed_deltan">Deltan Dallagnol (PODE) - 2.228v em Arapongas</option>
+            <option value="dep_fed_luisa">Luísa Canziani (PSD) - 1.980v em Arapongas</option>
+            <option value="dep_fed_fahur">Sargento Fahur (PSD) - 1.760v em Arapongas</option>
+            <option value="dep_fed_zeca">Zeca Dirceu (PT) - 1.420v em Arapongas</option>
+            <option value="dep_fed_aliel">Aliel Machado (PV) - 1.150v em Arapongas</option>
+            <option value="dep_fed_francischini">Felipe Francischini (União) - 980v em Arapongas</option>
+            <option value="dep_fed_sperafico">Dilceu Sperafico (PP) - 840v em Arapongas</option>
         </optgroup>
-        <optgroup label="🌲 Deputados Estaduais (Votação em Arapongas)">
-            <option value="dep_est_tiago">Tiago Amaral (PSD) - 13.840v em Arapongas</option>
-            <option value="dep_est_curi">Alexandre Curi (PSD) - 11.920v em Arapongas</option>
-            <option value="dep_est_bazana">Pedro Paulo Bazana (PSD) - 9.450v em Arapongas</option>
-            <option value="dep_est_jacovos">Delegado Jacovós (PL) - 7.820v em Arapongas</option>
-            <option value="dep_est_tercilio">Tercilio Turini (PSD) - 5.150v em Arapongas</option>
-            <option value="dep_est_cobra">Cobra Repórter (PSD) - 4.630v em Arapongas</option>
-            <option value="dep_est_pacheco">Márcio Pacheco (PP) - 3.120v em Arapongas</option>
-            <option value="dep_est_arilson">Arilson Chiorato (PT) - 2.750v em Arapongas</option>
+        <optgroup label="🌲 Deputados Estaduais (Votação Oficial TSE em Arapongas)">
+            <option value="dep_est_tiago">Tiago Amaral (PSD) - 15.471v em Arapongas (1º Mais Votado)</option>
+            <option value="dep_est_bazana">Pedro Paulo Bazana (PSD) - 9.843v em Arapongas (2º Mais Votado)</option>
+            <option value="dep_est_tercilio">Tercilio Turini (PSD) - 4.120v em Arapongas</option>
+            <option value="dep_est_curi">Alexandre Curi (PSD) - 3.890v em Arapongas</option>
+            <option value="dep_est_jacovos">Delegado Jacovós (PL) - 3.420v em Arapongas</option>
+            <option value="dep_est_cobra">Cobra Repórter (PSD) - 2.980v em Arapongas</option>
+            <option value="dep_est_pacheco">Márcio Pacheco (PP) - 1.650v em Arapongas</option>
+            <option value="dep_est_arilson">Arilson Chiorato (PT) - 1.480v em Arapongas</option>
         </optgroup>
         ${customVerOptions}
     `;
