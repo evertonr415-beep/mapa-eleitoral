@@ -1,1 +1,65 @@
-{"users":[],"liderancas":[],"audit":[]}
+{
+  "users": [
+    {
+      "id": "usr_everton",
+      "nome": "Everton Moreira",
+      "email": "everton@campanha.com.br",
+      "cpf": "054.***.***-00",
+      "whatsapp": "43999990001",
+      "cargo": "Gestor Geral / Master",
+      "partido": "Gestão Master",
+      "numeroCandidato": "MASTER",
+      "senha": "32VEto135@",
+      "primeiroAcesso": false,
+      "senhaAlteradaEm": "2026-09-03T14:00:30.737Z",
+      "role": "master",
+      "avatar": "👑"
+    },
+    {
+      "id": "usr_rafael",
+      "nome": "Rafael Rodrigues",
+      "email": "rafael@campanha.com.br",
+      "cpf": "112.***.***-20",
+      "whatsapp": "43999990002",
+      "cargo": "Gestor Executivo / Master",
+      "partido": "Gestão Master",
+      "numeroCandidato": "MASTER",
+      "senha": "Campanha@2026",
+      "primeiroAcesso": true,
+      "senhaAlteradaEm": null,
+      "role": "master",
+      "avatar": "🏛️"
+    },
+    {
+      "id": "usr_ronnie",
+      "nome": "Ronnie Onofre",
+      "email": "ronnie@campanha.com.br",
+      "cpf": "223.***.***-30",
+      "whatsapp": "43999990003",
+      "cargo": "Coordenador Regional / Adm",
+      "partido": "Gestão Central",
+      "numeroCandidato": "ADM",
+      "senha": "Campanha@2026",
+      "primeiroAcesso": true,
+      "senhaAlteradaEm": null,
+      "role": "adm",
+      "avatar": "🛡️"
+    }
+  ],
+  "liderancas": [],
+  "audit": [
+    {
+      "id": "log_1788445073766_8qbv",
+      "timestamp": "2026-09-03T14:17:53.766Z",
+      "userId": "usr_everton",
+      "userName": "Everton Moreira",
+      "userRole": "master",
+      "userEmail": "everton@campanha.com.br",
+      "type": "login",
+      "action": "🔐 Autenticação Realizada",
+      "details": "Usuário Everton Moreira (master) efetuou login com o e-mail everton@campanha.com.br",
+      "device": "💻 Computador Desktop"
+    }
+  ],
+  "updatedAt": "2026-09-03T15:08:59.039Z"
+}
