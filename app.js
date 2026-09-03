@@ -320,6 +320,12 @@ function updateUserProfileUI() {
         }
     }
 
+    // Cadastro de novos vereadores: somente Master / Adm
+    const btnCadastrarVereador = document.getElementById('btn-cadastrar-vereador');
+    if (btnCadastrarVereador) {
+        btnCadastrarVereador.style.display = (u.role === 'master' || u.role === 'adm') ? 'inline-flex' : 'none';
+    }
+
     // Auditoria & Banco disponível apenas para Master e Adm
     const btnAudit = document.getElementById('tab-btn-audit');
     if (btnAudit) {

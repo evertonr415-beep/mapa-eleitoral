@@ -284,6 +284,10 @@ class SecureSupabaseService {
     }
 
     async registerVereador(formData) {
+        const actor = this.getCurrentUser();
+        if (!actor || (actor.role !== 'master' && actor.role !== 'adm')) {
+            throw new Error('Apenas Master ou Administrador pode cadastrar novos vereadores.');
+        }
         await this.remoteReady;
         if (!this.client) throw new Error('Nao foi possivel conectar ao Supabase.');
 
