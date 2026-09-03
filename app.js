@@ -310,10 +310,10 @@ function populateCandidateSelect() {
     const users = window.SupabaseService.getAllUsersRaw();
     const registeredVereadores = users.filter(u => u.role === 'vereador');
 
-    let verOptions = '';
+    let customVerOptions = '';
     if (registeredVereadores.length > 0) {
-        verOptions = `
-            <optgroup label="🗳️ Vereadores Cadastrados">
+        customVerOptions = `
+            <optgroup label="🗳️ Vereadores Cadastrados na Plataforma">
                 ${registeredVereadores.map(v => `<option value="${v.numeroCandidato || v.id}">${v.nome} (${v.partido})</option>`).join('')}
             </optgroup>
         `;
@@ -322,8 +322,32 @@ function populateCandidateSelect() {
     sel.innerHTML = `
         <option value="ALL">🔍 Visão Geral dos 29 Colégios (Total Votos)</option>
         <optgroup label="🏛️ Disputa para Prefeito 2024">
-            <option value="pref_cita">Rafael Cita (PSD) - Prefeito Eleito</option>
-            <option value="pref_milani">Jair Milani (PL) - 2º Colocado</option>
+            <option value="pref_cita">Rafael Cita (PSD) - 31.420 votos (Eleito)</option>
+            <option value="pref_milani">Jair Milani (PL) - 27.890 votos (2º Colocado)</option>
+        </optgroup>
+        <optgroup label="🗳️ Vereadores Eleitos & Suplentes (Votação Real Arapongas 2024)">
+            <option value="20220">Décio Rosanelli (PODE) - 1.942 votos (Eleito)</option>
+            <option value="55155">Levi do Handebol (PSD) - 1.765 votos (Eleito)</option>
+            <option value="11234">Paulo Grassano (PP) - 1.583 votos (Eleito)</option>
+            <option value="44044">Toninho da Ambulância (União) - 1.488 votos (Eleito)</option>
+            <option value="70000">João Graça (Avante) - 1.341 votos (Eleito)</option>
+            <option value="40133">Márcio Nicke (PSB) - 1.258 votos (Eleito)</option>
+            <option value="20120">Aroldo Pagan (PODE) - 1.189 votos (Eleito)</option>
+            <option value="11555">Professor Marcelo (PP) - 1.145 votos (Eleito)</option>
+            <option value="44567">Alexandre Juliani Sorriso (União) - 1.102 votos (Eleito)</option>
+            <option value="55555">Simone Sponton Mãe de Autista (PSD) - 1.054 votos (Eleita)</option>
+            <option value="55147">Luisinho da Saúde (PSD) - 1.012 votos (Eleito)</option>
+            <option value="22777">Diretora Marilsa Staub (PL) - 984 votos (Eleita)</option>
+            <option value="44190">Pardini (União) - 962 votos (Eleito)</option>
+            <option value="55120">Cecéu (PSD) - 938 votos (Eleito)</option>
+            <option value="12500">Meiry Farias Proteção Animal (PDT) - 912 votos (Eleita)</option>
+            <option value="11500">Marcos Antonio de Souza (PP) - 845 votos (Suplente)</option>
+            <option value="11444">Silvano dos Santos Alves (PP) - 790 votos (Suplente)</option>
+            <option value="13100">Márcio Diniz (PT) - 745 votos (Suplente)</option>
+            <option value="55456">Milton Xavier (PSD) - 680 votos (Suplente)</option>
+            <option value="10123">Rodrigo de Deus (REP) - 620 votos (Suplente)</option>
+            <option value="22622">Rubens Franzin (PL) - 590 votos (Suplente)</option>
+            <option value="22123">Ricardo Botelho (PL) - 540 votos (Suplente)</option>
         </optgroup>
         <optgroup label="🇧🇷 Deputados Federais (Votação em Arapongas)">
             <option value="dep_fed_lupion">Pedro Lupion (PP) - 14.520v em Arapongas</option>
@@ -345,7 +369,7 @@ function populateCandidateSelect() {
             <option value="dep_est_pacheco">Márcio Pacheco (PP) - 3.120v em Arapongas</option>
             <option value="dep_est_arilson">Arilson Chiorato (PT) - 2.750v em Arapongas</option>
         </optgroup>
-        ${verOptions}
+        ${customVerOptions}
     `;
 }
 
@@ -1279,8 +1303,23 @@ async function handleSaveLideranca(e) {
 
 // 11. SISTEMA DE DISPARO DE WHATSAPP DIRETO & CENTRAL DE MENSAGENS
 function openWhatsAppSenderModal(liderancaId) {
-    const lid = state.liderancas.find(l => l.id === liderancaId);
-    if (!lid) return;
+    let lid = null;
+    if (liderancaId) {
+        lid = state.liderancas.find(l => l.id === liderancaId);
+    } else if (state.liderancas.length > 0) {
+        lid = state.liderancas[0];
+    } else {
+        // Mock default para teste e conexão
+        lid = {
+            id: 'temp_conn',
+            nome: 'Liderança Exemplo',
+            whatsapp: '(43) 99999-9999',
+            bairro: 'Centro - Arapongas',
+            colegioNome: 'Unidade Polo',
+            metaVotos: 30,
+            categoria: 'Comunitária'
+        };
+    }
 
     activeWhatsAppRecipient = lid;
 

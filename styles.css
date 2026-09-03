@@ -285,6 +285,28 @@ header.topbar {
     box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
 }
 
+.btn-whatsapp-connect {
+    background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+    color: #fff;
+    border: none;
+    padding: 7px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 15px rgba(37, 211, 102, 0.35);
+    transition: all 0.2s ease;
+}
+
+.btn-whatsapp-connect:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(37, 211, 102, 0.5);
+    filter: brightness(1.08);
+}
+
 .btn-icon {
     background: var(--bg-input);
     color: var(--text-muted);
