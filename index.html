@@ -642,8 +642,8 @@
     </div>
 </div>
 
-<!-- MODAL: AUTENTICAÇÃO / LOGIN & CADASTRO DE VEREADOR (ABRE AUTOMATICAMENTE NA INICIALIZAÇÃO) -->
-<div class="modal-overlay" id="modal-auth-flow" style="display:flex;">
+<!-- MODAL: AUTENTICAÇÃO / LOGIN & CADASTRO DE VEREADOR -->
+<div class="modal-overlay" id="modal-auth-flow" style="display:none;">
     <div class="modal-card" style="max-width:490px; border:1px solid rgba(59, 130, 246, 0.4); box-shadow:0 20px 50px rgba(0,0,0,0.8), 0 0 30px rgba(59,130,246,0.2);">
         <div class="modal-header" style="background:linear-gradient(135deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95));">
             <div>
@@ -662,8 +662,7 @@
 
             <div class="auth-tabs" style="margin-bottom:16px;">
                 <button type="button" class="auth-tab-btn active" id="btn-tab-auth-register" onclick="toggleAuthTab('register')">📝 Cadastrar Vereador</button>
-                <button type="button" class="auth-tab-btn" id="btn-tab-auth-login" onclick="toggleAuthTab('login')">🔓 Entrar</button>
-                <button type="button" class="auth-tab-btn" id="btn-tab-auth-demo" onclick="toggleAuthTab('demo')">⚡ Acesso Rápido</button>
+                <button type="button" class="auth-tab-btn" id="btn-tab-auth-login" onclick="toggleAuthTab('login')">🔐 Acessar Conta</button>
             </div>
 
             <!-- Formulário de Auto-Cadastro de Vereador (CAMPOS LIMPOS PARA DIGITAÇÃO) -->
@@ -725,21 +724,20 @@
                 </div>
 
                 <button type="submit" id="btn-submit-register" class="btn-primary" style="width:100%; margin-top:8px; padding:11px; font-size:0.9rem;">
-                    ✨ Concluir Cadastro & Enviar Confirmação por E-mail
+                    ✨ Concluir Cadastro & Entrar na Plataforma
                 </button>
             </form>
 
-            <!-- Formulário de Login -->
+            <!-- Formulário de Login & Biometria -->
             <form id="form-auth-login" style="display:none;">
                 <div class="form-group">
                     <label class="form-label">E-mail Cadastrado ou Usuário</label>
-                    <input type="text" id="auth-login-email" class="form-input" required value="SEUNOME@CAMPANHA.COM.BR" placeholder="SEUNOME@CAMPANHA.COM.BR ou SEUNOME" onclick="if(this.value==='SEUNOME@CAMPANHA.COM.BR') this.value='';" onblur="if(this.value.trim()==='') this.value='SEUNOME@CAMPANHA.COM.BR';">
-                    <div style="font-size:0.68rem; color:#93c5fd; margin-top:3px;">💡 Digite seu nome (ex: <strong>SEUNOME</strong>) ou e-mail corporativo <strong>SEUNOME@CAMPANHA.COM.BR</strong></div>
+                    <input type="text" id="auth-login-email" class="form-input" required placeholder="Digite seu e-mail particular ou nome de usuário">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Senha</label>
                     <div class="pass-input-wrapper">
-                        <input type="password" id="auth-login-pass" class="form-input" required value="Campanha@2026" placeholder="Campanha@2026">
+                        <input type="password" id="auth-login-pass" class="form-input" required placeholder="Digite sua senha cadastrada">
                         <button type="button" class="btn-toggle-pass" onclick="togglePassVisibility('auth-login-pass', this)">👁️</button>
                     </div>
                 </div>
@@ -748,46 +746,67 @@
                         <input type="checkbox" id="chk-remember-device" checked> 📱 Manter meu usuário salvo e conectado neste aparelho celular
                     </label>
                 </div>
-                <button type="submit" class="btn-primary" style="width:100%; margin-top:6px; padding:11px; font-size:0.9rem;">
-                    🔓 Acessar Plataforma
+                <button type="submit" class="btn-primary" style="width:100%; margin-top:4px; padding:11px; font-size:0.9rem;">
+                    🔓 Acessar Conta
                 </button>
+
+                <!-- Divisor e Botão de Biometria (Face ID no iOS / Biometria Facial & Digital no Android) -->
+                <div style="display:flex; align-items:center; gap:10px; margin:14px 0 6px 0;">
+                    <div style="flex:1; height:1px; background:rgba(255,255,255,0.1);"></div>
+                    <span style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">ou acesse com biometria</span>
+                    <div style="flex:1; height:1px; background:rgba(255,255,255,0.1);"></div>
+                </div>
+
+                <button type="button" id="btn-biometric-login" class="btn-biometric" onclick="window.handleBiometricLogin()">
+                    <span id="bio-icon">🪪</span>
+                    <span id="bio-text">Entrar com Face ID / Biometria Digital</span>
+                </button>
+
+                <div style="text-align:center; margin-top:14px;">
+                    <a href="javascript:void(0)" onclick="toggleAuthTab('demo')" style="font-size:0.72rem; color:var(--text-muted); text-decoration:underline;">
+                        👑 Acesso Master / Administradores de Campanha
+                    </a>
+                </div>
             </form>
 
-            <!-- Aba de Acesso Rápido -->
+            <!-- Acesso Master / Demo -->
             <div id="auth-demo-picker" style="display:none;">
                 <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px;">
-                    Selecione um usuário administrador ou master para entrar:
+                    Acesso direto para administradores e usuários master:
                 </p>
                 <div style="display:flex; flex-direction:column; gap:6px;">
-                    <div class="lideranca-list-card" onclick="quickLoginDemo('usr_everton')" style="border-left:4px solid #fbbf24; padding:8px 12px;">
+                    <div class="lideranca-list-card" onclick="quickLoginDemo('usr_everton')" style="border-left:4px solid #fbbf24; padding:8px 12px; cursor:pointer;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <div>
                                 <strong>👑 Everton Moreira</strong>
-                                <div style="font-size:0.7rem; color:var(--text-muted);">Master Supremo &bull; Acesso geral</div>
+                                <div style="font-size:0.7rem; color:var(--text-muted);">everton@campanha.com.br &bull; MASTER</div>
                             </div>
-                            <span class="user-role-badge role-master">MASTER</span>
+                            <span class="user-role-badge role-master">ENTRAR</span>
                         </div>
                     </div>
-
-                    <div class="lideranca-list-card" onclick="quickLoginDemo('usr_rafael')" style="border-left:4px solid #fbbf24; padding:8px 12px;">
+                    <div class="lideranca-list-card" onclick="quickLoginDemo('usr_rafael')" style="border-left:4px solid #fbbf24; padding:8px 12px; cursor:pointer;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <div>
-                                <strong>🏛️ Rafael Rodrigues</strong>
-                                <div style="font-size:0.7rem; color:var(--text-muted);">Gestor Executivo &bull; Master</div>
+                                <strong>👑 Rafael Rodrigues</strong>
+                                <div style="font-size:0.7rem; color:var(--text-muted);">rafael@campanha.com.br &bull; MASTER</div>
                             </div>
-                            <span class="user-role-badge role-master">MASTER</span>
+                            <span class="user-role-badge role-master">ENTRAR</span>
                         </div>
                     </div>
-
-                    <div class="lideranca-list-card" onclick="quickLoginDemo('usr_ronnie')" style="border-left:4px solid #60a5fa; padding:8px 12px;">
+                    <div class="lideranca-list-card" onclick="quickLoginDemo('usr_ronnie')" style="border-left:4px solid #60a5fa; padding:8px 12px; cursor:pointer;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <div>
                                 <strong>🛡️ Ronnie Onofre</strong>
-                                <div style="font-size:0.7rem; color:var(--text-muted);">Administrador (Adm) &bull; Não vê Everton</div>
+                                <div style="font-size:0.7rem; color:var(--text-muted);">ronnie@campanha.com.br &bull; ADMINISTRADOR</div>
                             </div>
-                            <span class="user-role-badge role-adm">ADM</span>
+                            <span class="user-role-badge role-adm">ENTRAR</span>
                         </div>
                     </div>
+                </div>
+                <div style="text-align:center; margin-top:12px;">
+                    <a href="javascript:void(0)" onclick="toggleAuthTab('login')" style="font-size:0.75rem; color:#93c5fd;">
+                        &larr; Voltar para Login de Vereador
+                    </a>
                 </div>
             </div>
         </div>

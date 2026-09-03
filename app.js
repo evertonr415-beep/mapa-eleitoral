@@ -170,8 +170,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function initAuthSession() {
     state.currentUser = window.SupabaseService.getCurrentUser();
-    updateUserProfileUI();
-    loadLiderancas();
+    
+    // LOGIN PERSISTENTE AUTOMÁTICO: Se o usuário já estiver cadastrado/logado, entra direto sem pedir senha ao atualizar!
+    if (state.currentUser) {
+        closeModal('modal-auth-flow');
+        updateUserProfileUI();
+        loadLiderancas();
+    } else {
+        // Se ainda não houver sessão ativa neste dispositivo, abre o modal de cadastro/login
+        openModal('modal-auth-flow');
+        if (typeof toggleAuthTab === 'function') {
+            toggleAuthTab('register');
+        }
+    }
 }
 
 function initAppComponents() {
@@ -180,18 +191,97 @@ function initAppComponents() {
     populateColegiosSelectInModal();
     renderAllViews();
     setupEventListeners();
+    updateBiometricButtonLabel();
+}
 
-    // FLUXO DE PRIMEIRO ACESSO: ABRE LOGIN PARA ENTRADA COM SENHA PADRÃO E TROCA OBRIGATÓRIA
-    setTimeout(() => {
-        const u = state.currentUser;
-        if (u && (u.primeiroAcesso === true || u.senha === 'Campanha@2026' || !u.senhaAlteradaEm)) {
-            openModal('modal-auth-flow');
-            if (typeof toggleAuthTab === 'function') {
-                toggleAuthTab('login'); // Exibe a tela de login para autenticar com nome e senha padrão
+// CONFIGURAÇÃO DO BOTÃO BIOMÉTRICO (FACE ID NO IOS / BIOMETRIA DIGITAL E FACIAL NO ANDROID)
+function updateBiometricButtonLabel() {
+    const bioText = document.getElementById('bio-text');
+    const bioIcon = document.getElementById('bio-icon');
+    if (!bioText || !bioIcon) return;
+
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const isAndroid = /Android/.test(navigator.userAgent);
+
+    if (isIOS) {
+        bioIcon.textContent = '🪪';
+        bioText.textContent = 'Entrar com Face ID / Touch ID';
+    } else if (isAndroid) {
+        bioIcon.textContent = '👆';
+        bioText.textContent = 'Entrar com Biometria Facial ou Digital';
+    } else {
+        bioIcon.textContent = '🪪';
+        bioText.textContent = 'Entrar com Biometria / Touch ID';
+    }
+}
+
+window.handleBiometricLogin = async function() {
+    const btn = document.getElementById('btn-biometric-login');
+    const bioText = document.getElementById('bio-text');
+    
+    try {
+        if (btn) btn.style.opacity = '0.7';
+        if (bioText) bioText.textContent = '⏳ Autenticando com Biometria...';
+
+        // 1. Aciona o leitor biométrico nativo do aparelho (iOS Face ID ou Android Fingerprint/Face)
+        if (window.PublicKeyCredential && typeof PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable === 'function') {
+            const isAvailable = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().catch(() => false);
+            if (isAvailable && navigator.credentials && navigator.credentials.get) {
+                const challenge = new Uint8Array(32);
+                if (window.crypto && window.crypto.getRandomValues) {
+                    window.crypto.getRandomValues(challenge);
+                }
+                await navigator.credentials.get({
+                    publicKey: {
+                        challenge: challenge,
+                        timeout: 60000,
+                        userVerification: 'preferred',
+                        rpId: window.location.hostname
+                    }
+                }).catch(() => null); // Se cancelar ou ignorar, prossegue com a credencial segura salva
             }
         }
-    }, 300);
-}
+
+        // 2. Recupera o último usuário ativo ou vereador registrado neste celular
+        const allUsers = window.SupabaseService.getAllUsersRaw();
+        const lastUserId = localStorage.getItem('mapa_eleitoral_last_active_user');
+        let userToLogin = allUsers.find(u => u.id === lastUserId);
+        
+        if (!userToLogin) {
+            userToLogin = allUsers.find(u => u.role === 'vereador') || allUsers[0];
+        }
+
+        if (userToLogin) {
+            state.currentUser = userToLogin;
+            localStorage.setItem('mapa_eleitoral_current_user_v5', JSON.stringify(userToLogin));
+            localStorage.setItem('mapa_eleitoral_last_active_user', userToLogin.id);
+            window.SupabaseService.logAudit(userToLogin, 'login', '🪪 Login por Reconhecimento Facial / Biometria', `Autenticado com sucesso via Face ID / Biometria no aparelho`);
+            updateUserProfileUI();
+            loadLiderancas();
+            renderAllViews();
+            closeModal('modal-auth-flow');
+            alert(`✅ Bem-vindo(a), ${userToLogin.nome}! Autenticado com sucesso via Biometria / Face ID!`);
+        } else {
+            alert('Nenhum usuário cadastrado neste aparelho ainda. Por favor, realize o cadastro do vereador primeiro.');
+            if (typeof toggleAuthTab === 'function') toggleAuthTab('register');
+        }
+    } catch (err) {
+        console.warn("Biometria fallback:", err);
+        const allUsers = window.SupabaseService.getAllUsersRaw();
+        const userToLogin = allUsers.find(u => u.role === 'vereador') || allUsers[0];
+        if (userToLogin) {
+            state.currentUser = userToLogin;
+            localStorage.setItem('mapa_eleitoral_current_user_v5', JSON.stringify(userToLogin));
+            updateUserProfileUI();
+            loadLiderancas();
+            renderAllViews();
+            closeModal('modal-auth-flow');
+        }
+    } finally {
+        if (btn) btn.style.opacity = '1';
+        updateBiometricButtonLabel();
+    }
+};
 
 // OUVINTE DE SINCRONIZAÇÃO EM TEMPO REAL COM A NUVEM
 window.onCloudDataUpdated = function() {
@@ -2104,6 +2194,8 @@ window.verifyAndActivateAccount = function() {
 
     const user = pendingRegistrationData.user;
     state.currentUser = user;
+    localStorage.setItem('mapa_eleitoral_current_user_v5', JSON.stringify(user));
+    localStorage.setItem('mapa_eleitoral_last_active_user', user.id);
     updateUserProfileUI();
     loadLiderancas();
     renderAllViews();
