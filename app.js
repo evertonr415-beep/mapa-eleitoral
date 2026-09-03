@@ -906,16 +906,27 @@ async function handleSaveLideranca(e) {
     state.map.flyTo([saved.lat, saved.lng], 16, { duration: 1 });
 }
 
-// 11. SISTEMA DE DISPARO DE WHATSAPP DIRETO
+// 11. SISTEMA DE DISPARO DE WHATSAPP DIRETO & CENTRAL DE MENSAGENS
 function openWhatsAppSenderModal(liderancaId) {
     const lid = state.liderancas.find(l => l.id === liderancaId);
     if (!lid) return;
 
     activeWhatsAppRecipient = lid;
 
-    document.getElementById('wa-recipient-name').textContent = `Destinatário: 👤 ${lid.nome} (${lid.categoria})`;
-    document.getElementById('wa-recipient-details').textContent = `WhatsApp: 📱 ${lid.whatsapp} • Bairro: 🏡 ${lid.bairro} • Meta: +${lid.metaVotos} votos`;
+    const u = state.currentUser;
+    const savedSenderNumberKey = `mapa_eleitoral_wa_sender_${u.id}`;
+    const savedSenderNum = localStorage.getItem(savedSenderNumberKey) || u.whatsapp || '';
 
+    document.getElementById('wa-recipient-name').textContent = `Destinatário: 👤 ${lid.nome} (${lid.categoria})`;
+    document.getElementById('wa-recipient-details').textContent = `📱 ${lid.whatsapp} • 🏡 Bairro: ${lid.bairro} • 🏫 ${lid.colegioNome || 'Colégio Eleitoral'}`;
+    document.getElementById('wa-recipient-meta').textContent = `Meta: +${lid.metaVotos} votos`;
+
+    const inpSender = document.getElementById('inp-wa-sender-number');
+    if (inpSender) {
+        inpSender.value = savedSenderNum;
+    }
+
+    document.getElementById('wa-template-select').value = 'welcome';
     applyWhatsAppTemplate('welcome');
     openModal('modal-whatsapp-sender');
 }
@@ -926,15 +937,24 @@ function applyWhatsAppTemplate(templateKey) {
     const u = state.currentUser;
     const txtArea = document.getElementById('wa-message-text');
 
+    const nome = lid.nome || 'Amigo(a)';
+    const bairro = lid.bairro || 'Arapongas';
+    const colegio = lid.colegioNome || 'nosso colégio eleitoral';
+    const meta = lid.metaVotos || '20';
+    const vereador = u.nome || 'Everton Moreira';
+    const partido = u.partido || 'Arapongas';
+
     let msg = '';
     if (templateKey === 'welcome') {
-        msg = `Olá ${lid.nome}, tudo bem? Aqui é o vereador ${u.nome}. Quero agradecer pelo seu apoio e por integrar nossa rede de lideranças no bairro ${lid.bairro}. Vamos juntos construir grandes melhorias para Arapongas!`;
+        msg = `Olá ${nome}, tudo bem? Aqui é o vereador ${vereador} (${partido}). Quero agradecer imensamente pelo seu apoio e por integrar nossa rede de lideranças no bairro ${bairro}. Vamos juntos construir um futuro cada vez forte para Arapongas! 🏛️🚀`;
     } else if (templateKey === 'meeting') {
-        msg = `Olá ${lid.nome}! Gostaria de convidar você para uma reunião estratégica de alinhamento com a nossa coordenação em ${lid.bairro}. Qual o melhor horário para conversarmos?`;
+        msg = `Olá ${nome}! Gostaria de convidar você e seus vizinhos para uma reunião importante sobre as melhorias no bairro ${bairro}. Qual o melhor dia desta semana para nos encontrarmos? Abraço, ${vereador}.`;
     } else if (templateKey === 'align') {
-        msg = `Olá ${lid.nome}! Estamos organizando nossas ações eleitorais com foco no colégio ${lid.colegioNome || 'da nossa região'}. Como estão as conversas para atingirmos nossa meta de +${lid.metaVotos} votos?`;
+        msg = `Olá ${nome}! Estamos organizando o planejamento de seções com foco no ${colegio}. Gostaria de alinhar nossas ações para atingirmos a meta de +${meta} votos na nossa região. Podemos conversar hoje?`;
+    } else if (templateKey === 'reminder') {
+        msg = `Olá ${nome}! Passando para agradecer pela parceria e lembrar da importância da nossa mobilização no bairro ${bairro} para o ${colegio}. Qualquer dúvida estou 100% à disposição! Um abraço, ${vereador}.`;
     } else {
-        msg = `Olá ${lid.nome}!`;
+        msg = `Olá ${nome}, tudo bem? Aqui é o vereador ${vereador}.`;
     }
 
     txtArea.value = msg;
@@ -944,14 +964,40 @@ function executeWhatsAppSend() {
     if (!activeWhatsAppRecipient) return;
     const phone = activeWhatsAppRecipient.whatsapp.replace(/\D/g, '');
     const msg = document.getElementById('wa-message-text').value.trim();
+    const mode = document.getElementById('sel-wa-dispatch-mode')?.value || 'app';
+    const senderNumInput = document.getElementById('inp-wa-sender-number')?.value.trim();
 
     if (!phone) {
         alert('Número de WhatsApp inválido para esta liderança.');
         return;
     }
 
+    // Salva o número do remetente vinculado ao perfil
+    if (senderNumInput && state.currentUser) {
+        localStorage.setItem(`mapa_eleitoral_wa_sender_${state.currentUser.id}`, senderNumInput);
+    }
+
     const cleanNumber = phone.length <= 11 ? '55' + phone : phone;
-    const waUrl = `https://api.whatsapp.com/send?phone=${cleanNumber}&text=${encodeURIComponent(msg)}`;
+
+    let waUrl = '';
+    if (mode === 'web') {
+        waUrl = `https://web.whatsapp.com/send?phone=${cleanNumber}&text=${encodeURIComponent(msg)}`;
+    } else {
+        waUrl = `https://api.whatsapp.com/send?phone=${cleanNumber}&text=${encodeURIComponent(msg)}`;
+    }
+
+    // Atualiza status da liderança para "Em Contato" com timestamp
+    try {
+        window.SupabaseService.updateLideranca(activeWhatsAppRecipient.id, {
+            status: 'Em Contato',
+            ultimoContato: new Date().toISOString()
+        }, state.currentUser);
+        loadLiderancas();
+        renderAllViews();
+    } catch (e) {
+        console.warn('Erro ao atualizar status do contato:', e);
+    }
+
     window.open(waUrl, '_blank');
     closeModal('modal-whatsapp-sender');
 }

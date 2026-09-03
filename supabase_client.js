@@ -101,16 +101,25 @@ class SupabaseService {
         }
     }
 
-    // Sessão Atual
+    // Sessão Atual com Persistência Dinâmica
     getCurrentUser() {
         try {
             const raw = localStorage.getItem(LOCAL_STORAGE_SESSION);
-            if (raw) return JSON.parse(raw);
+            if (raw) {
+                const sess = JSON.parse(raw);
+                const users = this.getAllUsersRaw();
+                const updated = users.find(u => u.id === sess.id || (sess.email && u.email.toLowerCase() === sess.email.toLowerCase()));
+                if (updated) {
+                    return updated;
+                }
+                return sess;
+            }
         } catch (e) {
             console.error("Erro na leitura da sessão:", e);
         }
         // Retorna Everton (Master) como padrão caso não esteja logado
-        return DEFAULT_USERS[0];
+        const users = this.getAllUsersRaw();
+        return users[0] || DEFAULT_USERS[0];
     }
 
     setCurrentUser(user) {
