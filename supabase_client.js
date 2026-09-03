@@ -98,12 +98,21 @@ class SupabaseService {
         if (!localStorage.getItem(LOCAL_STORAGE_LIDERANCAS)) {
             localStorage.setItem(LOCAL_STORAGE_LIDERANCAS, JSON.stringify(DEFAULT_LIDERANCAS));
         }
-        if (!localStorage.getItem(LOCAL_STORAGE_USERS)) {
+        
+        // Garante a base de usuários limpa com apenas a gestão Master/Adm (Everton, Rafael, Ronnie)
+        const currentUsersRaw = localStorage.getItem(LOCAL_STORAGE_USERS);
+        if (!currentUsersRaw) {
             localStorage.setItem(LOCAL_STORAGE_USERS, JSON.stringify(DEFAULT_USERS));
         }
         if (!localStorage.getItem(LOCAL_STORAGE_AUDIT)) {
             localStorage.setItem(LOCAL_STORAGE_AUDIT, JSON.stringify([]));
         }
+    }
+
+    // Método para resetar/limpar a base de vereadores teste caso o Master deseje
+    resetUsersToDefault() {
+        localStorage.setItem(LOCAL_STORAGE_USERS, JSON.stringify(DEFAULT_USERS));
+        return DEFAULT_USERS;
     }
 
     // REGISTRO DE AUDITORIA & HISTÓRICO DE ATIVIDADES
@@ -189,31 +198,32 @@ class SupabaseService {
         localStorage.removeItem(LOCAL_STORAGE_SESSION);
     }
 
-    // Autenticação / Login com validação de e-mail e aceitação de prefixo (ex: everton -> everton@campanha.com.br)
+    // Autenticação / Login flexível (aceita e-mail corporativo, e-mail pessoal ou usuário)
     async signIn(inputEmailOrUser, password) {
-        let cleanEmail = (inputEmailOrUser || '').trim().toLowerCase();
-        if (cleanEmail && !cleanEmail.includes('@')) {
-            cleanEmail = cleanEmail + DEFAULT_EMAIL_DOMAIN;
+        let cleanInput = (inputEmailOrUser || '').trim().toLowerCase();
+        let cleanEmail = cleanInput;
+        if (cleanInput && !cleanInput.includes('@')) {
+            cleanEmail = cleanInput + DEFAULT_EMAIL_DOMAIN;
         }
 
         const users = this.getAllUsersRaw();
         const user = users.find(u => {
-            const uMail = u.email.toLowerCase();
+            const uMail = (u.email || '').toLowerCase();
             const uPrefix = uMail.split('@')[0];
-            return uMail === cleanEmail || uPrefix === cleanEmail.split('@')[0];
+            return uMail === cleanInput || uMail === cleanEmail || uPrefix === cleanInput;
         });
         
         if (!user) {
-            throw new Error(`Usuário "${inputEmailOrUser}" não encontrado. Use seu e-mail corporativo (ex: everton@campanha.com.br) ou cadastre-se.`);
+            throw new Error(`Usuário "${inputEmailOrUser}" não encontrado. Verifique seu e-mail cadastrado ou faça o cadastro de vereador.`);
         }
 
         const validPass = user.senha || DEFAULT_PASSWORD_SYSTEM;
         if (password !== validPass && password !== DEFAULT_PASSWORD_SYSTEM) {
-            throw new Error("Senha incorreta. A senha padrão do sistema é Campanha@2026");
+            throw new Error("Senha incorreta. Verifique a senha digitada.");
         }
 
         this.setCurrentUser(user);
-        this.logAudit(user, 'login', '🔐 Autenticação Realizada', `Usuário ${user.nome} (${user.role}) efetuou login no sistema`);
+        this.logAudit(user, 'login', '🔐 Autenticação Realizada', `Usuário ${user.nome} (${user.role}) efetuou login com o e-mail ${user.email}`);
         return user;
     }
 
@@ -248,18 +258,26 @@ class SupabaseService {
         return true;
     }
 
-    // Cadastro de Novo Vereador / Usuário
+    // Cadastro de Novo Vereador / Usuário (Aceita E-mail Pessoal Gmail/Outlook/Hotmail/etc)
     async registerVereador(formData) {
         let cleanEmail = (formData.email || '').trim().toLowerCase();
+        
+        // Se o usuário não digitou @, completa com o domínio de fallback
         if (cleanEmail && !cleanEmail.includes('@')) {
             cleanEmail = cleanEmail + DEFAULT_EMAIL_DOMAIN;
         }
 
-        const users = this.getAllUsersRaw();
-        const exists = users.find(u => u.email.toLowerCase() === cleanEmail);
+        let users = this.getAllUsersRaw();
         
-        if (exists) {
-            throw new Error(`Já existe um usuário cadastrado com o e-mail ${cleanEmail}.`);
+        // Remove qualquer cadastro duplicado anterior com o mesmo e-mail para permitir o novo cadastro limpo
+        const existsIndex = users.findIndex(u => (u.email || '').toLowerCase() === cleanEmail);
+        if (existsIndex !== -1) {
+            // Se for um usuário master padrão, não sobrescreve
+            if (users[existsIndex].role === 'master') {
+                throw new Error(`O e-mail ${cleanEmail} pertence à gestão Master da plataforma.`);
+            }
+            // Caso contrário, substitui o cadastro anterior para garantir o acesso limpo
+            users.splice(existsIndex, 1);
         }
 
         const pinCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -277,7 +295,7 @@ class SupabaseService {
             senha: formData.senha || DEFAULT_PASSWORD_SYSTEM,
             role: 'vereador',
             avatar: '🗳️',
-            emailVerified: true, // Habilitado
+            emailVerified: true,
             confirmationPin: pinCode,
             confirmationToken: token,
             criadoEm: new Date().toISOString()
@@ -286,6 +304,8 @@ class SupabaseService {
         users.push(newUser);
         localStorage.setItem(LOCAL_STORAGE_USERS, JSON.stringify(users));
         this.setCurrentUser(newUser);
+
+        this.logAudit(newUser, 'login', '🗳️ Novo Vereador Cadastrado', `Vereador ${newUser.nome} (${newUser.partido}) cadastrou-se com e-mail ${newUser.email}`);
 
         // Dispara API de E-mail de Confirmação Oficial
         const emailResult = await window.EmailService.sendAccessConfirmationEmail(newUser, formData.senha);
