@@ -1,0 +1,67 @@
+name: Fix vereador permissions
+
+on:
+  push:
+    branches:
+      - security/hardening-2026-09-03
+    paths:
+      - .github/workflows/fix-vereador-permissions.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: security/hardening-2026-09-03
+          fetch-depth: 0
+
+      - name: Apply least-privilege UI and registration guards
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          # 1) Hide create-user button by default in HTML.
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          old = '<button class="btn-primary" onclick="openModal(\'modal-auth-flow\')">+ Cadastrar Novo Vereador</button>'
+          new = '<button id="btn-cadastrar-vereador" class="btn-primary" onclick="openModal(\'modal-auth-flow\')" style="display:none;">+ Cadastrar Novo Vereador</button>'
+          if old not in s:
+              raise SystemExit('index.html: create-user button marker not found')
+          s = s.replace(old, new, 1)
+          p.write_text(s, encoding='utf-8')
+
+          # 2) Reveal the button only for Master/Adm after the real session profile is loaded.
+          p = Path('app.js')
+          s = p.read_text(encoding='utf-8')
+          marker = "    // Auditoria & Banco disponível apenas para Master e Adm\n    const btnAudit = document.getElementById('tab-btn-audit');"
+          insert = "    // Cadastro de novos vereadores: somente Master / Adm\n    const btnCadastrarVereador = document.getElementById('btn-cadastrar-vereador');\n    if (btnCadastrarVereador) {\n        btnCadastrarVereador.style.display = (u.role === 'master' || u.role === 'adm') ? 'inline-flex' : 'none';\n    }\n\n    // Auditoria & Banco disponível apenas para Master e Adm\n    const btnAudit = document.getElementById('tab-btn-audit');"
+          if marker not in s:
+              raise SystemExit('app.js: role UI marker not found')
+          s = s.replace(marker, insert, 1)
+          p.write_text(s, encoding='utf-8')
+
+          # 3) Defense in depth: basic users cannot call registration manually.
+          p = Path('supabase_client.js')
+          s = p.read_text(encoding='utf-8')
+          marker = "    async registerVereador(formData) {\n        await this.remoteReady;"
+          insert = "    async registerVereador(formData) {\n        const actor = this.getCurrentUser();\n        if (!actor || (actor.role !== 'master' && actor.role !== 'adm')) {\n            throw new Error('Apenas Master ou Administrador pode cadastrar novos vereadores.');\n        }\n        await this.remoteReady;"
+          if marker not in s:
+              raise SystemExit('supabase_client.js: register marker not found')
+          s = s.replace(marker, insert, 1)
+          p.write_text(s, encoding='utf-8')
+          PY
+          git diff --check
+
+      - name: Commit fix
+        shell: bash
+        run: |
+          git config user.name 'openai-security-fix'
+          git config user.email 'actions@users.noreply.github.com'
+          git add index.html app.js supabase_client.js
+          git commit -m 'security: restrict vereador account management to master and adm'
+          git push origin HEAD:security/hardening-2026-09-03
