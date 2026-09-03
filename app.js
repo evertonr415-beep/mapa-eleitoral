@@ -136,6 +136,18 @@ function initAppComponents() {
     }, 300);
 }
 
+// OUVINTE DE SINCRONIZAÇÃO EM TEMPO REAL COM A NUVEM
+window.onCloudDataUpdated = function() {
+    loadLiderancas();
+    populateCandidateSelect();
+    const selLidFilter = document.getElementById('filter-liderancas-vereador');
+    if (selLidFilter && state.currentUser && state.currentUser.role === 'master') {
+        populateVereadorFilterSelect(selLidFilter);
+    }
+    renderAllViews();
+    if (window.renderAuditLogs) window.renderAuditLogs();
+};
+
 function updateUserProfileUI() {
     const u = state.currentUser;
     if (!u) return;
@@ -147,15 +159,20 @@ function updateUserProfileUI() {
     roleEl.textContent = u.role.toUpperCase();
     roleEl.className = 'user-role-badge role-' + u.role;
 
+    const allUsers = window.SupabaseService.getAllUsersRaw();
+    const allLogs = window.SupabaseService.getAuditLogs(u, 'all');
+
     // Gestão de Usuários e Auditoria disponível apenas para Master e Adm
     const btnUsers = document.getElementById('tab-btn-users');
     if (btnUsers) {
         btnUsers.style.display = (u.role === 'master' || u.role === 'adm') ? 'flex' : 'none';
+        btnUsers.innerHTML = `👥 Usuários <span style="background:rgba(59,130,246,0.25); color:#93c5fd; padding:1px 6px; border-radius:10px; font-size:0.7rem; margin-left:4px;">${allUsers.length}</span>`;
     }
 
     const btnAudit = document.getElementById('tab-btn-audit');
     if (btnAudit) {
         btnAudit.style.display = (u.role === 'master' || u.role === 'adm') ? 'flex' : 'none';
+        btnAudit.innerHTML = `📋 Auditoria & Banco <span style="background:rgba(16,185,129,0.25); color:#6ee7b7; padding:1px 6px; border-radius:10px; font-size:0.7rem; margin-left:4px;">${allLogs.length}</span>`;
     }
 
     // Atualiza seletor rápido de vereadores caso seja Master
@@ -752,26 +769,163 @@ function renderUsersList() {
     container.innerHTML = '';
 
     const users = window.SupabaseService.getUsers(state.currentUser);
+    const allLids = window.SupabaseService.getAllLiderancasRaw();
 
-    users.forEach(u => {
-        const row = document.createElement('div');
-        row.style.cssText = 'display:flex; align-items:center; justify-content:space-between; background:var(--bg-card); padding:12px 16px; border-radius:var(--radius-md); border:1px solid var(--border-color); margin-bottom:8px;';
-        
-        row.innerHTML = `
-            <div style="display:flex; align-items:center; gap:12px;">
-                <div class="user-avatar-badge">${u.avatar || '👤'}</div>
-                <div>
-                    <div style="font-weight:700; color:#fff; font-size:0.9rem;">${u.nome}</div>
-                    <div style="font-size:0.75rem; color:var(--text-muted);">${u.email} &bull; ${u.cargo} (${u.partido})</div>
-                </div>
-            </div>
+    // Cabeçalho de Estatísticas de Gestão Master
+    const totalVereadores = users.filter(u => u.role === 'vereador').length;
+    const totalMasters = users.filter(u => u.role === 'master').length;
+    let totalMetaGeral = 0;
+    allLids.forEach(l => totalMetaGeral += (l.metaVotos || 0));
+
+    const statsHeader = document.createElement('div');
+    statsHeader.style.cssText = 'display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:16px;';
+    statsHeader.innerHTML = `
+        <div style="background:var(--bg-card); border:1px solid var(--border-color); padding:12px 16px; border-radius:var(--radius-md);">
+            <div style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Total Usuários</div>
+            <div style="font-size:1.4rem; font-weight:800; color:#fff; margin-top:2px;">👥 ${users.length}</div>
+        </div>
+        <div style="background:var(--bg-card); border:1px solid var(--border-color); padding:12px 16px; border-radius:var(--radius-md);">
+            <div style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Vereadores Cadastrados</div>
+            <div style="font-size:1.4rem; font-weight:800; color:#60a5fa; margin-top:2px;">🗳️ ${totalVereadores}</div>
+        </div>
+        <div style="background:var(--bg-card); border:1px solid var(--border-color); padding:12px 16px; border-radius:var(--radius-md);">
+            <div style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Lideranças em Nuvem</div>
+            <div style="font-size:1.4rem; font-weight:800; color:var(--accent-emerald); margin-top:2px;">📍 ${allLids.length}</div>
+        </div>
+        <div style="background:var(--bg-card); border:1px solid var(--border-color); padding:12px 16px; border-radius:var(--radius-md); display:flex; align-items:center; justify-content:space-between;">
             <div>
-                <span class="user-role-badge role-${u.role}">${u.role.toUpperCase()}</span>
+                <div style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Meta Total Estimada</div>
+                <div style="font-size:1.3rem; font-weight:800; color:#34d399; margin-top:2px;">+${totalMetaGeral.toLocaleString('pt-BR')}v</div>
+            </div>
+            <button class="btn-secondary" onclick="window.forceCloudSyncUI(this)" style="font-size:0.75rem; padding:6px 10px;" title="Sincronizar dados agora">
+                🔄 Sincronizar
+            </button>
+        </div>
+    `;
+    container.appendChild(statsHeader);
+
+    if (users.length === 0) {
+        container.innerHTML += `
+            <div style="text-align:center; padding:40px; color:var(--text-muted);">
+                Nenhum usuário cadastrado.
             </div>
         `;
-        container.appendChild(row);
+        return;
+    }
+
+    users.forEach(u => {
+        const userLids = allLids.filter(l => l.vereadorId === u.id);
+        let userMeta = 0;
+        userLids.forEach(l => userMeta += (l.metaVotos || 0));
+
+        const card = document.createElement('div');
+        card.style.cssText = 'background:var(--bg-surface); padding:16px; border-radius:var(--radius-md); border:1px solid var(--border-color); margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; box-shadow:var(--shadow-sm);';
+        
+        card.innerHTML = `
+            <div style="display:flex; align-items:center; gap:14px; min-width:260px;">
+                <div style="font-size:1.8rem; background:var(--bg-input); width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:1px solid var(--border-color);">
+                    ${u.avatar || '👤'}
+                </div>
+                <div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <strong style="color:#fff; font-size:0.95rem;">${u.nome}</strong>
+                        <span class="user-role-badge role-${u.role}">${u.role.toUpperCase()}</span>
+                        <span style="font-size:0.68rem; color:#34d399; font-weight:700;">● Em Nuvem</span>
+                    </div>
+                    <div style="font-size:0.75rem; color:#93c5fd; margin-top:2px;">
+                        ✉️ <strong>${u.email}</strong> ${u.partido ? `&bull; ${u.partido}` : ''}
+                    </div>
+                    <div style="font-size:0.72rem; color:var(--text-muted); margin-top:3px;">
+                        📱 ${u.whatsapp || 'Sem WhatsApp'} &bull; Cadastrado em: ${u.criadoEm ? new Date(u.criadoEm).toLocaleDateString('pt-BR') : 'Sistema'}
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+                <div style="text-align:right; min-width:120px;">
+                    <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Lideranças Mapeadas</div>
+                    <div style="font-size:1rem; font-weight:800; color:var(--accent-emerald);">
+                        📍 ${userLids.length} lid. <span style="font-size:0.8rem; color:#34d399;">(+${userMeta}v)</span>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:6px;">
+                    <button class="btn-secondary" style="font-size:0.75rem; padding:6px 12px;" onclick="window.viewUserAuditLogs('${u.id}', '${u.nome}')" title="Ver tudo o que este usuário fez">
+                        📋 Ver Atividades (${window.getUserAuditCount(u.id)})
+                    </button>
+                    ${u.whatsapp ? `
+                    <button class="btn-secondary" style="font-size:0.75rem; padding:6px 10px; background:rgba(37,211,102,0.15); border-color:rgba(37,211,102,0.4); color:#4ade80;" onclick="window.open('https://api.whatsapp.com/send?phone=55${u.whatsapp.replace(/\\D/g,'')}', '_blank')" title="Conversar no WhatsApp">
+                        💬 WhatsApp
+                    </button>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+        container.appendChild(card);
     });
 }
+
+window.getUserAuditCount = function(userId) {
+    const raw = localStorage.getItem('mapa_eleitoral_audit_v5');
+    if (!raw) return 0;
+    try {
+        const logs = JSON.parse(raw);
+        return logs.filter(l => l.userId === userId).length;
+    } catch(e) { return 0; }
+};
+
+window.viewUserAuditLogs = function(userId, userName) {
+    window.switchView('audit');
+    const tbody = document.getElementById('table-audit-body');
+    const logs = window.SupabaseService.getAuditLogs(state.currentUser, 'all').filter(l => l.userId === userId);
+    
+    if (tbody) {
+        if (logs.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--text-muted);">Nenhuma atividade registrada ainda para <strong>${userName}</strong>.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = logs.map(l => {
+            const dt = new Date(l.timestamp).toLocaleString('pt-BR');
+            let typeBadge = '';
+            if (l.type === 'login') typeBadge = '<span style="color:#60a5fa; font-weight:700;">🔐 Login</span>';
+            else if (l.type === 'lideranca') typeBadge = '<span style="color:#34d399; font-weight:700;">📍 Liderança</span>';
+            else if (l.type === 'whatsapp') typeBadge = '<span style="color:#25d366; font-weight:700;">💬 WhatsApp</span>';
+            else if (l.type === 'senha') typeBadge = '<span style="color:#fbbf24; font-weight:700;">🔑 Senha</span>';
+            else typeBadge = '<span style="color:#cbd5e1;">📋 Sistema</span>';
+
+            return `
+                <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                    <td style="padding:10px 14px; font-family:monospace; color:var(--text-muted); font-size:0.75rem;">${dt}</td>
+                    <td style="padding:10px 14px; font-weight:600; color:#fff;">
+                        ${l.userName}
+                        <div style="font-size:0.7rem; color:var(--text-dim);">${l.userEmail || l.userRole.toUpperCase()}</div>
+                    </td>
+                    <td style="padding:10px 14px;">${typeBadge}<br><strong style="font-size:0.78rem; color:#fff;">${l.action}</strong></td>
+                    <td style="padding:10px 14px; color:var(--text-muted); font-size:0.78rem;">${l.details}</td>
+                    <td style="padding:10px 14px; color:var(--text-dim); font-size:0.72rem;">${l.device || 'Navegador'}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+};
+
+window.forceCloudSyncUI = async function(btn) {
+    if (btn) {
+        btn.textContent = '⏳ Sincronizando...';
+        btn.disabled = true;
+    }
+    await window.SupabaseService.pullFromCloud();
+    await window.SupabaseService.pushToCloud();
+    renderAllViews();
+    if (btn) {
+        btn.textContent = '✅ Sincronizado!';
+        setTimeout(() => {
+            btn.textContent = '🔄 Sincronizar';
+            btn.disabled = false;
+        }, 1500);
+    }
+};
 
 // 10. CADASTRO DE LIDERANÇA COM PIN NO MAPA & GEOCODIFICAÇÃO
 let activeWhatsAppRecipient = null;

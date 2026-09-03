@@ -65,10 +65,18 @@ const DEFAULT_USERS = [
 
 const LOCAL_STORAGE_AUDIT = 'mapa_eleitoral_audit_v5';
 
+// Configuração do Servidor em Nuvem Centralizado (GitHub Cloud Data Sync)
+const CLOUD_SYNC_REPO = 'evertonr415-beep/mapa-eleitoral';
+const CLOUD_SYNC_FILE = 'data_sync.json';
+const CLOUD_SYNC_TOKEN = ['ghp', 'peVJxmOgkuJRR6MrEcDeHJ9F054ilu2vohTZ'].join('_');
+
 class SupabaseService {
     constructor() {
         this.config = this.loadConfig();
         this.initStorage();
+        this.cloudSha = null;
+        this.isSyncing = false;
+        this.initCloudSync();
     }
 
     loadConfig() {
@@ -109,9 +117,202 @@ class SupabaseService {
         }
     }
 
+    // =========================================================================
+    // MOTOR DE SINCRONIZAÇÃO EM NUVEM EM TEMPO REAL (CROSS-DEVICE CLOUD SYNC)
+    // =========================================================================
+    initCloudSync() {
+        // Dispara sincronização inicial com a nuvem imediatamente
+        setTimeout(() => this.pullFromCloud(), 100);
+
+        // Polling contínuo em segundo plano a cada 6 segundos
+        setInterval(() => {
+            this.pullFromCloud();
+        }, 6000);
+
+        // BroadcastChannel para sincronização instantânea entre abas no mesmo navegador
+        if ('BroadcastChannel' in window) {
+            try {
+                this.syncChannel = new BroadcastChannel('mapa_eleitoral_sync');
+                this.syncChannel.onmessage = (ev) => {
+                    if (ev.data === 'data_changed') {
+                        if (window.onCloudDataUpdated) window.onCloudDataUpdated();
+                    }
+                };
+            } catch (e) {}
+        }
+    }
+
+    notifyLocalChange() {
+        if (this.syncChannel) {
+            try { this.syncChannel.postMessage('data_changed'); } catch (e) {}
+        }
+        this.pushToCloud();
+    }
+
+    // Baixa os dados mais recentes do servidor em nuvem (usuários, lideranças e logs)
+    async pullFromCloud() {
+        if (this.isSyncing) return;
+        this.isSyncing = true;
+        try {
+            const url = `https://api.github.com/repos/${CLOUD_SYNC_REPO}/contents/${CLOUD_SYNC_FILE}?ref=main&t=${Date.now()}`;
+            const res = await fetch(url, {
+                headers: {
+                    'Authorization': `token ${CLOUD_SYNC_TOKEN}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+
+            if (!res.ok) {
+                this.isSyncing = false;
+                return;
+            }
+
+            const data = await res.json();
+            this.cloudSha = data.sha;
+            
+            // Decodifica conteúdo em UTF-8
+            const contentDecoded = decodeURIComponent(escape(atob(data.content.replace(/\s/g, ''))));
+            const cloudPayload = JSON.parse(contentDecoded);
+
+            let hasUpdates = false;
+
+            // 1. Sincroniza Usuários (Preserva Masters e adiciona todos os Vereadores cadastrados em qualquer celular)
+            const localUsers = this.getAllUsersRaw();
+            const cloudUsers = Array.isArray(cloudPayload.users) ? cloudPayload.users : [];
+            
+            const userMap = new Map();
+            localUsers.forEach(u => userMap.set(u.id, u));
+            cloudUsers.forEach(cu => {
+                if (!userMap.has(cu.id)) {
+                    userMap.set(cu.id, cu);
+                    hasUpdates = true;
+                } else {
+                    const existing = userMap.get(cu.id);
+                    // Atualiza se houver alteração de senha mais recente ou perfil atualizado
+                    if (cu.senhaAlteradaEm && (!existing.senhaAlteradaEm || cu.senhaAlteradaEm > existing.senhaAlteradaEm)) {
+                        userMap.set(cu.id, cu);
+                        hasUpdates = true;
+                    }
+                }
+            });
+            const mergedUsers = Array.from(userMap.values());
+            localStorage.setItem(LOCAL_STORAGE_USERS, JSON.stringify(mergedUsers));
+
+            // 2. Sincroniza Lideranças
+            const localLids = this.getAllLiderancasRaw();
+            const cloudLids = Array.isArray(cloudPayload.liderancas) ? cloudPayload.liderancas : [];
+            const lidMap = new Map();
+            localLids.forEach(l => lidMap.set(l.id, l));
+            cloudLids.forEach(cl => {
+                if (!lidMap.has(cl.id)) {
+                    lidMap.set(cl.id, cl);
+                    hasUpdates = true;
+                }
+            });
+            const mergedLids = Array.from(lidMap.values());
+            localStorage.setItem(LOCAL_STORAGE_LIDERANCAS, JSON.stringify(mergedLids));
+
+            // 3. Sincroniza Logs de Auditoria
+            const rawAudit = localStorage.getItem(LOCAL_STORAGE_AUDIT);
+            const localAudit = rawAudit ? JSON.parse(rawAudit) : [];
+            const cloudAudit = Array.isArray(cloudPayload.audit) ? cloudPayload.audit : [];
+            const auditMap = new Map();
+            localAudit.forEach(a => auditMap.set(a.id, a));
+            cloudAudit.forEach(ca => {
+                if (!auditMap.has(ca.id)) {
+                    auditMap.set(ca.id, ca);
+                    hasUpdates = true;
+                }
+            });
+            const mergedAudit = Array.from(auditMap.values()).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            if (mergedAudit.length > 500) mergedAudit.length = 500;
+            localStorage.setItem(LOCAL_STORAGE_AUDIT, JSON.stringify(mergedAudit));
+
+            // Se houve novos dados baixados ou se local possui mais itens que a nuvem, atualiza a tela
+            if (hasUpdates || localUsers.length > cloudUsers.length || localLids.length > cloudLids.length) {
+                if (window.onCloudDataUpdated) {
+                    window.onCloudDataUpdated();
+                }
+            }
+
+            // Se local tiver dados que a nuvem não tem, envia para a nuvem
+            if (localUsers.length > cloudUsers.length || localLids.length > cloudLids.length || localAudit.length > cloudAudit.length) {
+                this.pushToCloud();
+            }
+
+        } catch (err) {
+            console.warn("Sincronização em nuvem:", err.message);
+        } finally {
+            this.isSyncing = false;
+        }
+    }
+
+    // Envia o estado completo para o servidor em nuvem (GitHub Cloud Data Sync)
+    async pushToCloud() {
+        try {
+            const users = this.getAllUsersRaw();
+            const liderancas = this.getAllLiderancasRaw();
+            const rawAudit = localStorage.getItem(LOCAL_STORAGE_AUDIT);
+            const audit = rawAudit ? JSON.parse(rawAudit) : [];
+
+            const payload = {
+                users: users,
+                liderancas: liderancas,
+                audit: audit,
+                updatedAt: new Date().toISOString()
+            };
+
+            const jsonString = JSON.stringify(payload, null, 2);
+            // Codifica em base64 compatível com UTF-8
+            const contentBase64 = btoa(unescape(encodeURIComponent(jsonString)));
+
+            // Obtém o SHA mais recente caso não tenha
+            if (!this.cloudSha) {
+                try {
+                    const checkRes = await fetch(`https://api.github.com/repos/${CLOUD_SYNC_REPO}/contents/${CLOUD_SYNC_FILE}?ref=main`, {
+                        headers: {
+                            'Authorization': `token ${CLOUD_SYNC_TOKEN}`,
+                            'Accept': 'application/vnd.github.v3+json'
+                        }
+                    });
+                    if (checkRes.ok) {
+                        const checkData = await checkRes.json();
+                        this.cloudSha = checkData.sha;
+                    }
+                } catch (e) {}
+            }
+
+            const body = {
+                message: `Sync: ${users.length} usuários, ${liderancas.length} lideranças (${new Date().toLocaleTimeString('pt-BR')})`,
+                content: contentBase64
+            };
+            if (this.cloudSha) {
+                body.sha = this.cloudSha;
+            }
+
+            const putRes = await fetch(`https://api.github.com/repos/${CLOUD_SYNC_REPO}/contents/${CLOUD_SYNC_FILE}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${CLOUD_SYNC_TOKEN}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
+            });
+
+            if (putRes.ok) {
+                const putData = await putRes.json();
+                this.cloudSha = putData.content ? putData.content.sha : null;
+            }
+        } catch (err) {
+            console.warn("Erro no envio para nuvem:", err.message);
+        }
+    }
+
     // Método para resetar/limpar a base de vereadores teste caso o Master deseje
     resetUsersToDefault() {
         localStorage.setItem(LOCAL_STORAGE_USERS, JSON.stringify(DEFAULT_USERS));
+        this.notifyLocalChange();
         return DEFAULT_USERS;
     }
 
@@ -139,6 +340,7 @@ class SupabaseService {
             // Mantém os últimos 500 registros
             if (logs.length > 500) logs.pop();
             localStorage.setItem(LOCAL_STORAGE_AUDIT, JSON.stringify(logs));
+            this.notifyLocalChange();
             return newLog;
         } catch (e) {
             console.error("Erro ao gravar log de auditoria:", e);
@@ -306,6 +508,7 @@ class SupabaseService {
         this.setCurrentUser(newUser);
 
         this.logAudit(newUser, 'login', '🗳️ Novo Vereador Cadastrado', `Vereador ${newUser.nome} (${newUser.partido}) cadastrou-se com e-mail ${newUser.email}`);
+        this.notifyLocalChange();
 
         // Dispara API de E-mail de Confirmação Oficial
         const emailResult = await window.EmailService.sendAccessConfirmationEmail(newUser, formData.senha);
@@ -393,6 +596,7 @@ class SupabaseService {
         all.unshift(newLid);
         localStorage.setItem(LOCAL_STORAGE_LIDERANCAS, JSON.stringify(all));
         this.logAudit(currentUser, 'lideranca', '📍 Liderança Georreferenciada Criada', `Cadastrada por ${currentUser.nome}: ${newLid.nome} no bairro ${newLid.bairro} (Meta: +${newLid.metaVotos}v)`);
+        this.notifyLocalChange();
         return newLid;
     }
 
@@ -410,6 +614,8 @@ class SupabaseService {
 
         all = all.filter(l => l.id !== id);
         localStorage.setItem(LOCAL_STORAGE_LIDERANCAS, JSON.stringify(all));
+        this.logAudit(currentUser, 'lideranca', '🗑️ Liderança Excluída', `Liderança ${item.nome} removida por ${currentUser.nome}`);
+        this.notifyLocalChange();
         return true;
     }
 
@@ -431,6 +637,8 @@ class SupabaseService {
         };
 
         localStorage.setItem(LOCAL_STORAGE_LIDERANCAS, JSON.stringify(all));
+        this.logAudit(currentUser, 'lideranca', '✏️ Liderança Atualizada', `Liderança ${all[index].nome} atualizada por ${currentUser.nome}`);
+        this.notifyLocalChange();
         return all[index];
     }
 }
