@@ -52,6 +52,9 @@
                 <button class="tab-btn" id="tab-btn-liderancas" onclick="switchView('liderancas')">
                     📍 Lideranças
                 </button>
+                <button class="tab-btn" id="tab-btn-distritos" onclick="switchView('distritos')">
+                    🧭 Distritos & Redutos
+                </button>
                 <button class="tab-btn" id="tab-btn-users" onclick="switchView('users')" style="display:none;">
                     👥 Usuários
                 </button>
@@ -177,7 +180,50 @@
             </table>
         </div>
 
-        <!-- VISÃO 4: GESTÃO DE USUÁRIOS (RBAC) -->
+        <!-- VISÃO 4: GESTÃO E DIRECIONAMENTO ESTRATÉGICO DE DISTRITOS & REDUTOS -->
+        <div id="view-distritos-management" class="view-table-container">
+            <div style="margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <h2 style="font-size:1.1rem; font-weight:700;">🧭 Direcionamento de Distritos & Redutos de Campanha</h2>
+                    <p style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Distribuição territorial de Arapongas para cobertura total da cidade sem sobreposição de campanha</p>
+                </div>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn-primary" onclick="openModalNewLideranca()" style="font-size:0.78rem;">
+                        + Nova Liderança no Distrito
+                    </button>
+                </div>
+            </div>
+
+            <!-- Macrozonas Cards Container -->
+            <div id="distritos-macro-cards" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px; margin-bottom:18px;"></div>
+
+            <!-- Tabela Estratégica de Bairros & Distritos -->
+            <div style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:var(--radius-md); overflow:hidden;">
+                <div style="padding:12px 16px; background:rgba(30,41,59,0.5); border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+                    <strong style="font-size:0.85rem; color:#fff;">📍 Mapa de Atribuição por Distrito / Bairro</strong>
+                    <span style="font-size:0.72rem; color:var(--text-muted);">🟢 Cobertura Ativa &bull; 🟡 Em Disputa &bull; 🔴 Bairro Descoberto (Oportunidade)</span>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="custom-table" style="margin:0; border:none;">
+                        <thead>
+                            <tr>
+                                <th>Distrito / Zona</th>
+                                <th>Bairros & Localidades</th>
+                                <th>Colégios Eleitorais</th>
+                                <th>Vereador Titular Designado</th>
+                                <th>Lideranças Mapeadas</th>
+                                <th>Meta Estimada</th>
+                                <th>Status da Campanha</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-distritos-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISÃO 5: GESTÃO DE USUÁRIOS (RBAC) -->
         <div id="view-users-management" class="view-table-container">
             <div style="margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
                 <div>
@@ -298,7 +344,8 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Bairro *</label>
-                        <input type="text" id="inp-lid-bairro" class="form-input" required placeholder="Ex: Jardim Aeroporto">
+                        <input type="text" id="inp-lid-bairro" class="form-input" required placeholder="Ex: Jardim Aeroporto" oninput="window.checkDistrictStrategicAlert(this.value)">
+                        <div id="district-conflict-alert" style="display:none; font-size:0.72rem; padding:6px 10px; border-radius:6px; margin-top:4px;"></div>
                     </div>
                 </div>
 

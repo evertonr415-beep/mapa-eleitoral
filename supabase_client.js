@@ -641,6 +641,33 @@ class SupabaseService {
         this.notifyLocalChange();
         return all[index];
     }
+
+    // GESTÃO E ATRIBUIÇÃO DE DISTRITOS / REDUTOS DE CAMPANHA
+    getDistrictAssignments() {
+        try {
+            const raw = localStorage.getItem('mapa_eleitoral_districts_v5');
+            if (raw) return JSON.parse(raw);
+        } catch (e) {}
+        return {};
+    }
+
+    saveDistrictAssignment(districtId, vereadorId, vereadorNome, currentUser) {
+        try {
+            const assignments = this.getDistrictAssignments();
+            assignments[districtId] = {
+                vereadorId: vereadorId,
+                vereadorNome: vereadorNome,
+                atualizadoEm: new Date().toISOString(),
+                atualizadoPor: currentUser ? currentUser.nome : 'Master'
+            };
+            localStorage.setItem('mapa_eleitoral_districts_v5', JSON.stringify(assignments));
+            this.logAudit(currentUser, 'sistema', '🧭 Distrito / Reduto Atribuído', `Distrito ${districtId} direcionado para o vereador ${vereadorNome}`);
+            this.notifyLocalChange();
+            return assignments;
+        } catch (e) {
+            console.error("Erro ao salvar atribuição de distrito:", e);
+        }
+    }
 }
 
 /**

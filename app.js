@@ -89,7 +89,61 @@ const ELEICAO_2024_DATA = {
     ]
 };
 
-// 2. ESTADO GLOBAL DA APLICAÇÃO
+// 2. MACROZONAS & DISTRITOS ESTRATÉGICOS DE ARAPONGAS (DIRECIONAMENTO DE CAMPANHA)
+const ARAPONGAS_DISTRITOS_DATA = [
+    {
+        id: 'dist_centro',
+        nome: 'Zona Central & Centro Histórico',
+        zona: 'Centro',
+        icone: '🏛️',
+        bairros: ['Centro', 'Vila Industrial', 'Vila Edvaldo', 'Jardim São Cristóvão', 'Vila Cascata'],
+        colegiosIds: ['CLG-01', 'CLG-08', 'CLG-09', 'CLG-11', 'CLG-12'],
+        cor: '#3b82f6',
+        descricao: 'Região central comercial e administrativa de maior fluxo.'
+    },
+    {
+        id: 'dist_norte',
+        nome: 'Zona Norte & Conjunto Flamingos',
+        zona: 'Norte',
+        icone: '🦅',
+        bairros: ['Conjunto Flamingos', 'Vila Aparecida', 'Jardim Aeroporto', 'Jardim San Rafael', 'Jardim Panorama', 'Jardim Universitário'],
+        colegiosIds: ['CLG-02', 'CLG-07', 'CLG-13', 'CLG-19', 'CLG-21', 'CLG-24'],
+        cor: '#06b6d4',
+        descricao: 'Grande colégio eleitoral residencial e expansão norte.'
+    },
+    {
+        id: 'dist_sul_aricanduva',
+        nome: 'Zona Sul & Distrito de Aricanduva',
+        zona: 'Sul',
+        icone: '🏭',
+        bairros: ['Distrito de Aricanduva', 'Jardim Morumbi', 'Jardim Mônaco', 'Jardim Primavera', 'Vila São João', 'Distrito Industrial Sul'],
+        colegiosIds: ['CLG-16', 'CLG-20', 'CLG-22', 'CLG-28', 'CLG-29'],
+        cor: '#10b981',
+        descricao: 'Polo moveleiro, Distrito de Aricanduva e bairros do extremo sul.'
+    },
+    {
+        id: 'dist_leste_petropolis',
+        nome: 'Zona Leste & Jardim Petrópolis',
+        zona: 'Leste',
+        icone: '🌳',
+        bairros: ['Jardim Petrópolis', 'Jardim Bandeirantes', 'Jardim Columbia', 'Vila Nova', 'Jardim Casa Grande'],
+        colegiosIds: ['CLG-04', 'CLG-06', 'CLG-10', 'CLG-15', 'CLG-23', 'CLG-26'],
+        cor: '#f59e0b',
+        descricao: 'Zona tradicional com forte engajamento comunitário.'
+    },
+    {
+        id: 'dist_oeste_daleffe',
+        nome: 'Zona Oeste & Daleffe / Palmares / Campinho',
+        zona: 'Oeste',
+        icone: '🏘️',
+        bairros: ['Conjunto Palmares', 'Jardim Caravelle', 'Jardim Tropical', 'Jardim Alto da Boa Vista', 'Campinho', 'Jardim Interlagos'],
+        colegiosIds: ['CLG-03', 'CLG-05', 'CLG-14', 'CLG-17', 'CLG-18', 'CLG-25', 'CLG-27'],
+        cor: '#8b5cf6',
+        descricao: 'Bairros populares e Distrito do Campinho com grande colégio eleitoral.'
+    }
+];
+
+// 3. ESTADO GLOBAL DA APLICAÇÃO
 const state = {
     currentUser: null,
     currentView: 'map', // 'map', 'table-colegios', 'table-liderancas', 'users'
@@ -314,6 +368,7 @@ function renderAllViews() {
     renderSidebar();
     renderTableColegios();
     renderTableLiderancas();
+    renderDistritosView();
     renderUsersList();
 }
 
@@ -1345,6 +1400,14 @@ window.switchView = function(viewName) {
     document.getElementById('view-table-liderancas').style.display = viewName === 'liderancas' ? 'block' : 'none';
     document.getElementById('view-users-management').style.display = viewName === 'users' ? 'block' : 'none';
 
+    const viewDistritos = document.getElementById('view-distritos-management');
+    if (viewDistritos) {
+        viewDistritos.style.display = viewName === 'distritos' ? 'block' : 'none';
+        if (viewName === 'distritos') {
+            window.renderDistritosView();
+        }
+    }
+
     const viewAudit = document.getElementById('view-audit-logs');
     if (viewAudit) {
         viewAudit.style.display = viewName === 'audit' ? 'block' : 'none';
@@ -1355,6 +1418,207 @@ window.switchView = function(viewName) {
 
     if (viewName === 'map' && state.map) {
         setTimeout(() => state.map.invalidateSize(), 150);
+    }
+};
+
+// 13. GESTÃO E DIRECIONAMENTO ESTRATÉGICO DE DISTRITOS
+window.renderDistritosView = function() {
+    const cardsContainer = document.getElementById('distritos-macro-cards');
+    const tbody = document.getElementById('table-distritos-body');
+    if (!cardsContainer || !tbody) return;
+
+    cardsContainer.innerHTML = '';
+    tbody.innerHTML = '';
+
+    const allUsers = window.SupabaseService.getAllUsersRaw();
+    const vereadores = allUsers.filter(u => u.role === 'vereador');
+    const allLids = window.SupabaseService.getAllLiderancasRaw();
+    const assignments = window.SupabaseService.getDistrictAssignments();
+    const isMaster = state.currentUser && state.currentUser.role === 'master';
+
+    // 1. RENDERIZA OS CARDS DE MACROZONAS
+    ARAPONGAS_DISTRITOS_DATA.forEach(dist => {
+        // Encontra lideranças vinculadas a este distrito (por colégios ou por bairro)
+        const distLids = allLids.filter(l => {
+            const matchesColegio = dist.colegiosIds.includes(l.colegioId);
+            const matchesBairro = dist.bairros.some(b => (l.bairro || '').toLowerCase().includes(b.toLowerCase()));
+            return matchesColegio || matchesBairro;
+        });
+
+        let sumMeta = 0;
+        distLids.forEach(l => sumMeta += (l.metaVotos || 0));
+
+        const assigned = assignments[dist.id];
+        const assignedName = assigned ? assigned.vereadorNome : 'Livre / Coligação';
+
+        const card = document.createElement('div');
+        card.style.cssText = `background:var(--bg-card); border:1px solid var(--border-color); border-top:3px solid ${dist.cor}; padding:14px; border-radius:var(--radius-md); box-shadow:var(--shadow-sm);`;
+        card.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div>
+                    <span style="font-size:1.4rem;">${dist.icone}</span>
+                    <strong style="color:#fff; font-size:0.88rem; display:block; margin-top:4px;">${dist.nome}</strong>
+                </div>
+                <span style="background:rgba(255,255,255,0.06); color:${dist.cor}; font-size:0.68rem; font-weight:700; padding:2px 6px; border-radius:4px;">
+                    ${dist.colegiosIds.length} Colégios
+                </span>
+            </div>
+            <p style="font-size:0.72rem; color:var(--text-muted); margin:8px 0; line-height:1.3;">
+                ${dist.descricao}
+            </p>
+            <div style="background:rgba(15,23,42,0.6); padding:8px; border-radius:6px; margin-top:8px; border:1px solid rgba(255,255,255,0.05);">
+                <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Vereador Designado</div>
+                <div style="font-size:0.8rem; font-weight:700; color:#93c5fd; margin-top:1px;">
+                    🏛️ ${assignedName}
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:0.72rem; color:#fff;">
+                    <span>📍 <strong>${distLids.length}</strong> lideranças</span>
+                    <span style="color:var(--accent-emerald); font-weight:700;">+${sumMeta} votos</span>
+                </div>
+            </div>
+        `;
+        cardsContainer.appendChild(card);
+    });
+
+    // 2. RENDERIZA A TABELA DE ATRIBUIÇÃO E DIRECIONAMENTO
+    ARAPONGAS_DISTRITOS_DATA.forEach(dist => {
+        const distLids = allLids.filter(l => {
+            const matchesColegio = dist.colegiosIds.includes(l.colegioId);
+            const matchesBairro = dist.bairros.some(b => (l.bairro || '').toLowerCase().includes(b.toLowerCase()));
+            return matchesColegio || matchesBairro;
+        });
+
+        let sumMeta = 0;
+        distLids.forEach(l => sumMeta += (l.metaVotos || 0));
+
+        const assigned = assignments[dist.id];
+        const assignedId = assigned ? assigned.vereadorId : '';
+
+        // Status de Cobertura
+        let statusBadge = '';
+        if (distLids.length >= 5) {
+            statusBadge = '<span style="background:rgba(16,185,129,0.2); color:#34d399; font-weight:700; font-size:0.72rem; padding:3px 8px; border-radius:12px; border:1px solid rgba(16,185,129,0.4);">🟢 Cobertura Forte</span>';
+        } else if (distLids.length > 0) {
+            statusBadge = '<span style="background:rgba(245,158,11,0.2); color:#fbbf24; font-weight:700; font-size:0.72rem; padding:3px 8px; border-radius:12px; border:1px solid rgba(245,158,11,0.4);">🟡 Cobertura Média</span>';
+        } else {
+            statusBadge = '<span style="background:rgba(239,68,68,0.2); color:#f87171; font-weight:700; font-size:0.72rem; padding:3px 8px; border-radius:12px; border:1px solid rgba(239,68,68,0.4);">🔴 Descoberto (Oportunidade)</span>';
+        }
+
+        const tr = document.createElement('tr');
+        tr.style.cssText = 'border-bottom:1px solid rgba(255,255,255,0.05);';
+
+        // Opções de Vereadores para Designação
+        let vereadorSelectHtml = '';
+        if (isMaster) {
+            vereadorSelectHtml = `
+                <select class="select-filter" style="font-size:0.75rem; padding:4px 8px; min-width:180px;" onchange="window.handleAssignDistrict('${dist.id}', this)">
+                    <option value="" ${!assignedId ? 'selected' : ''}>-- Livre / Toda Coligação --</option>
+                    ${vereadores.map(v => `<option value="${v.id}" ${assignedId === v.id ? 'selected' : ''}>${v.nome} (${v.partido})</option>`).join('')}
+                </select>
+            `;
+        } else {
+            vereadorSelectHtml = assigned ? `<strong style="color:#93c5fd;">${assigned.vereadorNome}</strong>` : `<span style="color:var(--text-muted);">Livre / Toda Coligação</span>`;
+        }
+
+        tr.innerHTML = `
+            <td style="padding:12px 14px;">
+                <span style="font-size:1.1rem; margin-right:4px;">${dist.icone}</span>
+                <strong style="color:#fff;">${dist.nome}</strong>
+                <div style="font-size:0.7rem; color:var(--text-muted);">${dist.zona}</div>
+            </td>
+            <td style="padding:12px 14px; font-size:0.75rem; color:var(--text-main); max-width:260px;">
+                ${dist.bairros.map(b => `<span style="background:rgba(255,255,255,0.06); padding:2px 6px; border-radius:4px; margin:2px; display:inline-block;">${b}</span>`).join(' ')}
+            </td>
+            <td style="padding:12px 14px; font-size:0.75rem; color:var(--text-dim);">
+                ${dist.colegiosIds.length} colégios oficiais
+            </td>
+            <td style="padding:12px 14px;">
+                ${vereadorSelectHtml}
+            </td>
+            <td style="padding:12px 14px; font-weight:700; color:#fff;">
+                📍 ${distLids.length} lideranças
+            </td>
+            <td style="padding:12px 14px; font-weight:800; color:var(--accent-emerald);">
+                +${sumMeta} votos
+            </td>
+            <td style="padding:12px 14px;">
+                ${statusBadge}
+            </td>
+            <td style="padding:12px 14px;">
+                <button class="btn-secondary" style="font-size:0.72rem; padding:4px 8px;" onclick="window.focusDistrictInMap('${dist.id}')">
+                    🗺️ Ver no Mapa
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+};
+
+window.handleAssignDistrict = function(districtId, selectEl) {
+    const selectedOption = selectEl.options[selectEl.selectedIndex];
+    const vereadorId = selectEl.value;
+    const vereadorNome = vereadorId ? selectedOption.text.split(' (')[0] : 'Livre / Coligação';
+
+    window.SupabaseService.saveDistrictAssignment(districtId, vereadorId, vereadorNome, state.currentUser);
+    window.renderDistritosView();
+    alert(`✅ Distrito direcionado com sucesso para ${vereadorNome}!`);
+};
+
+window.focusDistrictInMap = function(districtId) {
+    const dist = ARAPONGAS_DISTRITOS_DATA.find(d => d.id === districtId);
+    if (!dist || !state.map) return;
+
+    window.switchView('map');
+
+    // Centraliza o mapa no primeiro colégio do distrito
+    const firstColegio = ELEICAO_2024_DATA.locais.find(l => l.id === dist.colegiosIds[0]);
+    if (firstColegio) {
+        state.map.flyTo([firstColegio.lat, firstColegio.lng], 14, { duration: 0.8 });
+    }
+};
+
+// VERIFICAÇÃO INTELIGENTE DE REDUTO / CONFLITO DE BAIRRO DURANTE O CADASTRO DE LIDERANÇA
+window.checkDistrictStrategicAlert = function(bairroInput) {
+    const alertEl = document.getElementById('district-conflict-alert');
+    if (!alertEl) return;
+
+    const query = (bairroInput || '').trim().toLowerCase();
+    if (!query || query.length < 3) {
+        alertEl.style.display = 'none';
+        return;
+    }
+
+    const assignments = window.SupabaseService.getDistrictAssignments();
+    const currUser = state.currentUser;
+
+    // Encontra se este bairro pertence a algum distrito configurado
+    const matchedDist = ARAPONGAS_DISTRITOS_DATA.find(d => 
+        d.bairros.some(b => b.toLowerCase().includes(query) || query.includes(b.toLowerCase()))
+    );
+
+    if (!matchedDist) {
+        alertEl.style.display = 'block';
+        alertEl.style.background = 'rgba(16,185,129,0.15)';
+        alertEl.style.border = '1px solid rgba(16,185,129,0.3)';
+        alertEl.style.color = '#34d399';
+        alertEl.innerHTML = `🟢 <strong>Bairro Livre:</strong> Área aberta para expansão eleitoral e novos alfinetes!`;
+        return;
+    }
+
+    const assigned = assignments[matchedDist.id];
+    if (assigned && assigned.vereadorId && assigned.vereadorId !== currUser.id) {
+        // Alerta de reduto prioritário de outro vereador
+        alertEl.style.display = 'block';
+        alertEl.style.background = 'rgba(245,158,11,0.15)';
+        alertEl.style.border = '1px solid rgba(245,158,11,0.4)';
+        alertEl.style.color = '#fbbf24';
+        alertEl.innerHTML = `⚠️ <strong>Atenção de Campanha:</strong> O bairro <strong>${bairroInput}</strong> (${matchedDist.nome}) é reduto prioritário do(a) <strong>${assigned.vereadorNome}</strong>. Mapeie aqui somente se for liderança própria, ou direcione para bairros em aberto para cobrir 100% de Arapongas!`;
+    } else {
+        alertEl.style.display = 'block';
+        alertEl.style.background = 'rgba(59,130,246,0.15)';
+        alertEl.style.border = '1px solid rgba(59,130,246,0.3)';
+        alertEl.style.color = '#93c5fd';
+        alertEl.innerHTML = `🧭 <strong>${matchedDist.nome}:</strong> ${assigned && assigned.vereadorId === currUser.id ? '⭐ Seu reduto eleitoral designado!' : '🟢 Região livre para atuação da coligação.'}`;
     }
 };
 
