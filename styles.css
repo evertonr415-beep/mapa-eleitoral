@@ -870,9 +870,28 @@ header.topbar {
 /* ==========================================================================
    DESIGN RESPONSIVO & EXPANSIVO PARA CELULARES (MOBILE FIRST)
    ========================================================================== */
+@media screen and (max-width: 900px) {
+    .workspace-main {
+        flex-direction: column;
+    }
+
+    .sidebar-panel {
+        width: 100% !important;
+        height: 260px !important;
+        border-left: none;
+        border-top: 1px solid var(--border-color);
+        box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.5);
+    }
+
+    #view-map-container {
+        flex: 1;
+        min-height: calc(100vh - 350px);
+    }
+}
+
 @media screen and (max-width: 768px) {
     header.topbar {
-        padding: 8px 12px;
+        padding: 8px 10px;
         flex-direction: column;
         align-items: stretch;
         gap: 8px;
@@ -884,7 +903,7 @@ header.topbar {
     }
 
     .brand-info h1 {
-        font-size: 0.95rem;
+        font-size: 0.92rem;
     }
 
     .brand-info p {
@@ -897,8 +916,11 @@ header.topbar {
         overflow-x: auto;
         padding-bottom: 4px;
         gap: 6px;
-        justify-content: -webkit-scroll-pack;
         -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    .header-actions::-webkit-scrollbar {
+        display: none;
     }
 
     .view-tabs {
@@ -906,42 +928,72 @@ header.topbar {
     }
 
     .tab-btn {
-        padding: 5px 8px;
+        padding: 6px 10px;
         font-size: 0.72rem;
+        min-height: 36px;
+        white-space: nowrap;
     }
 
     .select-filter {
         flex-shrink: 0;
-        max-width: 130px;
+        max-width: 140px;
         font-size: 0.72rem;
+        min-height: 36px;
     }
 
     .btn-new-lideranca {
         flex-shrink: 0;
-        padding: 6px 10px;
+        padding: 6px 12px;
         font-size: 0.75rem;
+        min-height: 36px;
+        white-space: nowrap;
     }
 
     .user-profile-pill {
         flex-shrink: 0;
         padding: 4px 8px;
+        min-height: 36px;
     }
 
     .user-name {
         display: none;
     }
 
-    /* MODAIS NO MOBILE */
-    .modal-card {
-        max-width: 95vw !important;
-        margin: 10px auto;
-        padding: 16px !important;
-        max-height: 90vh;
-        overflow-y: auto;
-        border-radius: var(--radius-md);
+    /* TABELAS COM SCROLL HORIZONTAL FLUIDO */
+    .view-table-container {
+        padding: 10px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
-    .form-grid-2 {
+    .custom-table {
+        min-width: 650px;
+        font-size: 0.78rem;
+    }
+
+    .custom-table th, .custom-table td {
+        padding: 8px 10px;
+    }
+
+    /* MODAIS NO MOBILE */
+    .modal-overlay {
+        padding: 10px;
+        align-items: flex-end;
+    }
+
+    .modal-card {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 16px !important;
+        max-height: 88vh;
+        overflow-y: auto;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .form-grid-2, .form-row {
+        flex-direction: column !important;
         grid-template-columns: 1fr !important;
         gap: 10px !important;
     }
@@ -956,5 +1008,16 @@ header.topbar {
     .leaflet-touch .leaflet-control-layers,
     .leaflet-touch .leaflet-bar {
         border-radius: 8px;
+    }
+
+    .leaflet-top.leaflet-right {
+        top: 10px;
+        right: 10px;
+    }
+
+    /* POPUP DE ALFINETE EM DISPOSITIVOS MÓVEIS */
+    .leaflet-popup-content-wrapper {
+        max-width: 280px !important;
+        font-size: 0.8rem;
     }
 }
