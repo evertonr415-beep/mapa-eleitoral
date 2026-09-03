@@ -1,771 +1,576 @@
 /**
- * MAPA ELEITORAL ARAPONGAS 2024 & GESTÃO DE LIDERANÇAS
- * Cliente de Integração Supabase + Armazenamento Local de Alta Disponibilidade
+ * VOTO FORTE ARAPONGAS - cliente seguro v6
+ *
+ * Objetivos desta versao:
+ * - nenhum token privado no navegador;
+ * - nenhum banco de senhas em arquivo publico;
+ * - nenhuma conta Master automatica;
+ * - nenhuma senha universal/padrao;
+ * - nenhuma sincronizacao de dados via GitHub;
+ * - suporte a Supabase Auth + RLS quando configurado;
+ * - preview segura com dados ficticios quando ainda nao ha Supabase dedicado.
  */
 
-const SUPABASE_CONFIG_KEY = 'mapa_eleitoral_supabase_config_v5';
-const LOCAL_STORAGE_LIDERANCAS = 'mapa_eleitoral_liderancas_v5';
-const LOCAL_STORAGE_USERS = 'mapa_eleitoral_users_v5';
-const LOCAL_STORAGE_SESSION = 'mapa_eleitoral_session_v5';
-
-const DEFAULT_PASSWORD_SYSTEM = 'Campanha@2026';
+const STORAGE_PREFIX = 'mapa_eleitoral_secure_v6';
+const LOCAL_STORAGE_USERS = `${STORAGE_PREFIX}_users`;
+const LOCAL_STORAGE_LIDERANCAS = `${STORAGE_PREFIX}_liderancas`;
+const LOCAL_STORAGE_SESSION = `${STORAGE_PREFIX}_session`;
+const LOCAL_STORAGE_AUDIT = `${STORAGE_PREFIX}_audit`;
+const LOCAL_STORAGE_DISTRICTS = `${STORAGE_PREFIX}_districts`;
+const SUPABASE_CONFIG_KEY = `${STORAGE_PREFIX}_supabase_config`;
 const DEFAULT_EMAIL_DOMAIN = '@campanha.com.br';
 
-// Base de Lideranças Inicial Limpa (Preenchida pelo Vereador através do formulário)
-const DEFAULT_LIDERANCAS = [];
+const PREVIEW_USER = Object.freeze({
+    id: 'preview-master',
+    nome: 'Preview Segura',
+    email: 'preview@votofortearapongas.local',
+    cpf: '',
+    whatsapp: '',
+    cargo: 'Ambiente de Preview',
+    partido: 'Preview',
+    numeroCandidato: 'PREVIEW',
+    role: 'master',
+    avatar: '🛡️',
+    primeiroAcesso: false,
+    isPreview: true
+});
+const PREVIEW_PASSWORD = 'Preview@2026';
 
-// Matriz Base de Usuários Administrativos com E-mail @campanha.com.br, Senha Inicial Campanha@2026 e Obrigação de Primeiro Acesso
-const DEFAULT_USERS = [
-    {
-        id: "usr_everton",
-        nome: "Everton Moreira",
-        email: "everton@campanha.com.br",
-        cpf: "054.***.***-00",
-        whatsapp: "43999990001",
-        cargo: "Gestor Geral / Master",
-        partido: "Gestão Master",
-        numeroCandidato: "MASTER",
-        senha: DEFAULT_PASSWORD_SYSTEM,
-        primeiroAcesso: true,
-        senhaAlteradaEm: null,
-        role: "master",
-        avatar: "👑"
-    },
-    {
-        id: "usr_rafael",
-        nome: "Rafael Rodrigues",
-        email: "rafael@campanha.com.br",
-        cpf: "112.***.***-20",
-        whatsapp: "43999990002",
-        cargo: "Gestor Executivo / Master",
-        partido: "Gestão Master",
-        numeroCandidato: "MASTER",
-        senha: DEFAULT_PASSWORD_SYSTEM,
-        primeiroAcesso: true,
-        senhaAlteradaEm: null,
-        role: "master",
-        avatar: "🏛️"
-    },
-    {
-        id: "usr_ronnie",
-        nome: "Ronnie Onofre",
-        email: "ronnie@campanha.com.br",
-        cpf: "223.***.***-30",
-        whatsapp: "43999990003",
-        cargo: "Coordenador Regional / Adm",
-        partido: "Gestão Central",
-        numeroCandidato: "ADM",
-        senha: DEFAULT_PASSWORD_SYSTEM,
-        primeiroAcesso: true,
-        senhaAlteradaEm: null,
-        role: "adm",
-        avatar: "🛡️"
+function clone(value) {
+    return value == null ? value : JSON.parse(JSON.stringify(value));
+}
+
+function safeJsonParse(raw, fallback) {
+    try {
+        return raw ? JSON.parse(raw) : fallback;
+    } catch (_) {
+        return fallback;
     }
-];
+}
 
-const LOCAL_STORAGE_AUDIT = 'mapa_eleitoral_audit_v5';
+function normalizeEmail(input) {
+    const clean = String(input || '').trim().toLowerCase();
+    if (!clean) return '';
+    return clean.includes('@') ? clean : clean + DEFAULT_EMAIL_DOMAIN;
+}
 
-// Configuração do Servidor em Nuvem Centralizado (GitHub Cloud Data Sync)
-const CLOUD_SYNC_REPO = 'evertonr415-beep/mapa-eleitoral';
-const CLOUD_SYNC_FILE = 'data_sync.json';
-const CLOUD_SYNC_TOKEN = ['ghp', 'peVJxmOgkuJRR6MrEcDeHJ9F054ilu2vohTZ'].join('_');
+function sanitizeProfile(profile) {
+    if (!profile) return null;
+    const clean = { ...profile };
+    delete clean.senha;
+    delete clean.password;
+    delete clean.confirmationPin;
+    delete clean.confirmationToken;
+    return clean;
+}
 
-class SupabaseService {
+class SecureSupabaseService {
     constructor() {
         this.config = this.loadConfig();
+        this.client = null;
+        this.remoteMode = Boolean(this.config.url && this.config.publishableKey);
+        this.remoteReady = this.initRemote();
         this.initStorage();
-        this.cloudSha = null;
-        this.isSyncing = false;
-        this.initCloudSync();
     }
 
     loadConfig() {
-        try {
-            const raw = localStorage.getItem(SUPABASE_CONFIG_KEY);
-            if (raw) return JSON.parse(raw);
-        } catch (e) {
-            console.error("Erro ao ler configuração Supabase:", e);
-        }
+        const fromWindow = window.VOTO_FORTE_CONFIG || {};
+        const fromStorage = safeJsonParse(localStorage.getItem(SUPABASE_CONFIG_KEY), {});
+        const url = String(fromWindow.supabaseUrl || fromStorage.url || '').trim();
+        const publishableKey = String(
+            fromWindow.supabasePublishableKey ||
+            fromWindow.supabaseAnonKey ||
+            fromStorage.publishableKey ||
+            fromStorage.anonKey ||
+            ''
+        ).trim();
+        return { url, publishableKey, anonKey: publishableKey, connected: Boolean(url && publishableKey) };
+    }
+
+    getConfig() {
         return {
-            url: "",
-            anonKey: "",
-            connected: false
+            url: this.config.url,
+            key: this.config.publishableKey,
+            publishableKey: this.config.publishableKey,
+            connected: this.remoteMode
         };
     }
 
-    saveConfig(url, anonKey) {
-        this.config = {
-            url: url.trim(),
-            anonKey: anonKey.trim(),
-            connected: Boolean(url && anonKey)
+    saveConfig(url, publishableKey) {
+        const next = {
+            url: String(url || '').trim(),
+            publishableKey: String(publishableKey || '').trim()
         };
-        localStorage.setItem(SUPABASE_CONFIG_KEY, JSON.stringify(this.config));
+        if (!next.url || !next.publishableKey) {
+            throw new Error('Informe a URL e a chave publica/publishable do Supabase.');
+        }
+        localStorage.setItem(SUPABASE_CONFIG_KEY, JSON.stringify(next));
+        this.config = { ...next, anonKey: next.publishableKey, connected: true };
+        this.remoteMode = true;
+        this.remoteReady = this.initRemote();
+        return true;
     }
 
     initStorage() {
-        if (!localStorage.getItem(LOCAL_STORAGE_LIDERANCAS)) {
-            localStorage.setItem(LOCAL_STORAGE_LIDERANCAS, JSON.stringify(DEFAULT_LIDERANCAS));
-        }
-        
-        // Garante a base de usuários limpa com apenas a gestão Master/Adm (Everton, Rafael, Ronnie)
-        const currentUsersRaw = localStorage.getItem(LOCAL_STORAGE_USERS);
-        if (!currentUsersRaw) {
-            localStorage.setItem(LOCAL_STORAGE_USERS, JSON.stringify(DEFAULT_USERS));
-        }
-        if (!localStorage.getItem(LOCAL_STORAGE_AUDIT)) {
-            localStorage.setItem(LOCAL_STORAGE_AUDIT, JSON.stringify([]));
+        if (!localStorage.getItem(LOCAL_STORAGE_USERS)) localStorage.setItem(LOCAL_STORAGE_USERS, '[]');
+        if (!localStorage.getItem(LOCAL_STORAGE_LIDERANCAS)) localStorage.setItem(LOCAL_STORAGE_LIDERANCAS, '[]');
+        if (!localStorage.getItem(LOCAL_STORAGE_AUDIT)) localStorage.setItem(LOCAL_STORAGE_AUDIT, '[]');
+        if (!localStorage.getItem(LOCAL_STORAGE_DISTRICTS)) localStorage.setItem(LOCAL_STORAGE_DISTRICTS, '{}');
+    }
+
+    async initRemote() {
+        if (!this.remoteMode) return false;
+        try {
+            const mod = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
+            this.client = mod.createClient(this.config.url, this.config.publishableKey, {
+                auth: {
+                    persistSession: true,
+                    autoRefreshToken: true,
+                    detectSessionInUrl: true
+                }
+            });
+
+            const { data } = await this.client.auth.getSession();
+            if (data && data.session && data.session.user) {
+                await this.refreshRemoteCache(data.session.user.id);
+            }
+            return true;
+        } catch (error) {
+            console.error('Falha ao inicializar Supabase seguro:', error);
+            this.client = null;
+            return false;
         }
     }
 
-    // =========================================================================
-    // MOTOR DE SINCRONIZAÇÃO EM NUVEM EM TEMPO REAL (CROSS-DEVICE CLOUD SYNC)
-    // =========================================================================
-    initCloudSync() {
-        // Dispara sincronização inicial com a nuvem imediatamente
-        setTimeout(() => this.pullFromCloud(), 100);
-
-        // Polling contínuo em segundo plano a cada 6 segundos
-        setInterval(() => {
-            this.pullFromCloud();
-        }, 6000);
-
-        // BroadcastChannel para sincronização instantânea entre abas no mesmo navegador
-        if ('BroadcastChannel' in window) {
-            try {
-                this.syncChannel = new BroadcastChannel('mapa_eleitoral_sync');
-                this.syncChannel.onmessage = (ev) => {
-                    if (ev.data === 'data_changed') {
-                        if (window.onCloudDataUpdated) window.onCloudDataUpdated();
-                    }
-                };
-            } catch (e) {}
-        }
-    }
-
-    notifyLocalChange() {
-        if (this.syncChannel) {
-            try { this.syncChannel.postMessage('data_changed'); } catch (e) {}
-        }
-        this.pushToCloud();
-    }
-
-    // Baixa os dados mais recentes do servidor em nuvem (usuários, lideranças e logs)
+    // Compatibilidade: GitHub deixou de ser banco. Estes metodos agora apenas atualizam o cache remoto quando houver Supabase.
+    initCloudSync() { return false; }
+    notifyLocalChange() { return true; }
     async pullFromCloud() {
-        if (this.isSyncing) return;
-        this.isSyncing = true;
-        try {
-            const url = `https://api.github.com/repos/${CLOUD_SYNC_REPO}/contents/${CLOUD_SYNC_FILE}?ref=main&t=${Date.now()}`;
-            const res = await fetch(url, {
-                headers: {
-                    'Authorization': `token ${CLOUD_SYNC_TOKEN}`,
-                    'Accept': 'application/vnd.github.v3+json'
-                }
-            });
-
-            if (!res.ok) {
-                this.isSyncing = false;
-                return;
-            }
-
-            const data = await res.json();
-            this.cloudSha = data.sha;
-            
-            // Decodifica conteúdo em UTF-8
-            const contentDecoded = decodeURIComponent(escape(atob(data.content.replace(/\s/g, ''))));
-            const cloudPayload = JSON.parse(contentDecoded);
-
-            let hasUpdates = false;
-
-            // 1. Sincroniza Usuários (Preserva Masters e adiciona todos os Vereadores cadastrados em qualquer celular)
-            const localUsers = this.getAllUsersRaw();
-            const cloudUsers = Array.isArray(cloudPayload.users) ? cloudPayload.users : [];
-            
-            const userMap = new Map();
-            localUsers.forEach(u => userMap.set(u.id, u));
-            cloudUsers.forEach(cu => {
-                if (!userMap.has(cu.id)) {
-                    userMap.set(cu.id, cu);
-                    hasUpdates = true;
-                } else {
-                    const existing = userMap.get(cu.id);
-                    // Atualiza se houver alteração de senha mais recente ou perfil atualizado
-                    if (cu.senhaAlteradaEm && (!existing.senhaAlteradaEm || cu.senhaAlteradaEm > existing.senhaAlteradaEm)) {
-                        userMap.set(cu.id, cu);
-                        hasUpdates = true;
-                    }
-                }
-            });
-            const mergedUsers = Array.from(userMap.values());
-            localStorage.setItem(LOCAL_STORAGE_USERS, JSON.stringify(mergedUsers));
-
-            // 2. Sincroniza Lideranças
-            const localLids = this.getAllLiderancasRaw();
-            const cloudLids = Array.isArray(cloudPayload.liderancas) ? cloudPayload.liderancas : [];
-            const lidMap = new Map();
-            localLids.forEach(l => lidMap.set(l.id, l));
-            cloudLids.forEach(cl => {
-                if (!lidMap.has(cl.id)) {
-                    lidMap.set(cl.id, cl);
-                    hasUpdates = true;
-                }
-            });
-            const mergedLids = Array.from(lidMap.values());
-            localStorage.setItem(LOCAL_STORAGE_LIDERANCAS, JSON.stringify(mergedLids));
-
-            // 3. Sincroniza Logs de Auditoria
-            const rawAudit = localStorage.getItem(LOCAL_STORAGE_AUDIT);
-            const localAudit = rawAudit ? JSON.parse(rawAudit) : [];
-            const cloudAudit = Array.isArray(cloudPayload.audit) ? cloudPayload.audit : [];
-            const auditMap = new Map();
-            localAudit.forEach(a => auditMap.set(a.id, a));
-            cloudAudit.forEach(ca => {
-                if (!auditMap.has(ca.id)) {
-                    auditMap.set(ca.id, ca);
-                    hasUpdates = true;
-                }
-            });
-            const mergedAudit = Array.from(auditMap.values()).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-            if (mergedAudit.length > 500) mergedAudit.length = 500;
-            localStorage.setItem(LOCAL_STORAGE_AUDIT, JSON.stringify(mergedAudit));
-
-            // Se houve novos dados baixados ou se local possui mais itens que a nuvem, atualiza a tela
-            if (hasUpdates || localUsers.length > cloudUsers.length || localLids.length > cloudLids.length) {
-                if (window.onCloudDataUpdated) {
-                    window.onCloudDataUpdated();
-                }
-            }
-
-            // Se local tiver dados que a nuvem não tem, envia para a nuvem
-            if (localUsers.length > cloudUsers.length || localLids.length > cloudLids.length || localAudit.length > cloudAudit.length) {
-                this.pushToCloud();
-            }
-
-        } catch (err) {
-            console.warn("Sincronização em nuvem:", err.message);
-        } finally {
-            this.isSyncing = false;
+        if (this.remoteMode && this.client) {
+            const current = this.getCurrentUser();
+            if (current && current.id && !current.isPreview) await this.refreshRemoteCache(current.id);
         }
-    }
-
-    // Envia o estado completo para o servidor em nuvem (GitHub Cloud Data Sync)
-    async pushToCloud() {
-        try {
-            const users = this.getAllUsersRaw();
-            const liderancas = this.getAllLiderancasRaw();
-            const rawAudit = localStorage.getItem(LOCAL_STORAGE_AUDIT);
-            const audit = rawAudit ? JSON.parse(rawAudit) : [];
-
-            const payload = {
-                users: users,
-                liderancas: liderancas,
-                audit: audit,
-                updatedAt: new Date().toISOString()
-            };
-
-            const jsonString = JSON.stringify(payload, null, 2);
-            // Codifica em base64 compatível com UTF-8
-            const contentBase64 = btoa(unescape(encodeURIComponent(jsonString)));
-
-            // Obtém o SHA mais recente caso não tenha
-            if (!this.cloudSha) {
-                try {
-                    const checkRes = await fetch(`https://api.github.com/repos/${CLOUD_SYNC_REPO}/contents/${CLOUD_SYNC_FILE}?ref=main`, {
-                        headers: {
-                            'Authorization': `token ${CLOUD_SYNC_TOKEN}`,
-                            'Accept': 'application/vnd.github.v3+json'
-                        }
-                    });
-                    if (checkRes.ok) {
-                        const checkData = await checkRes.json();
-                        this.cloudSha = checkData.sha;
-                    }
-                } catch (e) {}
-            }
-
-            const body = {
-                message: `Sync: ${users.length} usuários, ${liderancas.length} lideranças (${new Date().toLocaleTimeString('pt-BR')})`,
-                content: contentBase64
-            };
-            if (this.cloudSha) {
-                body.sha = this.cloudSha;
-            }
-
-            const putRes = await fetch(`https://api.github.com/repos/${CLOUD_SYNC_REPO}/contents/${CLOUD_SYNC_FILE}`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `token ${CLOUD_SYNC_TOKEN}`,
-                    'Accept': 'application/vnd.github.v3+json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(body)
-            });
-
-            if (putRes.ok) {
-                const putData = await putRes.json();
-                this.cloudSha = putData.content ? putData.content.sha : null;
-            }
-        } catch (err) {
-            console.warn("Erro no envio para nuvem:", err.message);
-        }
-    }
-
-    // Método para resetar/limpar a base de vereadores teste caso o Master deseje
-    resetUsersToDefault() {
-        localStorage.setItem(LOCAL_STORAGE_USERS, JSON.stringify(DEFAULT_USERS));
-        this.notifyLocalChange();
-        return DEFAULT_USERS;
-    }
-
-    // REGISTRO DE AUDITORIA & HISTÓRICO DE ATIVIDADES
-    logAudit(user, type, actionText, detailsText) {
-        try {
-            const raw = localStorage.getItem(LOCAL_STORAGE_AUDIT);
-            const logs = raw ? JSON.parse(raw) : [];
-            const userAgent = navigator.userAgent.includes('Mobile') ? '📱 Smartphone Celular' : '💻 Computador Desktop';
-            
-            const newLog = {
-                id: 'log_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
-                timestamp: new Date().toISOString(),
-                userId: user ? user.id : 'anonimo',
-                userName: user ? user.nome : 'Visitante',
-                userRole: user ? user.role : 'desconhecido',
-                userEmail: user ? user.email : '',
-                type: type, // 'login', 'lideranca', 'whatsapp', 'senha', 'sistema'
-                action: actionText,
-                details: detailsText || '',
-                device: userAgent
-            };
-
-            logs.unshift(newLog);
-            // Mantém os últimos 500 registros
-            if (logs.length > 500) logs.pop();
-            localStorage.setItem(LOCAL_STORAGE_AUDIT, JSON.stringify(logs));
-            this.notifyLocalChange();
-            return newLog;
-        } catch (e) {
-            console.error("Erro ao gravar log de auditoria:", e);
-        }
-    }
-
-    getAuditLogs(currentUser, filterType = 'all') {
-        try {
-            const raw = localStorage.getItem(LOCAL_STORAGE_AUDIT);
-            let logs = raw ? JSON.parse(raw) : [];
-
-            // Filtragem por permissão
-            if (currentUser.role === 'master') {
-                // Master vê todos os logs
-            } else if (currentUser.role === 'adm') {
-                logs = logs.filter(l => l.userRole !== 'master');
-            } else {
-                logs = logs.filter(l => l.userId === currentUser.id);
-            }
-
-            if (filterType !== 'all') {
-                logs = logs.filter(l => l.type === filterType);
-            }
-
-            return logs;
-        } catch (e) {
-            return [];
-        }
-    }
-
-    // Sessão Atual com Persistência Dinâmica
-    getCurrentUser() {
-        try {
-            const raw = localStorage.getItem(LOCAL_STORAGE_SESSION);
-            if (raw) {
-                const sess = JSON.parse(raw);
-                const users = this.getAllUsersRaw();
-                const updated = users.find(u => u.id === sess.id || (sess.email && u.email.toLowerCase() === sess.email.toLowerCase()));
-                if (updated) {
-                    return updated;
-                }
-                return sess;
-            }
-        } catch (e) {
-            console.error("Erro na leitura da sessão:", e);
-        }
-        // Retorna Everton (Master) como padrão caso não esteja logado
-        const users = this.getAllUsersRaw();
-        return users[0] || DEFAULT_USERS[0];
-    }
-
-    setCurrentUser(user) {
-        localStorage.setItem(LOCAL_STORAGE_SESSION, JSON.stringify(user));
-    }
-
-    logout() {
-        localStorage.removeItem(LOCAL_STORAGE_SESSION);
-    }
-
-    // Autenticação / Login flexível (aceita e-mail corporativo, e-mail pessoal ou usuário)
-    async signIn(inputEmailOrUser, password) {
-        let cleanInput = (inputEmailOrUser || '').trim().toLowerCase();
-        let cleanEmail = cleanInput;
-        if (cleanInput && !cleanInput.includes('@')) {
-            cleanEmail = cleanInput + DEFAULT_EMAIL_DOMAIN;
-        }
-
-        const users = this.getAllUsersRaw();
-        const user = users.find(u => {
-            const uMail = (u.email || '').toLowerCase();
-            const uPrefix = uMail.split('@')[0];
-            return uMail === cleanInput || uMail === cleanEmail || uPrefix === cleanInput;
-        });
-        
-        if (!user) {
-            throw new Error(`Usuário "${inputEmailOrUser}" não encontrado. Verifique seu e-mail cadastrado ou faça o cadastro de vereador.`);
-        }
-
-        const validPass = user.senha || DEFAULT_PASSWORD_SYSTEM;
-        if (password !== validPass && password !== DEFAULT_PASSWORD_SYSTEM) {
-            throw new Error("Senha incorreta. Verifique a senha digitada.");
-        }
-
-        this.setCurrentUser(user);
-        this.logAudit(user, 'login', '🔐 Autenticação Realizada', `Usuário ${user.nome} (${user.role}) efetuou login com o e-mail ${user.email}`);
-        return user;
-    }
-
-    // Alteração de Senha
-    async changePassword(userId, currentPass, newPass) {
-        const users = this.getAllUsersRaw();
-        const index = users.findIndex(u => u.id === userId);
-
-        if (index === -1) {
-            throw new Error("Usuário não encontrado.");
-        }
-
-        const user = users[index];
-        const existingPass = user.senha || DEFAULT_PASSWORD_SYSTEM;
-
-        if (currentPass !== existingPass && currentPass !== DEFAULT_PASSWORD_SYSTEM) {
-            throw new Error("A senha atual informada está incorreta.");
-        }
-
-        if (!newPass || newPass.length < 4) {
-            throw new Error("A nova senha deve ter no mínimo 4 caracteres.");
-        }
-
-        user.senha = newPass;
-        user.primeiroAcesso = false;
-        user.senhaAlteradaEm = new Date().toISOString();
-        users[index] = user;
-
-        localStorage.setItem(LOCAL_STORAGE_USERS, JSON.stringify(users));
-        this.setCurrentUser(user);
-        this.logAudit(user, 'senha', '🔑 Senha Alterada com Sucesso', `Senha atualizada para o usuário ${user.nome}`);
         return true;
     }
-
-    // Cadastro de Novo Vereador / Usuário (Aceita E-mail Pessoal Gmail/Outlook/Hotmail/etc)
-    async registerVereador(formData) {
-        let cleanEmail = (formData.email || '').trim().toLowerCase();
-        
-        // Se o usuário não digitou @, completa com o domínio de fallback
-        if (cleanEmail && !cleanEmail.includes('@')) {
-            cleanEmail = cleanEmail + DEFAULT_EMAIL_DOMAIN;
-        }
-
-        let users = this.getAllUsersRaw();
-        
-        // Remove qualquer cadastro duplicado anterior com o mesmo e-mail para permitir o novo cadastro limpo
-        const existsIndex = users.findIndex(u => (u.email || '').toLowerCase() === cleanEmail);
-        if (existsIndex !== -1) {
-            // Se for um usuário master padrão, não sobrescreve
-            if (users[existsIndex].role === 'master') {
-                throw new Error(`O e-mail ${cleanEmail} pertence à gestão Master da plataforma.`);
-            }
-            // Caso contrário, substitui o cadastro anterior para garantir o acesso limpo
-            users.splice(existsIndex, 1);
-        }
-
-        const pinCode = Math.floor(100000 + Math.random() * 900000).toString();
-        const token = btoa(`${cleanEmail}:${Date.now()}:${pinCode}`);
-
-        const newUser = {
-            id: 'usr_' + Date.now(),
-            nome: formData.nome,
-            email: cleanEmail,
-            cpf: formData.cpf || '',
-            whatsapp: formData.whatsapp || '',
-            cargo: formData.cargo || 'Vereador',
-            partido: formData.partido || 'Independente',
-            numeroCandidato: formData.numeroCandidato || '',
-            senha: formData.senha || DEFAULT_PASSWORD_SYSTEM,
-            role: 'vereador',
-            avatar: '🗳️',
-            emailVerified: true,
-            confirmationPin: pinCode,
-            confirmationToken: token,
-            criadoEm: new Date().toISOString()
-        };
-
-        users.push(newUser);
-        localStorage.setItem(LOCAL_STORAGE_USERS, JSON.stringify(users));
-        this.setCurrentUser(newUser);
-
-        this.logAudit(newUser, 'login', '🗳️ Novo Vereador Cadastrado', `Vereador ${newUser.nome} (${newUser.partido}) cadastrou-se com e-mail ${newUser.email}`);
-        this.notifyLocalChange();
-
-        // Dispara API de E-mail de Confirmação Oficial
-        const emailResult = await window.EmailService.sendAccessConfirmationEmail(newUser, formData.senha);
-
-        return {
-            user: newUser,
-            emailResult: emailResult
-        };
-    }
-
-    // Consulta de Usuários com RBAC (Isolamento de Segurança)
-    getUsers(currentUser) {
-        const allUsers = this.getAllUsersRaw();
-
-        if (currentUser.role === 'master') {
-            // Master vê todo mundo
-            return allUsers;
-        } else if (currentUser.role === 'adm') {
-            // Adm vê seus vereadores e a si mesmo (NÃO vê Everton nem Rafael)
-            return allUsers.filter(u => u.role !== 'master');
-        } else {
-            // Vereador vê APENAS a si próprio
-            return allUsers.filter(u => u.id === currentUser.id);
-        }
-    }
+    async pushToCloud() { return true; }
 
     getAllUsersRaw() {
-        try {
-            const raw = localStorage.getItem(LOCAL_STORAGE_USERS);
-            if (raw) return JSON.parse(raw);
-        } catch (e) {}
-        return DEFAULT_USERS;
+        return safeJsonParse(localStorage.getItem(LOCAL_STORAGE_USERS), []);
     }
 
-    // Consulta de Lideranças com RBAC
-    getLiderancas(currentUser) {
-        const all = this.getAllLiderancasRaw();
-
-        if (currentUser.role === 'master') {
-            // Master vê todas as lideranças de todos os vereadores
-            return all;
-        } else if (currentUser.role === 'adm') {
-            // Adm vê lideranças próprias e de vereadores sob sua alçada (não vê dados exclusivos de Master)
-            return all.filter(l => l.vereadorId === currentUser.id || l.partido !== 'Master');
-        } else {
-            // Vereador vê SOMENTE as suas lideranças
-            return all.filter(l => l.vereadorId === currentUser.id);
-        }
+    setAllUsersRaw(users) {
+        localStorage.setItem(LOCAL_STORAGE_USERS, JSON.stringify((users || []).map(sanitizeProfile)));
     }
 
     getAllLiderancasRaw() {
+        return safeJsonParse(localStorage.getItem(LOCAL_STORAGE_LIDERANCAS), []);
+    }
+
+    setAllLiderancasRaw(items) {
+        localStorage.setItem(LOCAL_STORAGE_LIDERANCAS, JSON.stringify(items || []));
+    }
+
+    getCurrentUser() {
+        const session = safeJsonParse(localStorage.getItem(LOCAL_STORAGE_SESSION), null);
+        return session ? sanitizeProfile(session) : null;
+    }
+
+    setCurrentUser(user) {
+        if (!user) {
+            localStorage.removeItem(LOCAL_STORAGE_SESSION);
+            return;
+        }
+        localStorage.setItem(LOCAL_STORAGE_SESSION, JSON.stringify(sanitizeProfile(user)));
+    }
+
+    async logout() {
         try {
-            const raw = localStorage.getItem(LOCAL_STORAGE_LIDERANCAS);
-            if (raw) return JSON.parse(raw);
-        } catch (e) {}
-        return DEFAULT_LIDERANCAS;
+            if (this.client) await this.client.auth.signOut();
+        } catch (_) {}
+        localStorage.removeItem(LOCAL_STORAGE_SESSION);
     }
 
-    // Criar Liderança
-    createLideranca(liderancaData, currentUser) {
-        const all = this.getAllLiderancasRaw();
-        const newLid = {
-            id: 'lid-' + Date.now(),
-            vereadorId: currentUser.id,
-            vereadorNome: currentUser.nome,
-            partido: currentUser.partido,
-            nome: liderancaData.nome,
-            whatsapp: liderancaData.whatsapp.replace(/\D/g, ''),
-            telefone: liderancaData.telefone || '',
-            cep: liderancaData.cep || '',
-            bairro: liderancaData.bairro,
-            logradouro: liderancaData.logradouro || '',
-            numero: liderancaData.numero || '',
-            lat: parseFloat(liderancaData.lat),
-            lng: parseFloat(liderancaData.lng),
-            colegioId: liderancaData.colegioId || '',
-            colegioNome: liderancaData.colegioNome || '',
-            metaVotos: parseInt(liderancaData.metaVotos, 10) || 20,
-            categoria: liderancaData.categoria || 'Geral',
-            status: liderancaData.status || 'Ativo',
-            observacoes: liderancaData.observacoes || '',
-            criadoEm: new Date().toISOString()
-        };
+    async signIn(inputEmailOrUser, password) {
+        const email = normalizeEmail(inputEmailOrUser);
+        const suppliedPassword = String(password || '');
 
-        all.unshift(newLid);
-        localStorage.setItem(LOCAL_STORAGE_LIDERANCAS, JSON.stringify(all));
-        this.logAudit(currentUser, 'lideranca', '📍 Liderança Georreferenciada Criada', `Cadastrada por ${currentUser.nome}: ${newLid.nome} no bairro ${newLid.bairro} (Meta: +${newLid.metaVotos}v)`);
-        this.notifyLocalChange();
-        return newLid;
-    }
-
-    // Deletar Liderança
-    deleteLideranca(id, currentUser) {
-        let all = this.getAllLiderancasRaw();
-        const item = all.find(l => l.id === id);
-        
-        if (!item) return false;
-
-        // Validação de permissão
-        if (currentUser.role !== 'master' && item.vereadorId !== currentUser.id) {
-            throw new Error("Você não tem permissão para excluir esta liderança.");
+        // Preview isolada: credencial conhecida, mas sem qualquer dado real ou acesso de producao.
+        if (!this.remoteMode) {
+            if (email !== PREVIEW_USER.email || suppliedPassword !== PREVIEW_PASSWORD) {
+                throw new Error('Preview segura: use a credencial de teste informada na revisao. Nenhuma conta real e carregada aqui.');
+            }
+            this.setAllUsersRaw([PREVIEW_USER]);
+            this.setCurrentUser(PREVIEW_USER);
+            this.logAudit(PREVIEW_USER, 'login', 'Preview autenticada', 'Acesso ao ambiente isolado de demonstracao');
+            return clone(PREVIEW_USER);
         }
 
-        all = all.filter(l => l.id !== id);
-        localStorage.setItem(LOCAL_STORAGE_LIDERANCAS, JSON.stringify(all));
-        this.logAudit(currentUser, 'lideranca', '🗑️ Liderança Excluída', `Liderança ${item.nome} removida por ${currentUser.nome}`);
-        this.notifyLocalChange();
+        await this.remoteReady;
+        if (!this.client) throw new Error('Nao foi possivel conectar ao Supabase.');
+        const { data, error } = await this.client.auth.signInWithPassword({ email, password: suppliedPassword });
+        if (error) throw new Error('E-mail ou senha invalidos.');
+        if (!data.user) throw new Error('Sessao de usuario nao criada.');
+
+        const profile = await this.fetchOwnProfile(data.user.id);
+        if (!profile) throw new Error('Perfil de acesso nao encontrado. Contate um administrador.');
+        this.setCurrentUser(profile);
+        await this.refreshRemoteCache(data.user.id);
+        this.logAudit(profile, 'login', 'Autenticacao realizada', `Login seguro para ${profile.email}`);
+        return clone(profile);
+    }
+
+    async fetchOwnProfile(userId) {
+        if (!this.client) return null;
+        const { data, error } = await this.client
+            .from('perfis_usuarios')
+            .select('id,nome,email,whatsapp,cpf,partido,numero_candidato,cargo,role,avatar_url,adm_vinculado_id,criado_em,atualizado_em')
+            .eq('id', userId)
+            .maybeSingle();
+        if (error) throw error;
+        return data ? this.mapProfileFromDb(data) : null;
+    }
+
+    mapProfileFromDb(row) {
+        return {
+            id: row.id,
+            nome: row.nome,
+            email: row.email,
+            whatsapp: row.whatsapp || '',
+            cpf: row.cpf || '',
+            partido: row.partido || '',
+            numeroCandidato: row.numero_candidato || '',
+            cargo: row.cargo || 'Vereador',
+            role: row.role || 'vereador',
+            avatar: row.avatar_url || '🗳️',
+            admVinculadoId: row.adm_vinculado_id || null,
+            primeiroAcesso: false
+        };
+    }
+
+    mapLiderancaFromDb(row) {
+        return {
+            id: row.id,
+            vereadorId: row.vereador_id,
+            vereadorNome: row.vereador_nome || '',
+            partido: row.partido || '',
+            nome: row.nome_lideranca,
+            whatsapp: row.whatsapp || '',
+            telefone: row.telefone || '',
+            bairro: row.bairro || '',
+            logradouro: row.logradouro || '',
+            numero: row.numero || '',
+            cep: row.cep || '',
+            lat: Number(row.lat),
+            lng: Number(row.lng),
+            colegioId: row.colegio_referencia_id || '',
+            colegioNome: row.colegio_nome || '',
+            metaVotos: Number(row.meta_votos || 20),
+            categoria: row.categoria || 'Geral',
+            status: row.status_contato || 'Ativo',
+            observacoes: row.observacoes || '',
+            criadoEm: row.criado_em,
+            atualizadoEm: row.atualizado_em
+        };
+    }
+
+    async refreshRemoteCache() {
+        if (!this.client) return false;
+        const [{ data: profiles, error: profilesError }, { data: leaders, error: leadersError }] = await Promise.all([
+            this.client.from('perfis_usuarios').select('id,nome,email,whatsapp,cpf,partido,numero_candidato,cargo,role,avatar_url,adm_vinculado_id,criado_em,atualizado_em'),
+            this.client.from('liderancas').select('*')
+        ]);
+        if (profilesError) throw profilesError;
+        if (leadersError) throw leadersError;
+        this.setAllUsersRaw((profiles || []).map(row => this.mapProfileFromDb(row)));
+        this.setAllLiderancasRaw((leaders || []).map(row => this.mapLiderancaFromDb(row)));
         return true;
     }
 
-    // Editar Liderança
-    updateLideranca(id, updatedData, currentUser) {
-        const all = this.getAllLiderancasRaw();
-        const index = all.findIndex(l => l.id === id);
-        
-        if (index === -1) return null;
-
-        if (currentUser.role !== 'master' && all[index].vereadorId !== currentUser.id) {
-            throw new Error("Você não tem permissão para editar esta liderança.");
+    async registerVereador(formData) {
+        if (!this.remoteMode) {
+            throw new Error('Cadastro real desativado na preview isolada. O cadastro sera habilitado somente no Supabase seguro.');
         }
+        await this.remoteReady;
+        if (!this.client) throw new Error('Nao foi possivel conectar ao Supabase.');
 
-        all[index] = {
-            ...all[index],
-            ...updatedData,
-            atualizadoEm: new Date().toISOString()
+        const email = normalizeEmail(formData.email);
+        const password = String(formData.senha || '');
+        if (password.length < 8) throw new Error('A senha deve ter no minimo 8 caracteres.');
+
+        const { data, error } = await this.client.auth.signUp({
+            email,
+            password,
+            options: {
+                data: { nome: String(formData.nome || '').trim() }
+            }
+        });
+        if (error) throw new Error(error.message);
+        if (!data.user) throw new Error('Nao foi possivel criar o usuario.');
+
+        const profilePayload = {
+            id: data.user.id,
+            nome: String(formData.nome || '').trim(),
+            email,
+            whatsapp: String(formData.whatsapp || '').replace(/\D/g, ''),
+            cpf: String(formData.cpf || '').replace(/\D/g, ''),
+            partido: String(formData.partido || 'Independente'),
+            numero_candidato: String(formData.numeroCandidato || ''),
+            cargo: String(formData.cargo || 'Vereador'),
+            role: 'vereador',
+            avatar_url: '🗳️'
         };
 
-        localStorage.setItem(LOCAL_STORAGE_LIDERANCAS, JSON.stringify(all));
-        this.logAudit(currentUser, 'lideranca', '✏️ Liderança Atualizada', `Liderança ${all[index].nome} atualizada por ${currentUser.nome}`);
-        this.notifyLocalChange();
-        return all[index];
+        // Se confirmacao de e-mail estiver ativa, a sessao pode nao existir ainda; o trigger do banco cria o perfil minimo.
+        if (data.session) {
+            const { error: profileError } = await this.client
+                .from('perfis_usuarios')
+                .upsert(profilePayload, { onConflict: 'id' });
+            if (profileError) throw new Error(profileError.message);
+        }
+
+        const user = this.mapProfileFromDb(profilePayload);
+        if (data.session) {
+            this.setCurrentUser(user);
+            await this.refreshRemoteCache();
+        }
+        return {
+            user,
+            emailResult: {
+                success: true,
+                email,
+                pendingConfirmation: !data.session
+            }
+        };
     }
 
-    // GESTÃO E ATRIBUIÇÃO DE DISTRITOS / REDUTOS DE CAMPANHA
+    async changePassword(userId, currentPass, newPass) {
+        if (!newPass || String(newPass).length < 8) throw new Error('A nova senha deve ter no minimo 8 caracteres.');
+        const current = this.getCurrentUser();
+        if (!current || current.id !== userId) throw new Error('Sessao invalida.');
+
+        if (!this.remoteMode) {
+            if (current.isPreview) throw new Error('Alteracao de senha desativada na preview isolada.');
+            throw new Error('Supabase seguro ainda nao configurado.');
+        }
+
+        await this.remoteReady;
+        const email = current.email;
+        const { error: verifyError } = await this.client.auth.signInWithPassword({ email, password: String(currentPass || '') });
+        if (verifyError) throw new Error('A senha atual informada esta incorreta.');
+        const { error } = await this.client.auth.updateUser({ password: String(newPass) });
+        if (error) throw new Error(error.message);
+        this.logAudit(current, 'senha', 'Senha alterada', 'Senha atualizada via Supabase Auth');
+        return true;
+    }
+
+    getUsers(currentUser) {
+        if (!currentUser) return [];
+        const all = this.getAllUsersRaw().map(sanitizeProfile);
+        if (currentUser.role === 'master') return all;
+        if (currentUser.role === 'adm') {
+            return all.filter(u => u.id === currentUser.id || (u.role === 'vereador' && u.admVinculadoId === currentUser.id));
+        }
+        return all.filter(u => u.id === currentUser.id);
+    }
+
+    getLiderancas(currentUser) {
+        if (!currentUser) return [];
+        const all = this.getAllLiderancasRaw();
+        if (currentUser.role === 'master') return all;
+        if (currentUser.role === 'adm') {
+            const allowedUserIds = new Set(this.getUsers(currentUser).map(u => u.id));
+            return all.filter(item => allowedUserIds.has(item.vereadorId));
+        }
+        return all.filter(item => item.vereadorId === currentUser.id);
+    }
+
+    createLideranca(liderancaData, currentUser) {
+        if (!currentUser) throw new Error('Faca login para cadastrar uma lideranca.');
+        const all = this.getAllLiderancasRaw();
+        const item = {
+            id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : `lid-${Date.now()}`,
+            vereadorId: currentUser.id,
+            vereadorNome: currentUser.nome,
+            partido: currentUser.partido || '',
+            nome: String(liderancaData.nome || '').trim(),
+            whatsapp: String(liderancaData.whatsapp || '').replace(/\D/g, ''),
+            telefone: String(liderancaData.telefone || ''),
+            cep: String(liderancaData.cep || ''),
+            bairro: String(liderancaData.bairro || '').trim(),
+            logradouro: String(liderancaData.logradouro || ''),
+            numero: String(liderancaData.numero || ''),
+            lat: Number(liderancaData.lat),
+            lng: Number(liderancaData.lng),
+            colegioId: String(liderancaData.colegioId || ''),
+            colegioNome: String(liderancaData.colegioNome || ''),
+            metaVotos: Number(liderancaData.metaVotos || 20),
+            categoria: String(liderancaData.categoria || 'Geral'),
+            status: String(liderancaData.status || 'Ativo'),
+            observacoes: String(liderancaData.observacoes || ''),
+            criadoEm: new Date().toISOString()
+        };
+        all.unshift(item);
+        this.setAllLiderancasRaw(all);
+        this.logAudit(currentUser, 'lideranca', 'Lideranca criada', `${item.nome} - ${item.bairro}`);
+
+        if (this.remoteMode && this.client && !currentUser.isPreview) {
+            this.client.from('liderancas').insert({
+                id: item.id,
+                vereador_id: currentUser.id,
+                nome_lideranca: item.nome,
+                whatsapp: item.whatsapp,
+                telefone: item.telefone || null,
+                bairro: item.bairro,
+                logradouro: item.logradouro || null,
+                numero: item.numero || null,
+                cep: item.cep || null,
+                lat: item.lat,
+                lng: item.lng,
+                colegio_referencia_id: item.colegioId || null,
+                meta_votos: item.metaVotos,
+                categoria: item.categoria,
+                status_contato: item.status,
+                observacoes: item.observacoes || null
+            }).then(({ error }) => { if (error) console.error('Falha ao salvar lideranca:', error); });
+        }
+        return clone(item);
+    }
+
+    updateLideranca(id, updatedData, currentUser) {
+        const all = this.getAllLiderancasRaw();
+        const index = all.findIndex(item => item.id === id);
+        if (index < 0) return null;
+        const original = all[index];
+        if (!currentUser || (currentUser.role !== 'master' && original.vereadorId !== currentUser.id)) {
+            throw new Error('Voce nao tem permissao para editar esta lideranca.');
+        }
+        all[index] = { ...original, ...updatedData, atualizadoEm: new Date().toISOString() };
+        this.setAllLiderancasRaw(all);
+        this.logAudit(currentUser, 'lideranca', 'Lideranca atualizada', all[index].nome);
+
+        if (this.remoteMode && this.client && !currentUser.isPreview) {
+            const patch = {};
+            if ('status' in updatedData) patch.status_contato = updatedData.status;
+            if ('observacoes' in updatedData) patch.observacoes = updatedData.observacoes;
+            if ('nome' in updatedData) patch.nome_lideranca = updatedData.nome;
+            patch.atualizado_em = new Date().toISOString();
+            this.client.from('liderancas').update(patch).eq('id', id)
+                .then(({ error }) => { if (error) console.error('Falha ao atualizar lideranca:', error); });
+        }
+        return clone(all[index]);
+    }
+
+    deleteLideranca(id, currentUser) {
+        const all = this.getAllLiderancasRaw();
+        const item = all.find(row => row.id === id);
+        if (!item) return false;
+        if (!currentUser || (currentUser.role !== 'master' && item.vereadorId !== currentUser.id)) {
+            throw new Error('Voce nao tem permissao para excluir esta lideranca.');
+        }
+        this.setAllLiderancasRaw(all.filter(row => row.id !== id));
+        this.logAudit(currentUser, 'lideranca', 'Lideranca excluida', item.nome);
+        if (this.remoteMode && this.client && !currentUser.isPreview) {
+            this.client.from('liderancas').delete().eq('id', id)
+                .then(({ error }) => { if (error) console.error('Falha ao excluir lideranca:', error); });
+        }
+        return true;
+    }
+
+    logAudit(user, type, actionText, detailsText) {
+        const logs = safeJsonParse(localStorage.getItem(LOCAL_STORAGE_AUDIT), []);
+        const entry = {
+            id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : `log-${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            userId: user ? user.id : null,
+            userName: user ? user.nome : 'Visitante',
+            userRole: user ? user.role : 'anonimo',
+            userEmail: user ? user.email : '',
+            type: type || 'sistema',
+            action: String(actionText || ''),
+            details: String(detailsText || ''),
+            device: navigator.userAgent.includes('Mobile') ? 'Smartphone' : 'Computador'
+        };
+        logs.unshift(entry);
+        localStorage.setItem(LOCAL_STORAGE_AUDIT, JSON.stringify(logs.slice(0, 500)));
+        if (this.remoteMode && this.client && user && !user.isPreview) {
+            this.client.from('audit_logs').insert({
+                id: entry.id,
+                user_id: user.id,
+                tipo: entry.type,
+                acao: entry.action,
+                detalhes: entry.details,
+                dispositivo: entry.device
+            }).then(({ error }) => { if (error) console.warn('Falha ao registrar auditoria remota:', error); });
+        }
+        return clone(entry);
+    }
+
+    getAuditLogs(currentUser, filterType = 'all') {
+        if (!currentUser) return [];
+        let logs = safeJsonParse(localStorage.getItem(LOCAL_STORAGE_AUDIT), []);
+        if (currentUser.role === 'adm') logs = logs.filter(row => row.userRole !== 'master');
+        if (currentUser.role === 'vereador') logs = logs.filter(row => row.userId === currentUser.id);
+        if (filterType !== 'all') logs = logs.filter(row => row.type === filterType);
+        return logs;
+    }
+
     getDistrictAssignments() {
-        try {
-            const raw = localStorage.getItem('mapa_eleitoral_districts_v5');
-            if (raw) return JSON.parse(raw);
-        } catch (e) {}
-        return {};
+        return safeJsonParse(localStorage.getItem(LOCAL_STORAGE_DISTRICTS), {});
     }
 
     saveDistrictAssignment(districtId, vereadorId, vereadorNome, currentUser) {
-        try {
-            const assignments = this.getDistrictAssignments();
-            assignments[districtId] = {
-                vereadorId: vereadorId,
-                vereadorNome: vereadorNome,
-                atualizadoEm: new Date().toISOString(),
-                atualizadoPor: currentUser ? currentUser.nome : 'Master'
-            };
-            localStorage.setItem('mapa_eleitoral_districts_v5', JSON.stringify(assignments));
-            this.logAudit(currentUser, 'sistema', '🧭 Distrito / Reduto Atribuído', `Distrito ${districtId} direcionado para o vereador ${vereadorNome}`);
-            this.notifyLocalChange();
-            return assignments;
-        } catch (e) {
-            console.error("Erro ao salvar atribuição de distrito:", e);
+        if (!currentUser || currentUser.role !== 'master') {
+            throw new Error('Somente usuario Master pode direcionar distritos.');
         }
+        const assignments = this.getDistrictAssignments();
+        assignments[districtId] = {
+            vereadorId: vereadorId || '',
+            vereadorNome: vereadorNome || '',
+            atualizadoEm: new Date().toISOString(),
+            atualizadoPor: currentUser.nome
+        };
+        localStorage.setItem(LOCAL_STORAGE_DISTRICTS, JSON.stringify(assignments));
+        this.logAudit(currentUser, 'sistema', 'Distrito atribuido', `${districtId} -> ${vereadorNome || 'Livre'}`);
+        if (this.remoteMode && this.client && !currentUser.isPreview) {
+            this.client.from('district_assignments').upsert({
+                distrito_id: districtId,
+                vereador_id: vereadorId || null,
+                vereador_nome: vereadorNome || null,
+                atualizado_por: currentUser.id
+            }, { onConflict: 'distrito_id' }).then(({ error }) => {
+                if (error) console.warn('Falha ao salvar distrito:', error);
+            });
+        }
+        return assignments;
+    }
+
+    resetUsersToDefault() {
+        throw new Error('Reset automatico de usuarios foi removido por seguranca.');
     }
 }
 
-/**
- * SERVIÇO DE DISPARO DE E-MAILS DE CONFIRMAÇÃO & ATIVAÇÃO
- */
-class EmailService {
-    async sendAccessConfirmationEmail(user, password) {
-        const pinCode = user.confirmationPin || Math.floor(100000 + Math.random() * 900000).toString();
-        const activationLink = `${window.location.origin}${window.location.pathname}?token=${user.confirmationToken || 'auth_token'}`;
-
-        const htmlTemplate = `
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <title>Confirmação de Acesso - Mapa Eleitoral Arapongas</title>
-</head>
-<body style="margin:0; padding:20px; font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif; background-color:#0f172a; color:#f1f5f9;">
-  <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width:580px; background-color:#1e293b; border:1px solid #334155; border-radius:12px; overflow:hidden; box-shadow:0 15px 35px rgba(0,0,0,0.6);">
-    <tr>
-      <td style="background:linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); padding:28px 24px; text-align:center; border-bottom:1px solid #334155;">
-        <span style="background:#2563eb; color:#ffffff; font-size:11px; font-weight:800; padding:4px 10px; border-radius:4px; letter-spacing:0.05em; display:inline-block; margin-bottom:10px;">ELEIÇÕES ARAPONGAS 2024</span>
-        <h1 style="color:#38bdf8; margin:0 0 4px 0; font-size:22px; font-weight:800;">🏛️ Confirmação de Acesso do Vereador</h1>
-        <p style="color:#94a3b8; margin:0; font-size:13px;">Sistema de Geointeligência Eleitoral & Gestão de Redutos</p>
-      </td>
-    </tr>
-    <tr>
-      <td style="padding:28px 24px; line-height:1.6; font-size:14px; color:#cbd5e1;">
-        <p style="margin-top:0;">Olá, <strong>Vereador(a) ${user.nome}</strong> (${user.partido})!</p>
-        <p>Seu cadastro na plataforma foi concluído com sucesso. Abaixo está o seu <strong>Código de Segurança de 6 Dígitos</strong> para autenticação imediata e liberação do mapa com seus redutos e lideranças:</p>
-        
-        <div style="background:#0f172a; border:2px dashed #38bdf8; border-radius:8px; text-align:center; padding:16px; margin:22px 0;">
-          <div style="font-size:11px; color:#94a3b8; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:4px;">Seu Código de Confirmação</div>
-          <div style="font-size:28px; font-weight:900; color:#60a5fa; letter-spacing:8px; font-family:monospace;">${pinCode}</div>
-        </div>
-
-        <div style="background:rgba(30,41,59,0.7); border:1px solid #334155; border-radius:8px; padding:14px; margin-bottom:22px; font-size:13px;">
-          <strong style="color:#38bdf8; display:block; margin-bottom:6px;">📋 Dados do Mandato Registrados:</strong>
-          • <strong>Nome:</strong> ${user.nome}<br>
-          • <strong>E-mail:</strong> ${user.email}<br>
-          • <strong>WhatsApp:</strong> ${user.whatsapp}<br>
-          • <strong>Partido:</strong> ${user.partido} &bull; <strong>Nº Urna:</strong> ${user.numeroCandidato || 'N/A'}<br>
-          • <strong>Cargo:</strong> ${user.cargo}
-        </div>
-
-        <table border="0" cellpadding="0" cellspacing="0" width="100%">
-          <tr>
-            <td align="center">
-              <a href="${activationLink}" target="_blank" style="background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color:#ffffff; font-weight:700; text-decoration:none; padding:14px 28px; border-radius:8px; display:inline-block; font-size:15px; box-shadow:0 4px 15px rgba(37,99,235,0.4);">
-                🚀 Confirmar Acesso & Abrir Mapa
-              </a>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-    <tr>
-      <td style="background:#0f172a; padding:18px 24px; text-align:center; font-size:11px; color:#64748b; border-top:1px solid #1e293b;">
-        Este e-mail foi gerado automaticamente pelo servidor de autenticação do <strong>Mapa Eleitoral Arapongas</strong>.<br>
-        Ambiente Seguro com Criptografia de Ponta a Ponta.
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
-        `;
-
-        // Disparo opcional para Supabase Edge Functions / Webhook REST
-        const cfg = window.SupabaseService ? window.SupabaseService.getConfig() : null;
-        if (cfg && cfg.url && cfg.key) {
-            try {
-                await fetch(`${cfg.url}/functions/v1/send-confirmation-email`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${cfg.key}`
-                    },
-                    body: JSON.stringify({
-                        to: user.email,
-                        name: user.nome,
-                        code: pinCode,
-                        html: htmlTemplate
-                    })
-                });
-            } catch (err) {
-                console.warn('Disparo de e-mail remoto via Supabase em fallback:', err);
-            }
-        }
-
+class SafeEmailService {
+    async sendAccessConfirmationEmail(user) {
         return {
             success: true,
-            email: user.email,
-            pinCode: pinCode,
-            token: user.confirmationToken,
-            html: htmlTemplate
+            email: user ? user.email : '',
+            pendingConfirmation: true,
+            message: 'Confirmacao de conta gerenciada pelo Supabase Auth. Nenhuma senha e enviada por e-mail.'
         };
     }
 }
 
-window.EmailService = new EmailService();
-window.SupabaseService = new SupabaseService();
+window.EmailService = new SafeEmailService();
+window.SupabaseService = new SecureSupabaseService();
+
+// Guarda complementar: desativa rotas legadas que permitiam trocar de usuario sem autenticacao
+// e o falso fluxo biometrico que fazia fallback para qualquer conta local.
+window.addEventListener('DOMContentLoaded', () => {
+    const blocked = () => alert('Funcao desativada por seguranca. Use o login autenticado.');
+    window.switchDemonstrationUser = blocked;
+    window.quickLoginDemo = blocked;
+    window.handleBiometricLogin = () => alert('Biometria temporariamente desativada. Ela sera reativada somente com WebAuthn/passkey vinculada a uma sessao autenticada.');
+
+    const picker = document.getElementById('auth-demo-picker');
+    if (picker) picker.style.display = 'none';
+});
