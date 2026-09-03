@@ -50,6 +50,9 @@
                 <button class="tab-btn" id="tab-btn-users" onclick="switchView('users')" style="display:none;">
                     👥 Usuários
                 </button>
+                <button class="tab-btn" id="tab-btn-audit" onclick="switchView('audit')" style="display:none;">
+                    📋 Auditoria & Banco
+                </button>
             </div>
 
             <!-- Camadas -->
@@ -166,6 +169,43 @@
                 <button class="btn-primary" onclick="openModal('modal-auth-flow')">+ Cadastrar Novo Vereador</button>
             </div>
             <div id="users-management-list"></div>
+        </div>
+
+        <!-- VISÃO 5: BANCO DE DADOS DE AUDITORIA & LOGS DE ATIVIDADE -->
+        <div id="view-audit-logs" class="view-table-container" style="display:none;">
+            <div style="margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <h2 style="font-size:1.1rem; font-weight:700; color:#fff;">📋 Banco de Dados de Auditoria & Atividades em Tempo Real</h2>
+                    <p style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;">Histórico de acessos, cadastros, alterações de senhas e disparos de WhatsApp</p>
+                </div>
+                <div style="display:flex; gap:8px;">
+                    <select id="sel-audit-filter" class="select-filter" onchange="renderAuditLogs()">
+                        <option value="all">Todas as Atividades</option>
+                        <option value="login">🔐 Logins & Acessos</option>
+                        <option value="lideranca">📍 Cadastros de Liderança</option>
+                        <option value="whatsapp">💬 Disparos de WhatsApp</option>
+                        <option value="senha">🔑 Alterações de Senha</option>
+                    </select>
+                    <button class="btn-secondary" onclick="exportAuditLogsCSV()" style="font-size:0.78rem; padding:6px 12px;">
+                        📥 Exportar Relatório CSV
+                    </button>
+                </div>
+            </div>
+
+            <div style="overflow-x:auto; background:rgba(15,23,42,0.8); border:1px solid var(--border-color); border-radius:var(--radius-md);">
+                <table class="colegios-table" style="width:100%; border-collapse:collapse; font-size:0.8rem;">
+                    <thead>
+                        <tr style="background:var(--bg-input); color:var(--text-muted); text-align:left;">
+                            <th style="padding:10px 14px;">Data & Hora</th>
+                            <th style="padding:10px 14px;">Usuário / Perfil</th>
+                            <th style="padding:10px 14px;">Ação Realizada</th>
+                            <th style="padding:10px 14px;">Detalhes & Registro</th>
+                            <th style="padding:10px 14px;">Dispositivo / IP</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-audit-body"></tbody>
+                </table>
+            </div>
         </div>
 
         <!-- SIDEBAR LATERAL DE LIDERANÇAS & REDUTOS -->
@@ -623,8 +663,8 @@
             <form id="form-auth-login" style="display:none;">
                 <div class="form-group">
                     <label class="form-label">E-mail Cadastrado ou Usuário</label>
-                    <input type="text" id="auth-login-email" class="form-input" required value="everton@campanha.com.br" placeholder="ex: everton@campanha.com.br ou everton">
-                    <div style="font-size:0.68rem; color:#93c5fd; margin-top:3px;">💡 Você pode digitar <strong>everton</strong> ou <strong>everton@campanha.com.br</strong></div>
+                    <input type="text" id="auth-login-email" class="form-input" required value="SEUNOME@CAMPANHA.COM.BR" placeholder="SEUNOME@CAMPANHA.COM.BR ou SEUNOME" onclick="if(this.value==='SEUNOME@CAMPANHA.COM.BR') this.value='';" onblur="if(this.value.trim()==='') this.value='SEUNOME@CAMPANHA.COM.BR';">
+                    <div style="font-size:0.68rem; color:#93c5fd; margin-top:3px;">💡 Digite seu nome (ex: <strong>SEUNOME</strong>) ou e-mail corporativo <strong>SEUNOME@CAMPANHA.COM.BR</strong></div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Senha</label>
@@ -633,7 +673,12 @@
                         <button type="button" class="btn-toggle-pass" onclick="togglePassVisibility('auth-login-pass', this)">👁️</button>
                     </div>
                 </div>
-                <button type="submit" class="btn-primary" style="width:100%; margin-top:10px; padding:11px; font-size:0.9rem;">
+                <div style="margin-bottom:12px; font-size:0.75rem; color:var(--text-muted);">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" id="chk-remember-device" checked> 📱 Manter meu usuário salvo e conectado neste aparelho celular
+                    </label>
+                </div>
+                <button type="submit" class="btn-primary" style="width:100%; margin-top:6px; padding:11px; font-size:0.9rem;">
                     🔓 Acessar Plataforma
                 </button>
             </form>

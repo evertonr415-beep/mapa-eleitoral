@@ -63,6 +63,8 @@ const DEFAULT_USERS = [
     }
 ];
 
+const LOCAL_STORAGE_AUDIT = 'mapa_eleitoral_audit_v5';
+
 class SupabaseService {
     constructor() {
         this.config = this.loadConfig();
@@ -98,6 +100,63 @@ class SupabaseService {
         }
         if (!localStorage.getItem(LOCAL_STORAGE_USERS)) {
             localStorage.setItem(LOCAL_STORAGE_USERS, JSON.stringify(DEFAULT_USERS));
+        }
+        if (!localStorage.getItem(LOCAL_STORAGE_AUDIT)) {
+            localStorage.setItem(LOCAL_STORAGE_AUDIT, JSON.stringify([]));
+        }
+    }
+
+    // REGISTRO DE AUDITORIA & HISTÓRICO DE ATIVIDADES
+    logAudit(user, type, actionText, detailsText) {
+        try {
+            const raw = localStorage.getItem(LOCAL_STORAGE_AUDIT);
+            const logs = raw ? JSON.parse(raw) : [];
+            const userAgent = navigator.userAgent.includes('Mobile') ? '📱 Smartphone Celular' : '💻 Computador Desktop';
+            
+            const newLog = {
+                id: 'log_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+                timestamp: new Date().toISOString(),
+                userId: user ? user.id : 'anonimo',
+                userName: user ? user.nome : 'Visitante',
+                userRole: user ? user.role : 'desconhecido',
+                userEmail: user ? user.email : '',
+                type: type, // 'login', 'lideranca', 'whatsapp', 'senha', 'sistema'
+                action: actionText,
+                details: detailsText || '',
+                device: userAgent
+            };
+
+            logs.unshift(newLog);
+            // Mantém os últimos 500 registros
+            if (logs.length > 500) logs.pop();
+            localStorage.setItem(LOCAL_STORAGE_AUDIT, JSON.stringify(logs));
+            return newLog;
+        } catch (e) {
+            console.error("Erro ao gravar log de auditoria:", e);
+        }
+    }
+
+    getAuditLogs(currentUser, filterType = 'all') {
+        try {
+            const raw = localStorage.getItem(LOCAL_STORAGE_AUDIT);
+            let logs = raw ? JSON.parse(raw) : [];
+
+            // Filtragem por permissão
+            if (currentUser.role === 'master') {
+                // Master vê todos os logs
+            } else if (currentUser.role === 'adm') {
+                logs = logs.filter(l => l.userRole !== 'master');
+            } else {
+                logs = logs.filter(l => l.userId === currentUser.id);
+            }
+
+            if (filterType !== 'all') {
+                logs = logs.filter(l => l.type === filterType);
+            }
+
+            return logs;
+        } catch (e) {
+            return [];
         }
     }
 
@@ -154,6 +213,7 @@ class SupabaseService {
         }
 
         this.setCurrentUser(user);
+        this.logAudit(user, 'login', '🔐 Autenticação Realizada', `Usuário ${user.nome} (${user.role}) efetuou login no sistema`);
         return user;
     }
 
@@ -184,6 +244,7 @@ class SupabaseService {
 
         localStorage.setItem(LOCAL_STORAGE_USERS, JSON.stringify(users));
         this.setCurrentUser(user);
+        this.logAudit(user, 'senha', '🔑 Senha Alterada com Sucesso', `Senha atualizada para o usuário ${user.nome}`);
         return true;
     }
 
@@ -311,6 +372,7 @@ class SupabaseService {
 
         all.unshift(newLid);
         localStorage.setItem(LOCAL_STORAGE_LIDERANCAS, JSON.stringify(all));
+        this.logAudit(currentUser, 'lideranca', '📍 Liderança Georreferenciada Criada', `Cadastrada por ${currentUser.nome}: ${newLid.nome} no bairro ${newLid.bairro} (Meta: +${newLid.metaVotos}v)`);
         return newLid;
     }
 

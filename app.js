@@ -127,10 +127,15 @@ function updateUserProfileUI() {
     roleEl.textContent = u.role.toUpperCase();
     roleEl.className = 'user-role-badge role-' + u.role;
 
-    // Gestão de Usuários disponível apenas para Master e Adm
+    // Gestão de Usuários e Auditoria disponível apenas para Master e Adm
     const btnUsers = document.getElementById('tab-btn-users');
     if (btnUsers) {
         btnUsers.style.display = (u.role === 'master' || u.role === 'adm') ? 'flex' : 'none';
+    }
+
+    const btnAudit = document.getElementById('tab-btn-audit');
+    if (btnAudit) {
+        btnAudit.style.display = (u.role === 'master' || u.role === 'adm') ? 'flex' : 'none';
     }
 
     // Atualiza seletor rápido de vereadores caso seja Master
@@ -1029,9 +1034,90 @@ window.switchView = function(viewName) {
     document.getElementById('view-table-liderancas').style.display = viewName === 'liderancas' ? 'block' : 'none';
     document.getElementById('view-users-management').style.display = viewName === 'users' ? 'block' : 'none';
 
+    const viewAudit = document.getElementById('view-audit-logs');
+    if (viewAudit) {
+        viewAudit.style.display = viewName === 'audit' ? 'block' : 'none';
+        if (viewName === 'audit') {
+            window.renderAuditLogs();
+        }
+    }
+
     if (viewName === 'map' && state.map) {
         setTimeout(() => state.map.invalidateSize(), 150);
     }
+};
+
+// 12. BANCO DE DADOS DE AUDITORIA & RELATÓRIOS
+window.renderAuditLogs = function() {
+    const u = state.currentUser;
+    if (!u) return;
+
+    const filterVal = document.getElementById('sel-audit-filter')?.value || 'all';
+    const logs = window.SupabaseService.getAuditLogs(u, filterVal);
+    const tbody = document.getElementById('table-audit-body');
+    if (!tbody) return;
+
+    if (!logs || logs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--text-muted);">Nenhum registro de auditoria encontrado para este filtro.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = logs.map(l => {
+        const dt = new Date(l.timestamp).toLocaleString('pt-BR');
+        let typeBadge = '';
+        if (l.type === 'login') typeBadge = '<span style="color:#60a5fa; font-weight:700;">🔐 Login</span>';
+        else if (l.type === 'lideranca') typeBadge = '<span style="color:#34d399; font-weight:700;">📍 Liderança</span>';
+        else if (l.type === 'whatsapp') typeBadge = '<span style="color:#25d366; font-weight:700;">💬 WhatsApp</span>';
+        else if (l.type === 'senha') typeBadge = '<span style="color:#fbbf24; font-weight:700;">🔑 Senha</span>';
+        else typeBadge = '<span style="color:#cbd5e1;">📋 Sistema</span>';
+
+        return `
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                <td style="padding:10px 14px; font-family:monospace; color:var(--text-muted); font-size:0.75rem;">${dt}</td>
+                <td style="padding:10px 14px; font-weight:600; color:#fff;">
+                    ${l.userName}
+                    <div style="font-size:0.7rem; color:var(--text-dim);">${l.userEmail || l.userRole.toUpperCase()}</div>
+                </td>
+                <td style="padding:10px 14px;">${typeBadge}<br><strong style="font-size:0.78rem; color:#fff;">${l.action}</strong></td>
+                <td style="padding:10px 14px; color:var(--text-muted); font-size:0.78rem;">${l.details}</td>
+                <td style="padding:10px 14px; color:var(--text-dim); font-size:0.72rem;">${l.device || 'Navegador'}</td>
+            </tr>
+        `;
+    }).join('');
+};
+
+window.exportAuditLogsCSV = function() {
+    const u = state.currentUser;
+    if (!u) return;
+    const filterVal = document.getElementById('sel-audit-filter')?.value || 'all';
+    const logs = window.SupabaseService.getAuditLogs(u, filterVal);
+
+    if (!logs || logs.length === 0) {
+        alert('Nenhum registro de auditoria para exportar.');
+        return;
+    }
+
+    let csv = '\uFEFFData/Hora,Usuario,Email,Perfil,Tipo,Acao,Detalhes,Dispositivo\n';
+    logs.forEach(l => {
+        const dt = new Date(l.timestamp).toLocaleString('pt-BR');
+        const user = `"${(l.userName || '').replace(/"/g, '""')}"`;
+        const email = `"${(l.userEmail || '').replace(/"/g, '""')}"`;
+        const role = `"${(l.userRole || '').replace(/"/g, '""')}"`;
+        const type = `"${(l.type || '').replace(/"/g, '""')}"`;
+        const action = `"${(l.action || '').replace(/"/g, '""')}"`;
+        const details = `"${(l.details || '').replace(/"/g, '""')}"`;
+        const device = `"${(l.device || '').replace(/"/g, '""')}"`;
+        csv += `${dt},${user},${email},${role},${type},${action},${details},${device}\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `banco_auditoria_mapa_eleitoral_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 };
 
 // 12. CONTROLE DE MODAIS
