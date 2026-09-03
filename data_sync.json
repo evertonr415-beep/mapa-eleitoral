@@ -68,6 +68,18 @@
   "liderancas": [],
   "audit": [
     {
+      "id": "log_1788454681722_n8xj",
+      "timestamp": "2026-09-03T16:58:01.722Z",
+      "userId": "usr_1788443501815",
+      "userName": "Meiry Farias",
+      "userRole": "vereador",
+      "userEmail": "meiryfariasvereadora@gmail.com",
+      "type": "login",
+      "action": "🔐 Autenticação Realizada",
+      "details": "Usuário Meiry Farias (vereador) efetuou login com o e-mail meiryfariasvereadora@gmail.com",
+      "device": "💻 Computador Desktop"
+    },
+    {
       "id": "log_1788454656410_e8u5",
       "timestamp": "2026-09-03T16:57:36.410Z",
       "userId": "usr_rafael",
@@ -152,5 +164,5 @@
       "device": "💻 Computador Desktop"
     }
   ],
-  "updatedAt": "2026-09-03T16:57:36.411Z"
+  "updatedAt": "2026-09-03T16:58:01.722Z"
 }
