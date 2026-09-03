@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Voto Forte Arapongas - Preview Recuperada</title>
+  <style>html,body{margin:0;background:#08111f;color:#fff;font-family:Arial,sans-serif}.vf-loading{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px}.vf-loading b{display:block;margin-bottom:8px}</style>
+</head>
+<body>
+  <div class="vf-loading"><div><b>Carregando preview recuperada...</b><span>GitHub + Supabase seguro</span></div></div>
+  <script>
+    (async function () {
+      const REPO = 'evertonr415-beep/mapa-eleitoral';
+      const ASSET_SHA = 'c5bb7eb983433838cf320b94fe1830ea14b29dce';
+      const BASE = `https://cdn.jsdelivr.net/gh/${REPO}@${ASSET_SHA}/`;
+      try {
+        const response = await fetch(BASE + 'index.html', { cache: 'no-store' });
+        if (!response.ok) throw new Error('Falha ao carregar a base estavel: ' + response.status);
+        let html = await response.text();
+        html = html.replace('<head>', `<head><base href="${BASE}"><meta name="robots" content="noindex,nofollow">`);
+        const bridge = `<script src="${BASE}recovery_bridge.js?v=${ASSET_SHA}"><\/script>`;
+        html = html.includes('</body>') ? html.replace('</body>', bridge + '</body>') : html + bridge;
+        document.open();
+        document.write(html);
+        document.close();
+      } catch (error) {
+        document.body.innerHTML = '<div class="vf-loading"><div><b>Não foi possível carregar a preview.</b><span>' + String(error.message || error) + '</span></div></div>';
+      }
+    })();
+  </script>
+</body>
+</html>
