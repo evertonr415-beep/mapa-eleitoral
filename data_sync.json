@@ -68,6 +68,18 @@
   "liderancas": [],
   "audit": [
     {
+      "id": "log_1788454570013_gzzx",
+      "timestamp": "2026-09-03T16:56:10.013Z",
+      "userId": "usr_rafael",
+      "userName": "Rafael Rodrigues",
+      "userRole": "master",
+      "userEmail": "rafael@campanha.com.br",
+      "type": "login",
+      "action": "🔐 Autenticação Realizada",
+      "details": "Usuário Rafael Rodrigues (master) efetuou login com o e-mail rafael@campanha.com.br",
+      "device": "💻 Computador Desktop"
+    },
+    {
       "id": "log_1788454478879_yxmm",
       "timestamp": "2026-09-03T16:54:38.879Z",
       "userId": "usr_everton",
@@ -128,5 +140,5 @@
       "device": "💻 Computador Desktop"
     }
   ],
-  "updatedAt": "2026-09-03T16:54:38.880Z"
+  "updatedAt": "2026-09-03T16:56:10.013Z"
 }
