@@ -68,6 +68,18 @@
   "liderancas": [],
   "audit": [
     {
+      "id": "log_1788454291877_bsjm",
+      "timestamp": "2026-09-03T16:51:31.877Z",
+      "userId": "usr_everton",
+      "userName": "Everton Moreira",
+      "userRole": "master",
+      "userEmail": "everton@campanha.com.br",
+      "type": "whatsapp",
+      "action": "📲 Código de Pareamento Gerado",
+      "details": "Código ARAP-2827 gerado para o número 43999709710",
+      "device": "📱 Smartphone Celular"
+    },
+    {
       "id": "log_1788452730605_33tg",
       "timestamp": "2026-09-03T16:25:30.605Z",
       "userId": "usr_rafael",
@@ -92,5 +104,5 @@
       "device": "💻 Computador Desktop"
     }
   ],
-  "updatedAt": "2026-09-03T16:25:30.605Z"
+  "updatedAt": "2026-09-03T16:51:31.879Z"
 }
