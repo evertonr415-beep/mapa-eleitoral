@@ -24,9 +24,9 @@
       "cargo": "Gestor Executivo / Master",
       "partido": "Gestão Master",
       "numeroCandidato": "MASTER",
-      "senha": "Campanha@2026",
-      "primeiroAcesso": true,
-      "senhaAlteradaEm": null,
+      "senha": "Arapongas2026",
+      "primeiroAcesso": false,
+      "senhaAlteradaEm": "2026-09-03T16:25:30.604Z",
       "role": "master",
       "avatar": "🏛️"
     },
@@ -68,6 +68,18 @@
   "liderancas": [],
   "audit": [
     {
+      "id": "log_1788452730605_33tg",
+      "timestamp": "2026-09-03T16:25:30.605Z",
+      "userId": "usr_rafael",
+      "userName": "Rafael Rodrigues",
+      "userRole": "master",
+      "userEmail": "rafael@campanha.com.br",
+      "type": "senha",
+      "action": "🔑 Senha Alterada com Sucesso",
+      "details": "Senha atualizada para o usuário Rafael Rodrigues",
+      "device": "💻 Computador Desktop"
+    },
+    {
       "id": "log_1788445073766_8qbv",
       "timestamp": "2026-09-03T14:17:53.766Z",
       "userId": "usr_everton",
@@ -80,5 +92,5 @@
       "device": "💻 Computador Desktop"
     }
   ],
-  "updatedAt": "2026-09-03T15:22:38.621Z"
+  "updatedAt": "2026-09-03T16:25:30.605Z"
 }
