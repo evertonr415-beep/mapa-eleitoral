@@ -44,6 +44,25 @@
       "senhaAlteradaEm": null,
       "role": "adm",
       "avatar": "🛡️"
+    },
+    {
+      "id": "usr_1788443501815",
+      "nome": "Meiry Farias",
+      "email": "meiryfariasvereadora@gmail.com",
+      "cpf": "67088600900",
+      "whatsapp": "43999115671",
+      "cargo": "Vereador",
+      "partido": "PDT",
+      "numeroCandidato": "",
+      "senha": "Sarah1409@",
+      "role": "vereador",
+      "avatar": "🗳️",
+      "emailVerified": true,
+      "confirmationPin": "610072",
+      "confirmationToken": "bWVpcnlmYXJpYXN2ZXJlYWRvcmFAZ21haWwuY29tOjE3ODg0NDM1MDE4MTU6NjEwMDcy",
+      "criadoEm": "2026-09-03T13:51:41.815Z",
+      "primeiroAcesso": false,
+      "senhaAlteradaEm": "2026-09-03T13:54:18.203Z"
     }
   ],
   "liderancas": [],
@@ -61,5 +80,5 @@
       "device": "💻 Computador Desktop"
     }
   ],
-  "updatedAt": "2026-09-03T15:08:59.039Z"
+  "updatedAt": "2026-09-03T15:22:38.621Z"
 }
