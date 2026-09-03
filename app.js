@@ -309,13 +309,18 @@ function updateUserProfileUI() {
     const allUsers = window.SupabaseService.getAllUsersRaw();
     const allLogs = window.SupabaseService.getAuditLogs(u, 'all');
 
-    // Gestão de Usuários e Auditoria disponível apenas para Master e Adm
+    // Botão de Usuários disponível para TODOS: Master vê todos os cadastros; Vereador vê APENAS o seu perfil
     const btnUsers = document.getElementById('tab-btn-users');
     if (btnUsers) {
-        btnUsers.style.display = (u.role === 'master' || u.role === 'adm') ? 'flex' : 'none';
-        btnUsers.innerHTML = `👥 Usuários <span style="background:rgba(59,130,246,0.25); color:#93c5fd; padding:1px 6px; border-radius:10px; font-size:0.7rem; margin-left:4px;">${allUsers.length}</span>`;
+        btnUsers.style.display = 'flex';
+        if (u.role === 'master' || u.role === 'adm') {
+            btnUsers.innerHTML = `👥 Usuários <span style="background:rgba(59,130,246,0.25); color:#93c5fd; padding:1px 6px; border-radius:10px; font-size:0.7rem; margin-left:4px;">${allUsers.length}</span>`;
+        } else {
+            btnUsers.innerHTML = `👤 Meu Usuário`;
+        }
     }
 
+    // Auditoria & Banco disponível apenas para Master e Adm
     const btnAudit = document.getElementById('tab-btn-audit');
     if (btnAudit) {
         btnAudit.style.display = (u.role === 'master' || u.role === 'adm') ? 'flex' : 'none';
@@ -333,6 +338,46 @@ function updateUserProfileUI() {
         }
     }
 }
+
+// LOGOUT SEGURO & RETORNO IMEDIATO À TELA DE LOGIN
+window.handleLogout = function() {
+    if (!confirm('Deseja realmente sair da sua conta e desconectar deste aparelho?')) return;
+
+    const u = state.currentUser;
+    if (u) {
+        window.SupabaseService.logAudit(u, 'login', '🚪 Logout Realizado', `Usuário ${u.nome} encerrou a sessão no dispositivo`);
+    }
+
+    state.currentUser = null;
+    localStorage.removeItem('mapa_eleitoral_current_user_v5');
+    localStorage.removeItem('mapa_eleitoral_last_active_user');
+
+    // Abre imediatamente o modal na aba de login para nova autenticação
+    openModal('modal-auth-flow');
+    if (typeof toggleAuthTab === 'function') {
+        toggleAuthTab('login');
+    }
+
+    // Limpa campos do formulário de login
+    const passInput = document.getElementById('auth-login-pass');
+    if (passInput) passInput.value = '';
+
+    // Atualiza cabeçalho
+    const nameEl = document.getElementById('current-user-name');
+    if (nameEl) nameEl.textContent = 'Desconectado';
+    const roleEl = document.getElementById('current-user-role');
+    if (roleEl) {
+        roleEl.textContent = 'DESCONECTADO';
+        roleEl.className = 'user-role-badge';
+    }
+
+    const btnUsers = document.getElementById('tab-btn-users');
+    if (btnUsers) btnUsers.style.display = 'none';
+    const btnAudit = document.getElementById('tab-btn-audit');
+    if (btnAudit) btnAudit.style.display = 'none';
+
+    switchView('map');
+};
 
 function populateVereadorFilterSelect(selectEl) {
     const users = window.SupabaseService.getUsers(state.currentUser);
@@ -943,40 +988,76 @@ function renderUsersList() {
     if (!container) return;
     container.innerHTML = '';
 
-    const users = window.SupabaseService.getUsers(state.currentUser);
+    const curr = state.currentUser;
+    const isMaster = curr && (curr.role === 'master' || curr.role === 'adm');
+    const users = window.SupabaseService.getUsers(curr);
     const allLids = window.SupabaseService.getAllLiderancasRaw();
-
-    // Cabeçalho de Estatísticas de Gestão Master
-    const totalVereadores = users.filter(u => u.role === 'vereador').length;
-    const totalMasters = users.filter(u => u.role === 'master').length;
-    let totalMetaGeral = 0;
-    allLids.forEach(l => totalMetaGeral += (l.metaVotos || 0));
 
     const statsHeader = document.createElement('div');
     statsHeader.style.cssText = 'display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:16px;';
-    statsHeader.innerHTML = `
-        <div style="background:var(--bg-card); border:1px solid var(--border-color); padding:12px 16px; border-radius:var(--radius-md);">
-            <div style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Total Usuários</div>
-            <div style="font-size:1.4rem; font-weight:800; color:#fff; margin-top:2px;">👥 ${users.length}</div>
-        </div>
-        <div style="background:var(--bg-card); border:1px solid var(--border-color); padding:12px 16px; border-radius:var(--radius-md);">
-            <div style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Vereadores Cadastrados</div>
-            <div style="font-size:1.4rem; font-weight:800; color:#60a5fa; margin-top:2px;">🗳️ ${totalVereadores}</div>
-        </div>
-        <div style="background:var(--bg-card); border:1px solid var(--border-color); padding:12px 16px; border-radius:var(--radius-md);">
-            <div style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Lideranças em Nuvem</div>
-            <div style="font-size:1.4rem; font-weight:800; color:var(--accent-emerald); margin-top:2px;">📍 ${allLids.length}</div>
-        </div>
-        <div style="background:var(--bg-card); border:1px solid var(--border-color); padding:12px 16px; border-radius:var(--radius-md); display:flex; align-items:center; justify-content:space-between;">
-            <div>
-                <div style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Meta Total Estimada</div>
-                <div style="font-size:1.3rem; font-weight:800; color:#34d399; margin-top:2px;">+${totalMetaGeral.toLocaleString('pt-BR')}v</div>
+
+    if (isMaster) {
+        // Cabeçalho de Estatísticas de Gestão Master (Visão Global)
+        const totalVereadores = users.filter(u => u.role === 'vereador').length;
+        let totalMetaGeral = 0;
+        allLids.forEach(l => totalMetaGeral += (l.metaVotos || 0));
+
+        statsHeader.innerHTML = `
+            <div style="background:var(--bg-card); border:1px solid var(--border-color); padding:12px 16px; border-radius:var(--radius-md);">
+                <div style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Total Usuários</div>
+                <div style="font-size:1.4rem; font-weight:800; color:#fff; margin-top:2px;">👥 ${users.length}</div>
             </div>
-            <button class="btn-secondary" onclick="window.forceCloudSyncUI(this)" style="font-size:0.75rem; padding:6px 10px;" title="Sincronizar dados agora">
-                🔄 Sincronizar
-            </button>
-        </div>
-    `;
+            <div style="background:var(--bg-card); border:1px solid var(--border-color); padding:12px 16px; border-radius:var(--radius-md);">
+                <div style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Vereadores Cadastrados</div>
+                <div style="font-size:1.4rem; font-weight:800; color:#60a5fa; margin-top:2px;">🗳️ ${totalVereadores}</div>
+            </div>
+            <div style="background:var(--bg-card); border:1px solid var(--border-color); padding:12px 16px; border-radius:var(--radius-md);">
+                <div style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Lideranças em Nuvem</div>
+                <div style="font-size:1.4rem; font-weight:800; color:var(--accent-emerald); margin-top:2px;">📍 ${allLids.length}</div>
+            </div>
+            <div style="background:var(--bg-card); border:1px solid var(--border-color); padding:12px 16px; border-radius:var(--radius-md); display:flex; align-items:center; justify-content:space-between;">
+                <div>
+                    <div style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Meta Total Estimada</div>
+                    <div style="font-size:1.3rem; font-weight:800; color:#34d399; margin-top:2px;">+${totalMetaGeral.toLocaleString('pt-BR')}v</div>
+                </div>
+                <button class="btn-secondary" onclick="window.forceCloudSyncUI(this)" style="font-size:0.75rem; padding:6px 10px;" title="Sincronizar dados agora">
+                    🔄 Sincronizar
+                </button>
+            </div>
+        `;
+    } else {
+        // Cabeçalho Exclusivo do Vereador (Privacidade Total)
+        const myLids = allLids.filter(l => l.vereadorId === curr.id);
+        let myMeta = 0;
+        myLids.forEach(l => myMeta += (l.metaVotos || 0));
+
+        statsHeader.innerHTML = `
+            <div style="background:var(--bg-card); border:1px solid var(--border-color); padding:12px 16px; border-radius:var(--radius-md);">
+                <div style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Meu Perfil</div>
+                <div style="font-size:1.15rem; font-weight:800; color:#60a5fa; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                    👤 ${curr.nome}
+                </div>
+            </div>
+            <div style="background:var(--bg-card); border:1px solid var(--border-color); padding:12px 16px; border-radius:var(--radius-md);">
+                <div style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Minhas Lideranças</div>
+                <div style="font-size:1.4rem; font-weight:800; color:var(--accent-emerald); margin-top:2px;">📍 ${myLids.length}</div>
+            </div>
+            <div style="background:var(--bg-card); border:1px solid var(--border-color); padding:12px 16px; border-radius:var(--radius-md);">
+                <div style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Minha Meta de Votos</div>
+                <div style="font-size:1.4rem; font-weight:800; color:#34d399; margin-top:2px;">+${myMeta.toLocaleString('pt-BR')}v</div>
+            </div>
+            <div style="background:var(--bg-card); border:1px solid var(--border-color); padding:12px 16px; border-radius:var(--radius-md); display:flex; align-items:center; justify-content:space-between;">
+                <div>
+                    <div style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Privacidade de Dados</div>
+                    <div style="font-size:0.85rem; font-weight:800; color:#4ade80; margin-top:2px;">🔒 100% Isolado</div>
+                </div>
+                <button class="btn-secondary" onclick="openModal('modal-change-password')" style="font-size:0.75rem; padding:6px 10px;" title="Alterar minha senha">
+                    🔑 Trocar Senha
+                </button>
+            </div>
+        `;
+    }
+
     container.appendChild(statsHeader);
 
     if (users.length === 0) {
