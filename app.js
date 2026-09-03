@@ -313,10 +313,11 @@ function updateUserProfileUI() {
     const btnUsers = document.getElementById('tab-btn-users');
     if (btnUsers) {
         btnUsers.style.display = 'flex';
+        const userSvg = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>`;
         if (u.role === 'master' || u.role === 'adm') {
-            btnUsers.innerHTML = `👥 Usuários <span style="background:rgba(59,130,246,0.25); color:#93c5fd; padding:1px 6px; border-radius:10px; font-size:0.7rem; margin-left:4px;">${allUsers.length}</span>`;
+            btnUsers.innerHTML = `${userSvg} <span>Usuários</span> <span style="background:rgba(59,130,246,0.25); color:#93c5fd; padding:1px 6px; border-radius:10px; font-size:0.7rem; margin-left:4px;">${allUsers.length}</span>`;
         } else {
-            btnUsers.innerHTML = `👤 Meu Usuário`;
+            btnUsers.innerHTML = `${userSvg} <span>Meu Usuário</span>`;
         }
     }
 
@@ -324,7 +325,8 @@ function updateUserProfileUI() {
     const btnAudit = document.getElementById('tab-btn-audit');
     if (btnAudit) {
         btnAudit.style.display = (u.role === 'master' || u.role === 'adm') ? 'flex' : 'none';
-        btnAudit.innerHTML = `📋 Auditoria & Banco <span style="background:rgba(16,185,129,0.25); color:#6ee7b7; padding:1px 6px; border-radius:10px; font-size:0.7rem; margin-left:4px;">${allLogs.length}</span>`;
+        const shieldSvg = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>`;
+        btnAudit.innerHTML = `${shieldSvg} <span>Auditoria</span> <span style="background:rgba(16,185,129,0.25); color:#6ee7b7; padding:1px 6px; border-radius:10px; font-size:0.7rem; margin-left:4px;">${allLogs.length}</span>`;
     }
 
     // Atualiza seletor rápido de vereadores caso seja Master

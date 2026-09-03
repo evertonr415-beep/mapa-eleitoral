@@ -317,77 +317,82 @@ header.topbar {
 .role-adm { color: #60a5fa; }
 .role-vereador { color: #34d399; }
 
-/* ACTION BUTTONS COMPACTOS */
-.btn-new-lideranca {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: #fff;
-    border: none;
-    padding: 5px 10px;
+/* SISTEMA UNIFICADO DE BOTÕES DA BARRA SUPERIOR */
+.btn-topbar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    height: 30px;
+    padding: 0 10px;
     border-radius: var(--radius-sm);
-    font-size: 0.75rem;
+    font-size: 0.74rem;
     font-weight: 700;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-    flex-shrink: 0;
     white-space: nowrap;
+    flex-shrink: 0;
     transition: all 0.2s ease;
+    border: 1px solid var(--border-color);
+    background: rgba(30, 41, 59, 0.8);
+    color: var(--text-main);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    outline: none;
+    text-decoration: none;
 }
 
-.btn-new-lideranca:hover {
+.btn-topbar svg {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+}
+
+.btn-topbar:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
-.btn-whatsapp-connect {
-    background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+.btn-topbar-primary {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(5, 150, 105, 0.28) 100%);
+    border-color: rgba(16, 185, 129, 0.45);
+    color: #34d399;
+}
+.btn-topbar-primary:hover {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.35) 0%, rgba(5, 150, 105, 0.5) 100%);
+    border-color: #10b981;
     color: #fff;
-    border: none;
-    padding: 5px 10px;
-    border-radius: var(--radius-sm);
-    font-size: 0.75rem;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
-    flex-shrink: 0;
-    white-space: nowrap;
-    transition: all 0.2s ease;
 }
 
-.btn-whatsapp-connect:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(37, 211, 102, 0.5);
-    filter: brightness(1.08);
+.btn-topbar-whatsapp {
+    background: linear-gradient(135deg, rgba(37, 211, 102, 0.18) 0%, rgba(18, 140, 126, 0.28) 100%);
+    border-color: rgba(37, 211, 102, 0.45);
+    color: #4ade80;
+}
+.btn-topbar-whatsapp:hover {
+    background: linear-gradient(135deg, rgba(37, 211, 102, 0.35) 0%, rgba(18, 140, 126, 0.5) 100%);
+    border-color: #25d366;
+    color: #fff;
 }
 
-.btn-logout {
+.btn-topbar-secondary {
+    background: rgba(30, 41, 59, 0.85);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: #cbd5e1;
+}
+.btn-topbar-secondary:hover {
+    background: rgba(51, 65, 85, 0.9);
+    border-color: rgba(255, 255, 255, 0.35);
+    color: #fff;
+}
+
+.btn-topbar-danger {
     background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.35);
     color: #f87171;
-    border: 1px solid rgba(239, 68, 68, 0.35);
-    padding: 5px 9px;
-    border-radius: var(--radius-sm);
-    font-size: 0.75rem;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    flex-shrink: 0;
-    white-space: nowrap;
-    transition: all 0.2s ease;
 }
-
-.btn-logout:hover {
+.btn-topbar-danger:hover {
     background: rgba(239, 68, 68, 0.25);
     border-color: #ef4444;
     color: #fff;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
 .btn-biometric {
@@ -1143,28 +1148,22 @@ header.topbar {
         min-height: 32px;
     }
 
-    .btn-new-lideranca, .btn-whatsapp-connect {
+    .btn-topbar {
         flex-shrink: 0;
-        padding: 5px 9px;
+        height: 30px;
+        padding: 0 8px;
         font-size: 0.72rem;
-        min-height: 32px;
         white-space: nowrap;
     }
 
     .user-profile-pill {
         flex-shrink: 0;
         padding: 2px 6px;
-        min-height: 32px;
+        height: 30px;
     }
 
     .user-name {
         display: none;
-    }
-
-    .btn-logout {
-        padding: 5px 8px;
-        font-size: 0.72rem;
-        min-height: 32px;
     }
 
     /* TABELAS COM SCROLL HORIZONTAL FLUIDO */
