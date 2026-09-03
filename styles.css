@@ -66,22 +66,24 @@ h1, h2, h3, h4, .brand-title {
    HEADER / TOPBAR
    ========================================================================== */
 header.topbar {
-    background: rgba(15, 23, 42, 0.95);
+    background: rgba(15, 23, 42, 0.96);
     backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--border-color);
-    padding: 10px 20px;
+    padding: 6px 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     z-index: 2000;
-    gap: 16px;
+    gap: 8px;
     box-shadow: 0 4px 25px rgba(0, 0, 0, 0.4);
+    width: 100%;
 }
 
 .brand-section {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
+    flex-shrink: 0;
 }
 
 .brand-flag-box {
@@ -89,31 +91,25 @@ header.topbar {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 3px;
+    gap: 2px;
     background: rgba(30, 41, 59, 0.7);
     border: 1px solid rgba(255, 255, 255, 0.12);
-    padding: 4px 8px;
+    padding: 3px 6px;
     border-radius: var(--radius-sm);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-    transition: all 0.2s ease;
-}
-
-.brand-flag-box:hover {
-    border-color: rgba(59, 130, 246, 0.5);
-    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
 }
 
 .brand-flag-img {
-    height: 28px;
-    width: 42px;
+    height: 24px;
+    width: 38px;
     object-fit: cover;
     border-radius: 3px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .brand-flag-caption {
-    font-size: 0.58rem;
+    font-size: 0.55rem;
     font-weight: 700;
     color: #94a3b8;
     letter-spacing: 0.12em;
@@ -121,45 +117,37 @@ header.topbar {
     line-height: 1;
 }
 
-.brand-logo-badge {
-    background: linear-gradient(135deg, #2563eb, #06b6d4);
-    color: #fff;
-    padding: 6px 12px;
-    border-radius: var(--radius-sm);
-    font-family: 'Outfit', sans-serif;
-    font-weight: 800;
-    font-size: 0.95rem;
-    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.35);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
 .brand-info h1 {
-    font-size: 1.1rem;
+    font-size: 0.98rem;
     font-weight: 700;
     color: #fff;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    line-height: 1.1;
 }
 
 .brand-info p {
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     color: var(--text-muted);
 }
 
-/* CONTROLS & SWITCHERS (LINHA ÚNICA NO DESKTOP) */
-.header-actions {
+.topbar-nav-section {
     display: flex;
     align-items: center;
     gap: 6px;
-    flex-wrap: nowrap;
+    flex: 1;
     overflow-x: auto;
     scrollbar-width: none;
+    padding: 0 4px;
 }
-.header-actions::-webkit-scrollbar {
+.topbar-nav-section::-webkit-scrollbar {
     display: none;
+}
+
+.topbar-user-section {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    margin-left: auto;
 }
 
 .view-tabs {
