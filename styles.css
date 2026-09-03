@@ -84,6 +84,43 @@ header.topbar {
     gap: 12px;
 }
 
+.brand-flag-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    transition: all 0.2s ease;
+}
+
+.brand-flag-box:hover {
+    border-color: rgba(59, 130, 246, 0.5);
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+}
+
+.brand-flag-img {
+    height: 28px;
+    width: 42px;
+    object-fit: cover;
+    border-radius: 3px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.brand-flag-caption {
+    font-size: 0.58rem;
+    font-weight: 700;
+    color: #94a3b8;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    line-height: 1;
+}
+
 .brand-logo-badge {
     background: linear-gradient(135deg, #2563eb, #06b6d4);
     color: #fff;

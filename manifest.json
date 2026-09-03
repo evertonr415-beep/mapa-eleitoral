@@ -1,0 +1,24 @@
+{
+  "name": "Mapa Eleitoral Arapongas",
+  "short_name": "Arapongas 2024",
+  "description": "Geointeligência Eleitoral & Gestão de Lideranças de Arapongas",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#090d16",
+  "theme_color": "#0f172a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
