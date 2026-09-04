@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
+<head><base href="https://cdn.jsdelivr.net/gh/evertonr415-beep/mapa-eleitoral@82a79e82ed09b62ae8db55e6a6e30b73ee7a2573/"><meta name="robots" content="noindex,nofollow"><style>#vf-preview-badge{position:fixed;right:12px;bottom:12px;z-index:2147483647;background:rgba(185,28,28,.92);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:6px 9px;font:700 10px Arial,sans-serif;letter-spacing:.04em;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.35)}</style>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#0f172a">
@@ -110,8 +110,8 @@
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"></circle><path d="M5.5 21a8.5 8.5 0 0 1 13 0"></path></svg>
                 </div>
                 <div class="user-details">
-                    <span class="user-name" id="current-user-name">Everton Moreira</span>
-                    <span class="user-role-badge role-master" id="current-user-role">MASTER</span>
+                    <span class="user-name" id="current-user-name">Desconectado</span>
+                    <span class="user-role-badge role-master" id="current-user-role" class="user-role-badge">LOGIN</span>
                 </div>
             </div>
 
@@ -725,7 +725,7 @@
         <form id="form-change-password">
             <div class="modal-body">
                 <div style="background:rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.25); border-radius:var(--radius-sm); padding:10px; margin-bottom:14px; font-size:0.75rem; color:#93c5fd;">
-                    ℹ️ A senha padrão inicial de todos os usuários é: <strong>Campanha@2026</strong>
+                    ℹ️ A senha padrão inicial de todos os usuários é: <strong>senha-temporaria-desativada</strong>
                 </div>
 
                 <div class="form-group">
@@ -775,14 +775,14 @@
                 <div style="background:rgba(245, 158, 11, 0.1); border:1px solid rgba(245, 158, 11, 0.3); border-radius:var(--radius-sm); padding:12px; margin-bottom:16px;">
                     <div style="font-weight:700; color:#fbbf24; font-size:0.85rem;" id="force-pass-user-greeting">Olá, Vereador!</div>
                     <div style="font-size:0.75rem; color:#cbd5e1; margin-top:4px; line-height:1.4;">
-                        Você realizou o primeiro acesso com a senha padrão (<strong>Campanha@2026</strong>). Para proteger os dados sigilosos das suas lideranças e liberar todas as funções do mapa, cadastre sua <strong>senha pessoal exclusiva</strong>.
+                        Você realizou o primeiro acesso com a senha padrão (<strong>senha-temporaria-desativada</strong>). Para proteger os dados sigilosos das suas lideranças e liberar todas as funções do mapa, cadastre sua <strong>senha pessoal exclusiva</strong>.
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Senha Padrão Atual *</label>
                     <div class="pass-input-wrapper">
-                        <input type="password" id="force-pass-current" class="form-input" required value="Campanha@2026" placeholder="Campanha@2026">
+                        <input type="password" id="force-pass-current" class="form-input" required value="senha-temporaria-desativada" placeholder="senha-temporaria-desativada">
                         <button type="button" class="btn-toggle-pass" onclick="togglePassVisibility('force-pass-current', this)">👁️</button>
                     </div>
                 </div>
@@ -880,7 +880,7 @@
                 <div class="form-group">
                     <label class="form-label">Definir Senha de Acesso *</label>
                     <div class="pass-input-wrapper">
-                        <input type="password" id="auth-reg-pass" class="form-input" required placeholder="Digite sua senha ou use Campanha@2026">
+                        <input type="password" id="auth-reg-pass" class="form-input" required placeholder="Digite sua senha ou use senha-temporaria-desativada">
                         <button type="button" class="btn-toggle-pass" onclick="togglePassVisibility('auth-reg-pass', this)">👁️</button>
                     </div>
                 </div>
@@ -1035,7 +1035,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
 <!-- Scripts da Aplicação -->
-<script src="supabase_client.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/evertonr415-beep/mapa-eleitoral@0ebef3492e8f18e44f64c702e3d4c418643fda8d/supabase_client.js"></script>
 <script src="app.js"></script>
 
 <script>
@@ -1081,5 +1081,179 @@ function handleSaveSupabaseConfig() {
 }
 </script>
 
-</body>
+<script>
+(function () {
+  const SECURE_SESSION_KEY = 'mapa_eleitoral_secure_v6_session';
+
+  function setDisconnectedUi() {
+    try { state.currentUser = null; } catch (_) {}
+    const name = document.getElementById('current-user-name');
+    const role = document.getElementById('current-user-role');
+    const avatar = document.getElementById('current-user-avatar');
+    if (name) name.textContent = 'Desconectado';
+    if (role) { role.textContent = 'LOGIN'; role.className = 'user-role-badge'; }
+    if (avatar) avatar.textContent = '👤';
+    const users = document.getElementById('tab-btn-users');
+    const audit = document.getElementById('tab-btn-audit');
+    if (users) users.style.display = 'none';
+    if (audit) audit.style.display = 'none';
+  }
+
+  function openRealAuth(tab) {
+    if (typeof openModal === 'function') openModal('modal-auth-flow');
+    if (typeof toggleAuthTab === 'function') toggleAuthTab(tab || 'login');
+  }
+
+  async function syncRealSessionUi() {
+    try {
+      await window.SupabaseService.remoteReady;
+      const client = window.SupabaseService.client;
+      const result = client ? await client.auth.getSession() : { data: { session: null } };
+      const realSession = result && result.data ? result.data.session : null;
+      if (!realSession || !realSession.user) {
+        localStorage.removeItem(SECURE_SESSION_KEY);
+        localStorage.removeItem('mapa_eleitoral_current_user_v5');
+        localStorage.removeItem('mapa_eleitoral_last_active_user');
+        setDisconnectedUi();
+        openRealAuth('register');
+        return;
+      }
+      const profile = await window.SupabaseService.fetchOwnProfile(realSession.user.id);
+      if (!profile) {
+        await client.auth.signOut();
+        localStorage.removeItem(SECURE_SESSION_KEY);
+        setDisconnectedUi();
+        openRealAuth('login');
+        return;
+      }
+      window.SupabaseService.setCurrentUser(profile);
+      state.currentUser = profile;
+      updateUserProfileUI();
+      loadLiderancas();
+      populateCandidateSelect();
+      renderAllViews();
+      closeModal('modal-auth-flow');
+    } catch (err) {
+      console.error('Falha ao validar sessao real:', err);
+      localStorage.removeItem(SECURE_SESSION_KEY);
+      setDisconnectedUi();
+      openRealAuth('login');
+    }
+  }
+
+  function installCandidateFilterFix() {
+    const candidateSelect = document.getElementById('cand-select');
+    if (!candidateSelect || candidateSelect.dataset.previewFixInstalled === '1') return;
+    candidateSelect.dataset.previewFixInstalled = '1';
+    candidateSelect.addEventListener('change', function (e) {
+      try {
+        state.selectedCandidate = e.target.value;
+        if (typeof renderMapColegios === 'function') renderMapColegios();
+        if (typeof renderTableColegios === 'function') renderTableColegios();
+        if (typeof switchView === 'function') switchView('colegios');
+        setTimeout(function () {
+          try {
+            if (typeof renderTableColegios === 'function') renderTableColegios();
+          } catch (_) {}
+        }, 40);
+      } catch (err) {
+        console.error('Falha no filtro eleitoral:', err);
+        alert('Nao foi possivel aplicar o filtro selecionado.');
+      }
+    }, true);
+  }
+
+  function installAuthInterceptors() {
+    const registerForm = document.getElementById('form-auth-register');
+    if (registerForm) {
+      registerForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const pass = document.getElementById('auth-reg-pass').value;
+        const passConfirm = document.getElementById('auth-reg-pass-confirm').value;
+        if (pass !== passConfirm) return alert('As senhas nao coincidem.');
+        if (pass.length < 8) return alert('Use uma senha com pelo menos 8 caracteres.');
+        const formData = {
+          nome: document.getElementById('auth-reg-nome').value.trim(),
+          email: document.getElementById('auth-reg-email').value.trim(),
+          whatsapp: document.getElementById('auth-reg-whatsapp').value.trim(),
+          cpf: document.getElementById('auth-reg-cpf').value.trim(),
+          partido: document.getElementById('auth-reg-partido').value.trim(),
+          numeroCandidato: document.getElementById('auth-reg-numero').value.trim(),
+          cargo: document.getElementById('auth-reg-cargo')?.value || 'Vereador',
+          senha: pass
+        };
+        const btn = document.getElementById('btn-submit-register');
+        if (btn) { btn.disabled = true; btn.textContent = 'Criando conta segura...'; }
+        try {
+          const result = await window.SupabaseService.registerVereador(formData);
+          if (result.emailResult && result.emailResult.pendingConfirmation) {
+            alert('Conta criada no Supabase. Confira o e-mail informado e clique no link de confirmacao. Depois volte aqui e use Acessar Conta.');
+            toggleAuthTab('login');
+            const loginEmail = document.getElementById('auth-login-email');
+            if (loginEmail) loginEmail.value = formData.email;
+          } else {
+            const realUser = window.SupabaseService.getCurrentUser();
+            if (realUser) {
+              state.currentUser = realUser;
+              updateUserProfileUI();
+              loadLiderancas();
+              populateCandidateSelect();
+              renderAllViews();
+              closeModal('modal-auth-flow');
+              alert('Conta criada e autenticada com sucesso.');
+            }
+          }
+        } catch (err) {
+          alert('Erro no cadastro: ' + (err?.message || err));
+        } finally {
+          if (btn) { btn.disabled = false; btn.textContent = 'Concluir Cadastro'; }
+        }
+      }, true);
+    }
+
+    const loginForm = document.getElementById('form-auth-login');
+    if (loginForm) {
+      loginForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const email = document.getElementById('auth-login-email').value.trim();
+        const pass = document.getElementById('auth-login-pass').value;
+        try {
+          const user = await window.SupabaseService.signIn(email, pass);
+          state.currentUser = user;
+          updateUserProfileUI();
+          loadLiderancas();
+          populateCandidateSelect();
+          renderAllViews();
+          closeModal('modal-auth-flow');
+          alert('Login realizado com sucesso.');
+        } catch (err) {
+          alert(String(err?.message || err || 'Falha no login'));
+        }
+      }, true);
+    }
+
+    window.handleLogout = async function () {
+      if (!confirm('Deseja realmente sair da sua conta?')) return;
+      try { await window.SupabaseService.logout(); } catch (_) {}
+      localStorage.removeItem('mapa_eleitoral_current_user_v5');
+      localStorage.removeItem('mapa_eleitoral_last_active_user');
+      setDisconnectedUi();
+      openRealAuth('login');
+    };
+    window.handleBiometricLogin = function () { alert('Biometria temporariamente desativada nesta preview ate configurarmos Passkey/WebAuthn real.'); };
+    window.quickLoginDemo = function () { alert('Acesso rapido antigo desativado. Entre com e-mail e senha reais.'); };
+    window.switchDemonstrationUser = function () { alert('Troca direta de conta antiga desativada. O acesso global sera feito de forma auditada.'); };
+    const demo = document.getElementById('auth-demo-picker');
+    if (demo) demo.remove();
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    installAuthInterceptors();
+    installCandidateFilterFix();
+    syncRealSessionUi();
+  });
+})();
+</script><div id="vf-preview-badge">PREVIEW SEGURA · NÃO PUBLICADA</div></body>
 </html>
