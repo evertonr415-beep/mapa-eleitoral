@@ -1,0 +1,272 @@
+/* Candidate vote list - mobile preview only */
+@media (max-width:900px){
+  body.vf-mobile.vf-candidate-list-active #view-table-colegios .colegios-table{
+    display:none!important;
+  }
+
+  .vf-candidate-mobile-list{
+    display:none;
+    width:100%;
+    margin:0;
+    padding:0 0 18px;
+  }
+
+  body.vf-mobile.vf-candidate-list-active .vf-candidate-mobile-list{
+    display:block;
+  }
+
+  .vf-candidate-summary{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:12px;
+    align-items:center;
+    margin:0 0 10px;
+    padding:12px 13px;
+    border:1px solid rgba(96,165,250,.20);
+    border-radius:15px;
+    background:linear-gradient(145deg,rgba(37,99,235,.13),rgba(16,26,42,.95));
+  }
+
+  .vf-candidate-summary-copy{min-width:0}
+  .vf-candidate-summary-copy span{
+    display:block;
+    margin-bottom:3px;
+    color:#7f91aa;
+    font-size:9px;
+    font-weight:850;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+  }
+  .vf-candidate-summary-copy strong{
+    display:block;
+    color:#f8fafc;
+    font-size:15px;
+    line-height:1.18;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .vf-candidate-summary-copy small{
+    display:block;
+    margin-top:4px;
+    color:#8fa1b9;
+    font-size:10.5px;
+    line-height:1.25;
+  }
+
+  .vf-candidate-summary-total{
+    min-width:78px;
+    padding:8px 10px;
+    border:1px solid rgba(59,130,246,.20);
+    border-radius:12px;
+    background:rgba(37,99,235,.10);
+    text-align:right;
+  }
+  .vf-candidate-summary-total span{
+    display:block;
+    color:#7f91aa;
+    font-size:8.5px;
+    font-weight:800;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+  }
+  .vf-candidate-summary-total strong{
+    display:block;
+    margin-top:2px;
+    color:#60a5fa;
+    font-size:16px;
+    line-height:1;
+  }
+
+  .vf-candidate-college-list{
+    display:grid;
+    gap:7px;
+  }
+
+  .vf-candidate-college-item{
+    overflow:hidden;
+    border:1px solid rgba(148,163,184,.14);
+    border-radius:13px;
+    background:linear-gradient(145deg,rgba(20,31,49,.98),rgba(14,23,37,.98));
+    box-shadow:0 5px 14px rgba(0,0,0,.11);
+  }
+
+  .vf-candidate-college-main{
+    width:100%;
+    min-height:72px;
+    display:grid;
+    grid-template-columns:30px minmax(0,1fr) auto 20px;
+    gap:9px;
+    align-items:center;
+    padding:10px 10px;
+    border:0;
+    background:transparent;
+    color:inherit;
+    text-align:left;
+    -webkit-tap-highlight-color:transparent;
+    touch-action:manipulation;
+  }
+
+  .vf-candidate-college-index{
+    display:grid;
+    width:28px;
+    height:28px;
+    place-items:center;
+    border:1px solid rgba(148,163,184,.16);
+    border-radius:9px;
+    background:#18253a;
+    color:#8fa1b9;
+    font-size:10px;
+    font-weight:800;
+  }
+
+  .vf-candidate-college-copy{min-width:0}
+  .vf-candidate-college-copy strong{
+    display:-webkit-box;
+    overflow:hidden;
+    color:#f3f7fd;
+    font-size:12px;
+    font-weight:780;
+    line-height:1.28;
+    -webkit-box-orient:vertical;
+    -webkit-line-clamp:2;
+  }
+  .vf-candidate-college-copy span{
+    display:block;
+    margin-top:4px;
+    overflow:hidden;
+    color:#778ba5;
+    font-size:9.5px;
+    line-height:1.2;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+  }
+
+  .vf-candidate-vote-box{
+    min-width:62px;
+    text-align:right;
+  }
+  .vf-candidate-vote-box strong{
+    display:block;
+    color:#60a5fa;
+    font-size:14px;
+    line-height:1.05;
+  }
+  .vf-candidate-vote-box span{
+    display:inline-block;
+    margin-top:4px;
+    padding:2px 5px;
+    border-radius:6px;
+    background:rgba(59,130,246,.13);
+    color:#78b4ff;
+    font-size:9px;
+    font-weight:750;
+  }
+
+  .vf-candidate-chevron{
+    width:18px;
+    height:18px;
+    color:#6f8199;
+    transition:transform .18s ease;
+  }
+  .vf-candidate-chevron svg{
+    width:100%;
+    height:100%;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:2.1;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+  }
+  .vf-candidate-college-item.open .vf-candidate-chevron{
+    transform:rotate(180deg);
+  }
+
+  .vf-candidate-college-details{
+    display:none;
+    padding:0 11px 11px 49px;
+  }
+  .vf-candidate-college-item.open .vf-candidate-college-details{
+    display:block;
+  }
+
+  .vf-candidate-detail-grid{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:6px;
+    margin-top:1px;
+    padding-top:9px;
+    border-top:1px solid rgba(148,163,184,.10);
+  }
+  .vf-candidate-detail-grid div{
+    min-width:0;
+    padding:7px 7px;
+    border-radius:9px;
+    background:rgba(30,41,59,.52);
+  }
+  .vf-candidate-detail-grid span{
+    display:block;
+    color:#70829b;
+    font-size:7.8px;
+    font-weight:800;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+  }
+  .vf-candidate-detail-grid strong{
+    display:block;
+    margin-top:3px;
+    color:#dfe7f2;
+    font-size:10.5px;
+    line-height:1.18;
+  }
+  .vf-candidate-detail-grid .vf-candidate-detail-leaders strong{
+    color:#34d399;
+  }
+
+  .vf-candidate-college-actions{
+    display:flex;
+    justify-content:flex-end;
+    margin-top:8px;
+  }
+  .vf-candidate-college-actions button{
+    min-height:34px!important;
+    padding:0 11px!important;
+    border:1px solid rgba(96,165,250,.25)!important;
+    border-radius:9px!important;
+    background:rgba(37,99,235,.12)!important;
+    color:#9dc8ff!important;
+    font-size:10.5px!important;
+    font-weight:750!important;
+  }
+
+  body.vf-mobile.vf-candidate-list-active #view-table-colegios{
+    padding-top:12px!important;
+  }
+  body.vf-mobile.vf-candidate-list-active #view-table-colegios>.vf-mobile-page-head,
+  body.vf-mobile.vf-candidate-list-active #view-table-colegios>div:first-child{
+    margin-bottom:10px!important;
+  }
+  body.vf-mobile.vf-candidate-list-active #view-table-colegios>div:first-child h2{
+    font-size:18px!important;
+  }
+  body.vf-mobile.vf-candidate-list-active #view-table-colegios>div:first-child p{
+    font-size:10.5px!important;
+  }
+}
+
+@media (max-width:360px){
+  .vf-candidate-college-main{
+    grid-template-columns:28px minmax(0,1fr) auto 18px;
+    gap:7px;
+    padding-left:8px;
+    padding-right:8px;
+  }
+  .vf-candidate-college-details{
+    padding-left:43px;
+    padding-right:8px;
+  }
+  .vf-candidate-summary{
+    padding-left:10px;
+    padding-right:10px;
+  }
+}
