@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#080d17">
-  <title>Mapa Eleitoral - Preview Mobile Tabela</title>
+  <title>Mapa Eleitoral - Preview Mobile</title>
   <style>
     *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;background:#080d17;color:#e2e8f0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{display:grid;place-items:center}.loader{display:flex;flex-direction:column;align-items:center;gap:12px;padding:28px;text-align:center}.spinner{width:34px;height:34px;border:3px solid rgba(148,163,184,.2);border-top-color:#3b82f6;border-radius:50%;animation:spin .8s linear infinite}.loader strong{font-size:15px}.loader small{color:#94a3b8}.loader button{min-height:44px;padding:0 18px;border:0;border-radius:12px;background:#2563eb;color:#fff;font-weight:750}@keyframes spin{to{transform:rotate(360deg)}}
   </style>
@@ -14,7 +14,7 @@
   <script>
   (async function(){
     var stable='d7a280e173dd1f4431d1e910fd9b6672dab37e33';
-    var mobile='8a272535f256ded534259c62031d9fd45f599282';
+    var mobile='21390bb9ac17bdc21582f586adefc07c7ce2b64c';
     var cdn='https://cdn.jsdelivr.net/gh/evertonr415-beep/mapa-eleitoral@';
     try{
       var response=await fetch(cdn+stable+'/index.html',{cache:'no-store'});
@@ -22,239 +22,16 @@
       var html=await response.text();
       html=html.replace(/<base\b[^>]*>/gi,'');
       var base='<base href="'+cdn+stable+'/">';
-      var compactCss=`<style id="vf-mobile-desktop-table">
-      @media(max-width:900px){
-        body.vf-mobile.vf-college-table-compact #view-table-colegios{
-          padding:6px 6px calc(var(--vf-nav) + var(--vf-safe-bottom) + 10px)!important;
-          overflow-y:auto!important;
-          overflow-x:hidden!important;
-          background:#080f1a!important;
-        }
-        body.vf-mobile.vf-college-table-compact #view-table-colegios>div:first-child{
-          min-height:36px!important;
-          margin:0 0 5px!important;
-          padding:0 7px!important;
-          display:flex!important;
-          flex-direction:row!important;
-          align-items:center!important;
-          justify-content:space-between!important;
-          gap:8px!important;
-          border:1px solid rgba(148,163,184,.12);
-          border-radius:9px;
-          background:#132137;
-        }
-        body.vf-mobile.vf-college-table-compact #view-table-colegios>div:first-child h2{
-          min-width:0;
-          margin:0!important;
-          overflow:hidden;
-          color:#f8fafc!important;
-          font-size:10px!important;
-          font-weight:800!important;
-          line-height:1.05!important;
-          white-space:nowrap;
-          text-overflow:ellipsis;
-        }
-        body.vf-mobile.vf-college-table-compact #view-table-colegios>div:first-child span{
-          flex:0 0 auto;
-          color:#8091aa!important;
-          font-size:7.5px!important;
-          white-space:nowrap;
-        }
-
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table{
-          display:block!important;
-          width:100%!important;
-          min-width:0!important;
-          margin:0!important;
-          overflow:visible!important;
-          border:1px solid rgba(148,163,184,.12)!important;
-          border-radius:9px!important;
-          background:#0f1929!important;
-          border-collapse:separate!important;
-          border-spacing:0!important;
-        }
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table thead{
-          display:block!important;
-          position:sticky;
-          top:0;
-          z-index:4;
-          width:100%;
-          background:#1a2a42!important;
-          border-radius:9px 9px 0 0;
-        }
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table tbody{
-          display:block!important;
-          width:100%!important;
-        }
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table thead tr,
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table tbody tr{
-          position:static!important;
-          display:grid!important;
-          width:100%!important;
-          min-height:44px!important;
-          grid-template-columns:22px minmax(0,1fr) 48px 39px 59px 34px!important;
-          gap:0!important;
-          align-items:stretch!important;
-          padding:0!important;
-          margin:0!important;
-          border:0!important;
-          border-bottom:1px solid rgba(148,163,184,.085)!important;
-          border-radius:0!important;
-          background:#0f1929!important;
-          box-shadow:none!important;
-          overflow:hidden!important;
-        }
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table thead tr{
-          min-height:29px!important;
-          background:#1a2a42!important;
-          border-bottom:1px solid rgba(96,165,250,.20)!important;
-        }
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table tbody tr:nth-child(even){background:#111d30!important}
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table tbody tr:last-child{border-bottom:0!important}
-
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table th,
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table td{
-          position:static!important;
-          width:auto!important;
-          min-width:0!important;
-          min-height:0!important;
-          margin:0!important;
-          padding:5px 4px!important;
-          display:flex!important;
-          flex-direction:row!important;
-          align-items:center!important;
-          justify-content:flex-start!important;
-          gap:0!important;
-          border:0!important;
-          border-right:1px solid rgba(148,163,184,.055)!important;
-          border-bottom:0!important;
-          border-radius:0!important;
-          background:transparent!important;
-          box-shadow:none!important;
-          overflow:hidden!important;
-          color:#dce6f2!important;
-          font-size:8.5px!important;
-          line-height:1.08!important;
-          white-space:nowrap!important;
-          text-overflow:ellipsis!important;
-          overflow-wrap:normal!important;
-        }
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table th{
-          color:#8fa1b9!important;
-          font-size:6.7px!important;
-          font-weight:850!important;
-          letter-spacing:.03em;
-          text-transform:uppercase;
-        }
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table th:last-child,
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table td:last-child{border-right:0!important}
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table td:before,
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table th:before{display:none!important;content:none!important}
-
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table th:nth-child(3),
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table td:nth-child(3),
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table th:nth-child(4),
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table td:nth-child(4),
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table th:nth-child(7),
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table td:nth-child(7){display:none!important}
-
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table th:nth-child(1),
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table td:nth-child(1){justify-content:center!important;text-align:center!important;color:#8192aa!important;font-size:7.5px!important;font-weight:800!important}
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table td:nth-child(2){
-          padding-left:6px!important;
-          color:#f1f5f9!important;
-          font-size:8.7px!important;
-          font-weight:760!important;
-        }
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table td:nth-child(2) strong{
-          display:block!important;
-          width:100%;
-          overflow:hidden;
-          white-space:nowrap;
-          text-overflow:ellipsis;
-        }
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table td:nth-child(5){
-          justify-content:center!important;
-          font-size:9.7px!important;
-          font-weight:850!important;
-        }
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table td:nth-child(6){justify-content:center!important}
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table td:nth-child(6) span{
-          padding:2px 4px!important;
-          border-radius:4px!important;
-          font-size:7.5px!important;
-          line-height:1!important;
-        }
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table td:nth-child(8){
-          justify-content:center!important;
-          overflow:hidden!important;
-          color:#34d399!important;
-          font-size:7.2px!important;
-          font-weight:800!important;
-          text-align:center!important;
-        }
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table td:nth-child(8) span{
-          display:block;
-          width:100%;
-          overflow:hidden;
-          white-space:nowrap;
-          text-overflow:ellipsis;
-        }
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table td:nth-child(9){justify-content:center!important;padding:3px!important}
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table td:nth-child(9) button{
-          width:27px!important;
-          min-width:27px!important;
-          height:27px!important;
-          min-height:27px!important;
-          padding:0!important;
-          display:grid!important;
-          place-items:center!important;
-          border:1px solid rgba(96,165,250,.25)!important;
-          border-radius:6px!important;
-          background:#1a2b44!important;
-          color:#9dc8ff!important;
-          font-size:0!important;
-          line-height:1!important;
-          white-space:nowrap!important;
-        }
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table td:nth-child(9) button:before{
-          content:'+';
-          display:block;
-          color:#7fb5f7;
-          font-size:16px;
-          font-weight:500;
-          line-height:1;
-        }
-
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table th:nth-child(2){font-size:0!important}
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table th:nth-child(2):after{content:'Colégio';font-size:6.7px}
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table th:nth-child(5){font-size:0!important;justify-content:center!important}
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table th:nth-child(5):after{content:'Votos';font-size:6.7px}
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table th:nth-child(6){font-size:0!important;justify-content:center!important}
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table th:nth-child(6):after{content:'%';font-size:6.7px}
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table th:nth-child(8){font-size:0!important;justify-content:center!important}
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table th:nth-child(8):after{content:'Lid.';font-size:6.7px}
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table th:nth-child(9){font-size:0!important;justify-content:center!important}
-        body.vf-mobile.vf-college-table-compact #view-table-colegios .custom-table th:nth-child(9):after{content:'+';font-size:9px}
-      }
-      </style>`;
-
       var mobileHead='<meta name="theme-color" content="#080d17">'+
         '<style>#vf-preview-badge{display:none!important}</style>'+
         '<link rel="stylesheet" href="'+cdn+mobile+'/mobile-shell.css">'+
         '<link rel="stylesheet" href="'+cdn+mobile+'/mobile-views.css">'+
         '<link rel="stylesheet" href="'+cdn+mobile+'/mobile-polish.css">'+
-        '<link rel="stylesheet" href="'+cdn+mobile+'/mobile-layer-fix.css">'+compactCss;
-
-      var compactScript='<scr'+'ipt>(function(){'+
-        'var mq=window.matchMedia("(max-width:900px)");'+
-        'function cleanName(){var s=document.getElementById("cand-select");if(!s||s.selectedIndex<0)return "";var t=(s.options[s.selectedIndex].textContent||"").trim();var p=t.indexOf(" - ");return p>0?t.slice(0,p):t;}'+
-        'function sync(){var s=document.getElementById("cand-select");if(!s)return;var active=mq.matches&&s.value!=="ALL";document.body.classList.toggle("vf-college-table-compact",active);if(active){document.body.classList.remove("vf-drawer-open");var head=document.querySelector("#view-table-colegios>div:first-child h2");var meta=document.querySelector("#view-table-colegios>div:first-child span");if(head)head.textContent="Votos por colégio • "+cleanName();if(meta)meta.textContent="29 colégios";}}'+
-        'function install(){var s=document.getElementById("cand-select");if(!s){setTimeout(install,150);return;}if(!s.dataset.vfTableBound){s.dataset.vfTableBound="1";s.addEventListener("change",function(){setTimeout(sync,80);setTimeout(sync,260);});}sync();setTimeout(sync,600);}'+
-        'if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",install,{once:true});else install();window.addEventListener("resize",sync);'+
-      '})();</scr'+'ipt>';
-
-      var scripts='<scr'+'ipt src="'+cdn+mobile+'/mobile-ui.js"></scr'+'ipt><scr'+'ipt src="'+cdn+mobile+'/mobile-polish.js"></scr'+'ipt>'+compactScript;
+        '<link rel="stylesheet" href="'+cdn+mobile+'/mobile-layer-fix.css">'+
+        '<link rel="stylesheet" href="'+cdn+mobile+'/mobile-college-grid.css">';
+      var scripts='<scr'+'ipt src="'+cdn+mobile+'/mobile-ui.js"></scr'+'ipt>'+
+        '<scr'+'ipt src="'+cdn+mobile+'/mobile-polish.js"></scr'+'ipt>'+
+        '<scr'+'ipt src="'+cdn+mobile+'/mobile-college-grid.js"></scr'+'ipt>';
       html=html.replace(/<head([^>]*)>/i,'<head$1>'+base);
       html=html.replace('</head>',mobileHead+'</head>');
       html=html.replace('</body>',scripts+'</body>');
