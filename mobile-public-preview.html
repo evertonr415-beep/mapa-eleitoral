@@ -18,7 +18,7 @@
   <script>
     (async function(){
       var stable='d7a280e173dd1f4431d1e910fd9b6672dab37e33';
-      var mobile='e76a18c7cc6a2354805ad1c40e799946487555df';
+      var mobile='cf44e756f0c796993cba016fad20db3cca3d29c4';
       var cdn='https://cdn.jsdelivr.net/gh/evertonr415-beep/mapa-eleitoral@';
       try{
         var response=await fetch(cdn+stable+'/index.html',{cache:'no-store'});
@@ -35,7 +35,8 @@
           '<link rel="stylesheet" href="'+cdn+mobile+'/mobile-layer-fix.css">';
         var mobileScripts=
           '<scr'+'ipt src="'+cdn+mobile+'/mobile-ui.js"></scr'+'ipt>'+
-          '<scr'+'ipt src="'+cdn+mobile+'/mobile-polish.js"></scr'+'ipt>';
+          '<scr'+'ipt src="'+cdn+mobile+'/mobile-polish.js"></scr'+'ipt>'+
+          '<scr'+'ipt src="'+cdn+mobile+'/mobile-candidate-votes.js"></scr'+'ipt>';
         html=html.replace(/<head([^>]*)>/i,'<head$1>'+base);
         html=html.replace('</head>',mobileHead+'</head>');
         html=html.replace('</body>',mobileScripts+'</body>');
