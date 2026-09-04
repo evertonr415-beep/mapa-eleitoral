@@ -31,7 +31,10 @@
       const {data,error}=await this.client.auth.signUp({
         email,
         password,
-        options:{data:metadata}
+        options:{
+          data:metadata,
+          emailRedirectTo:'https://www.votofortearapongas.com.br/'
+        }
       });
       if(error) throw new Error(error.message);
       if(!data||!data.user) throw new Error('Nao foi possivel criar o usuario.');
