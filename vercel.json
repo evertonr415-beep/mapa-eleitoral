@@ -3,7 +3,8 @@
   "name": "mapa-eleitoral-arapongas-mobile-preview",
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/", "destination": "/mobile-preview.html" }
+    { "source": "/", "destination": "/mobile-preview.html" },
+    { "source": "/desktop-source", "destination": "/index.html" }
   ],
   "headers": [
     {
