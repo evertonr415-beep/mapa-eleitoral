@@ -18,10 +18,10 @@
   <script>
     (async function () {
       try {
-        var response = await fetch('/index.html?vf-mobile-source=3', { cache: 'no-store' });
+        var response = await fetch('/desktop-source?vf-mobile-source=4', { cache: 'no-store' });
         if (!response.ok) throw new Error('HTTP ' + response.status);
         var html = await response.text();
-        var version = '20260904-3';
+        var version = '20260904-4';
         var headAssets =
           '<meta name="theme-color" content="#080d17">' +
           '<style>#vf-preview-badge{display:none!important}</style>' +
