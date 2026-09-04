@@ -2,8 +2,10 @@
   "version": 2,
   "name": "mapa-eleitoral-arapongas-mobile-preview",
   "cleanUrls": true,
+  "redirects": [
+    { "source": "/", "destination": "/mobile-preview", "permanent": false }
+  ],
   "rewrites": [
-    { "source": "/", "destination": "/mobile-preview.html" },
     { "source": "/desktop-source", "destination": "/index.html" }
   ],
   "headers": [
