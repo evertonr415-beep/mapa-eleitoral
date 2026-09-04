@@ -15,6 +15,7 @@
   (async function(){
     var stable='d7a280e173dd1f4431d1e910fd9b6672dab37e33';
     var mobile='21390bb9ac17bdc21582f586adefc07c7ce2b64c';
+    var hotfix='a6cf4953b87477b603c7ce2b02a430c05ba60d74';
     var cdn='https://cdn.jsdelivr.net/gh/evertonr415-beep/mapa-eleitoral@';
     try{
       var response=await fetch(cdn+stable+'/index.html',{cache:'no-store'});
@@ -28,10 +29,12 @@
         '<link rel="stylesheet" href="'+cdn+mobile+'/mobile-views.css">'+
         '<link rel="stylesheet" href="'+cdn+mobile+'/mobile-polish.css">'+
         '<link rel="stylesheet" href="'+cdn+mobile+'/mobile-layer-fix.css">'+
-        '<link rel="stylesheet" href="'+cdn+mobile+'/mobile-college-grid.css">';
+        '<link rel="stylesheet" href="'+cdn+mobile+'/mobile-college-grid.css">'+
+        '<link rel="stylesheet" href="'+cdn+hotfix+'/mobile-menu-scroll-hotfix.css">';
       var scripts='<scr'+'ipt src="'+cdn+mobile+'/mobile-ui.js"></scr'+'ipt>'+
         '<scr'+'ipt src="'+cdn+mobile+'/mobile-polish.js"></scr'+'ipt>'+
-        '<scr'+'ipt src="'+cdn+mobile+'/mobile-college-grid.js"></scr'+'ipt>';
+        '<scr'+'ipt src="'+cdn+mobile+'/mobile-college-grid.js"></scr'+'ipt>'+
+        '<scr'+'ipt src="'+cdn+hotfix+'/mobile-menu-scroll-hotfix.js"></scr'+'ipt>';
       html=html.replace(/<head([^>]*)>/i,'<head$1>'+base);
       html=html.replace('</head>',mobileHead+'</head>');
       html=html.replace('</body>',scripts+'</body>');
