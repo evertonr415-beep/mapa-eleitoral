@@ -2,6 +2,19 @@
   "version": 2,
   "name": "mapa-eleitoral-arapongas",
   "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(Mobile|Android|iPhone|iPad|iPod).*"
+        }
+      ],
+      "destination": "/mobile-production"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
