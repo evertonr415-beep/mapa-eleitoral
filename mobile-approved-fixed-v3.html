@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#080d17">
+  <title>Mapa Eleitoral - Preview Mobile</title>
+  <style>
+    *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;background:#080d17;color:#e2e8f0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{display:grid;place-items:center}.loader{display:flex;flex-direction:column;align-items:center;gap:12px;padding:28px;text-align:center}.spinner{width:34px;height:34px;border:3px solid rgba(148,163,184,.2);border-top-color:#3b82f6;border-radius:50%;animation:spin .8s linear infinite}.loader strong{font-size:15px}.loader small{color:#94a3b8}.loader button{min-height:44px;padding:0 18px;border:0;border-radius:12px;background:#2563eb;color:#fff;font-weight:750}@keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+  <main class="loader"><div class="spinner"></div><strong>Carregando tabela mobile...</strong><small>Visual compacto inspirado no desktop</small></main>
+  <script>
+  (async function(){
+    var stable='d7a280e173dd1f4431d1e910fd9b6672dab37e33';
+    var mobile='21390bb9ac17bdc21582f586adefc07c7ce2b64c';
+    var hotfix='a6cf4953b87477b603c7ce2b02a430c05ba60d74';
+    var fixed='1710b9f77195499b7d6ecf36478a8b04ee2f4e05';
+    var events='6ca337ca788833973200f2e1dfd70472359c7bae';
+    var cdn='https://cdn.jsdelivr.net/gh/evertonr415-beep/mapa-eleitoral@';
+    try{
+      var response=await fetch(cdn+stable+'/index.html',{cache:'no-store'});
+      if(!response.ok)throw new Error('HTTP '+response.status);
+      var html=await response.text();
+      html=html.replace(/<base\b[^>]*>/gi,'');
+      var base='<base href="'+cdn+stable+'/">';
+      var mobileHead='<meta name="theme-color" content="#080d17">'+
+        '<style>#vf-preview-badge{display:none!important}</style>'+
+        '<link rel="stylesheet" href="'+cdn+mobile+'/mobile-shell.css">'+
+        '<link rel="stylesheet" href="'+cdn+mobile+'/mobile-views.css">'+
+        '<link rel="stylesheet" href="'+cdn+mobile+'/mobile-polish.css">'+
+        '<link rel="stylesheet" href="'+cdn+mobile+'/mobile-layer-fix.css">'+
+        '<link rel="stylesheet" href="'+cdn+mobile+'/mobile-college-grid.css">'+
+        '<link rel="stylesheet" href="'+cdn+hotfix+'/mobile-menu-scroll-hotfix.css">';
+      var scripts='<scr'+'ipt src="'+cdn+events+'/mobile-event-stability-v3.js"></scr'+'ipt>'+
+        '<scr'+'ipt src="'+cdn+mobile+'/mobile-ui.js"></scr'+'ipt>'+
+        '<scr'+'ipt src="'+cdn+mobile+'/mobile-polish.js"></scr'+'ipt>'+
+        '<scr'+'ipt src="'+cdn+hotfix+'/mobile-menu-scroll-hotfix.js"></scr'+'ipt>'+
+        '<scr'+'ipt src="'+cdn+fixed+'/mobile-college-grid-fixed-v2.js"></scr'+'ipt>';
+      html=html.replace(/<head([^>]*)>/i,'<head$1>'+base);
+      html=html.replace('</head>',mobileHead+'</head>');
+      html=html.replace('</body>',scripts+'</body>');
+      document.open();document.write(html);document.close();
+    }catch(error){document.body.innerHTML='<main class="loader"><strong>Não foi possível abrir a preview.</strong><small>'+String(error&&error.message?error.message:error)+'</small><button onclick="location.reload()">Tentar novamente</button></main>';}
+  })();
+  </script>
+</body>
+</html>
