@@ -39,24 +39,11 @@
       const {error:confirmError}=await this.client.rpc('confirm_managed_signup',{target_user_id:data.user.id});
       if(confirmError) throw new Error('Conta criada, mas nao foi possivel confirmar automaticamente: '+confirmError.message);
 
-      const profileUpdate={
-        nome:metadata.nome||email.split('@')[0],
-        whatsapp:metadata.whatsapp,
-        cpf:metadata.cpf,
-        partido:metadata.partido,
-        numero_candidato:metadata.numeroCandidato,
-        cargo:metadata.cargo,
-        avatar_url:'🗳️',
-        ativo:true
-      };
-      const {error:profileError}=await this.client.from('perfis_usuarios').update(profileUpdate).eq('id',data.user.id);
-      if(profileError) throw new Error(profileError.message);
-
       if(this.refreshRemoteCache) await this.refreshRemoteCache();
       return {
         user:{
           id:data.user.id,
-          nome:profileUpdate.nome,
+          nome:metadata.nome||email.split('@')[0],
           email,
           whatsapp:metadata.whatsapp,
           cpf:metadata.cpf,
