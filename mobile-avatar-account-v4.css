@@ -1,0 +1,81 @@
+/* Avatar account menu - isolated over approved mobile v3 */
+@media (max-width:900px){
+  body.vf-mobile .vf-drawer-security{display:none!important}
+  body.vf-mobile .vf-drawer-section:has(.vf-drawer-security){display:none!important}
+
+  .vf-avatar-account-menu{
+    display:block;
+    position:fixed;
+    z-index:4300;
+    top:calc(var(--vf-header) + var(--vf-safe-top) + 8px);
+    right:10px;
+    width:min(250px,calc(100vw - 20px));
+    padding:8px;
+    border:1px solid rgba(148,163,184,.18);
+    border-radius:16px;
+    background:linear-gradient(180deg,#152236,#0e1828);
+    box-shadow:0 20px 55px rgba(0,0,0,.48);
+    opacity:0;
+    visibility:hidden;
+    transform:translateY(-8px) scale(.98);
+    transform-origin:top right;
+    pointer-events:none;
+    transition:opacity .16s ease,transform .16s ease,visibility .16s ease;
+  }
+  body.vf-avatar-account-open .vf-avatar-account-menu{
+    opacity:1;
+    visibility:visible;
+    transform:translateY(0) scale(1);
+    pointer-events:auto;
+  }
+  .vf-avatar-account-menu:before{
+    content:"";
+    position:absolute;
+    top:-6px;
+    right:22px;
+    width:12px;
+    height:12px;
+    background:#152236;
+    border-left:1px solid rgba(148,163,184,.18);
+    border-top:1px solid rgba(148,163,184,.18);
+    transform:rotate(45deg);
+  }
+  .vf-avatar-account-menu .btn-topbar{
+    width:100%!important;
+    max-width:none!important;
+    min-height:48px!important;
+    height:48px!important;
+    padding:0 14px!important;
+    justify-content:flex-start!important;
+    gap:10px!important;
+    border-radius:12px!important;
+    font-size:13px!important;
+    box-shadow:none!important;
+  }
+  .vf-avatar-account-menu .btn-topbar + .btn-topbar{margin-top:6px!important}
+  .vf-avatar-account-menu .btn-topbar-secondary{
+    background:#1b2a3d!important;
+    border-color:rgba(148,163,184,.20)!important;
+  }
+  .vf-avatar-account-menu .btn-topbar-danger{
+    background:rgba(127,29,29,.20)!important;
+    border-color:rgba(248,113,113,.32)!important;
+    color:#fb7185!important;
+  }
+  .vf-avatar-account-menu svg{width:18px!important;height:18px!important}
+
+  .vf-avatar-account-backdrop{
+    display:block;
+    position:fixed;
+    z-index:4290;
+    inset:0;
+    border:0;
+    background:transparent;
+    opacity:0;
+    pointer-events:none;
+  }
+  body.vf-avatar-account-open .vf-avatar-account-backdrop{
+    opacity:1;
+    pointer-events:auto;
+  }
+}
