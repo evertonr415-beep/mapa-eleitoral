@@ -1,230 +1,85 @@
-/* Candidate vote list - compact mobile-only rows */
+/* Dense candidate list - mobile preview only */
 @media (max-width:900px){
   body.vf-mobile.vf-candidate-list-active #view-table-colegios .colegios-table{display:none!important}
+  body.vf-mobile.vf-candidate-list-active #view-table-colegios>.vf-mobile-page-head,
+  body.vf-mobile.vf-candidate-list-active #view-table-colegios>div:first-child{display:none!important}
 
-  .vf-candidate-mobile-list{display:none;width:100%;margin:0;padding:0 0 14px}
+  .vf-candidate-mobile-list{display:none;width:100%;margin:0;padding:0 0 10px}
   body.vf-mobile.vf-candidate-list-active .vf-candidate-mobile-list{display:block}
 
   .vf-candidate-summary{
+    height:44px;
     display:flex;
     align-items:center;
     justify-content:space-between;
-    gap:10px;
-    margin:0 0 7px;
-    padding:8px 10px;
+    gap:8px;
+    margin:0 0 6px;
+    padding:0 10px;
     border:1px solid rgba(96,165,250,.16);
-    border-radius:11px;
-    background:rgba(18,30,49,.92);
+    border-radius:10px;
+    background:#122036;
   }
   .vf-candidate-summary-copy{min-width:0;flex:1}
   .vf-candidate-summary-copy span{display:none}
-  .vf-candidate-summary-copy strong{
-    display:block;
-    overflow:hidden;
-    color:#f8fafc;
-    font-size:12.5px;
-    font-weight:800;
-    line-height:1.15;
-    white-space:nowrap;
-    text-overflow:ellipsis;
-  }
-  .vf-candidate-summary-copy small{
-    display:block;
-    margin-top:2px;
-    color:#788aa4;
-    font-size:9px;
-    line-height:1.15;
-  }
-  .vf-candidate-summary-total{
-    flex:0 0 auto;
-    display:flex;
-    align-items:baseline;
-    gap:5px;
-    padding:0;
-    border:0;
-    background:transparent;
-  }
-  .vf-candidate-summary-total span{color:#71839d;font-size:8px;font-weight:800;text-transform:uppercase}
-  .vf-candidate-summary-total strong{color:#60a5fa;font-size:13px;line-height:1}
+  .vf-candidate-summary-copy strong{display:block;overflow:hidden;color:#f8fafc;font-size:12px;font-weight:820;line-height:1.05;white-space:nowrap;text-overflow:ellipsis}
+  .vf-candidate-summary-copy small{display:block;margin-top:3px;color:#7588a3;font-size:8px;line-height:1;white-space:nowrap}
+  .vf-candidate-summary-total{flex:0 0 auto;display:flex;align-items:center;gap:5px}
+  .vf-candidate-summary-total span{color:#71839d;font-size:7px;font-weight:850;text-transform:uppercase}
+  .vf-candidate-summary-total strong{color:#60a5fa;font-size:12px;font-weight:850}
 
-  .vf-candidate-college-list{
-    overflow:hidden;
-    border:1px solid rgba(148,163,184,.13);
-    border-radius:12px;
-    background:rgba(15,25,41,.9);
-  }
-
-  .vf-candidate-college-item{
-    overflow:hidden;
-    border:0;
-    border-bottom:1px solid rgba(148,163,184,.105);
-    border-radius:0;
-    background:transparent;
-    box-shadow:none;
-  }
+  .vf-candidate-college-list{overflow:hidden;border:1px solid rgba(148,163,184,.12);border-radius:10px;background:#0f1929}
+  .vf-candidate-college-item{border-bottom:1px solid rgba(148,163,184,.09);background:transparent}
   .vf-candidate-college-item:last-child{border-bottom:0}
-  .vf-candidate-college-item.open{background:rgba(30,48,74,.38)}
 
   .vf-candidate-college-row{
-    width:100%;
-    min-height:56px;
+    min-height:45px;
     display:grid;
-    grid-template-columns:26px minmax(0,1fr) auto 68px;
-    gap:7px;
+    grid-template-columns:23px minmax(0,1fr) 48px 62px;
+    gap:5px;
     align-items:center;
-    padding:6px 7px;
+    padding:5px 6px;
   }
-
-  .vf-candidate-college-index{
-    display:grid;
-    width:25px;
-    height:25px;
-    place-items:center;
-    border:1px solid rgba(148,163,184,.14);
-    border-radius:7px;
-    background:#17243a;
-    color:#8294ae;
-    font-size:8.5px;
-    font-weight:850;
-  }
-
+  .vf-candidate-college-index{display:grid;width:22px;height:22px;place-items:center;border-radius:6px;background:#18263c;color:#8193ad;font-size:7.5px;font-weight:850}
   .vf-candidate-college-copy{min-width:0}
-  .vf-candidate-college-copy strong{
-    display:block;
-    overflow:hidden;
-    color:#edf3fb;
-    font-size:10.5px;
-    font-weight:780;
-    line-height:1.18;
-    white-space:nowrap;
-    text-overflow:ellipsis;
-  }
-  .vf-candidate-college-copy span{
-    display:block;
-    margin-top:3px;
-    overflow:hidden;
-    color:#687c98;
-    font-size:8.3px;
-    line-height:1.1;
-    white-space:nowrap;
-    text-overflow:ellipsis;
-  }
+  .vf-candidate-college-copy strong{display:block;overflow:hidden;color:#e9f0f8;font-size:9.4px;font-weight:780;line-height:1.1;white-space:nowrap;text-overflow:ellipsis}
+  .vf-candidate-college-copy span{display:none}
 
-  .vf-candidate-vote-box{
-    min-width:48px;
-    text-align:right;
-  }
-  .vf-candidate-vote-box strong{
-    display:block;
-    color:#60a5fa;
-    font-size:11px;
-    font-weight:850;
-    line-height:1;
-    white-space:nowrap;
-  }
-  .vf-candidate-vote-box span{
-    display:block;
-    margin-top:3px;
-    color:#8194ae;
-    font-size:8px;
-    font-weight:750;
-    line-height:1;
-  }
+  .vf-candidate-vote-box{min-width:0;text-align:right}
+  .vf-candidate-vote-box strong{display:block;color:#60a5fa;font-size:9.8px;font-weight:850;line-height:1;white-space:nowrap}
+  .vf-candidate-vote-box span{display:block;margin-top:3px;color:#7588a3;font-size:7.3px;font-weight:750;line-height:1}
 
-  .vf-candidate-row-actions{
-    display:grid;
-    grid-template-columns:32px 32px;
-    gap:4px;
-    justify-content:end;
-  }
-  .vf-candidate-row-action{
-    width:32px!important;
-    height:32px!important;
-    min-width:32px!important;
-    min-height:32px!important;
-    display:grid!important;
-    place-items:center!important;
-    padding:0!important;
-    border:1px solid rgba(148,163,184,.18)!important;
-    border-radius:8px!important;
-    background:#19273d!important;
-    color:#9aabc1!important;
-    box-shadow:none!important;
-    -webkit-tap-highlight-color:transparent;
-    touch-action:manipulation;
-  }
-  .vf-candidate-row-action svg{
-    width:15px;
-    height:15px;
-    fill:none;
-    stroke:currentColor;
-    stroke-width:2;
-    stroke-linecap:round;
-    stroke-linejoin:round;
-  }
-  .vf-candidate-row-action.vf-detail-btn{color:#79aff7!important}
-  .vf-candidate-row-action.vf-add-btn{
-    border-color:rgba(52,211,153,.28)!important;
-    background:rgba(16,185,129,.10)!important;
-    color:#4ade80!important;
-  }
-  .vf-candidate-college-item.open .vf-detail-btn{
-    border-color:rgba(96,165,250,.35)!important;
-    background:rgba(59,130,246,.16)!important;
-    color:#93c5fd!important;
-  }
+  .vf-candidate-row-actions{display:grid;grid-template-columns:29px 29px;gap:3px;justify-content:end}
+  .vf-candidate-row-action{width:29px!important;height:29px!important;min-width:29px!important;min-height:29px!important;display:grid!important;place-items:center!important;padding:0!important;border:1px solid rgba(148,163,184,.16)!important;border-radius:7px!important;background:#19273d!important;color:#8fb9ef!important;box-shadow:none!important;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+  .vf-candidate-row-action svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .vf-candidate-row-action.vf-add-btn{border-color:rgba(52,211,153,.24)!important;background:rgba(16,185,129,.09)!important;color:#4ade80!important}
 
-  .vf-candidate-college-details{
-    display:none;
-    padding:0 7px 7px 40px;
-  }
-  .vf-candidate-college-item.open .vf-candidate-college-details{display:block}
+  .vf-college-detail-overlay{position:fixed;inset:0;z-index:4900;border:0;background:rgba(2,6,23,.68);opacity:0;pointer-events:none;transition:opacity .16s ease}
+  .vf-college-detail-sheet{position:fixed;z-index:4910;left:8px;right:8px;bottom:calc(var(--vf-bottom-nav) + var(--vf-safe-bottom) + 8px);padding:13px;border:1px solid rgba(96,165,250,.20);border-radius:16px;background:#111d30;box-shadow:0 22px 60px rgba(0,0,0,.55);transform:translateY(calc(100% + 110px));transition:transform .18s ease}
+  body.vf-college-detail-open .vf-college-detail-overlay{opacity:1;pointer-events:auto}
+  body.vf-college-detail-open .vf-college-detail-sheet{transform:translateY(0)}
 
-  .vf-candidate-detail-line{
-    display:grid;
-    grid-template-columns:repeat(4,minmax(0,1fr));
-    gap:4px;
-    padding:6px;
-    border-top:1px solid rgba(148,163,184,.09);
-    border-radius:0 0 8px 8px;
-  }
-  .vf-candidate-detail-line div{min-width:0}
-  .vf-candidate-detail-line span{
-    display:block;
-    color:#62758f;
-    font-size:6.8px;
-    font-weight:800;
-    letter-spacing:.03em;
-    text-transform:uppercase;
-  }
-  .vf-candidate-detail-line strong{
-    display:block;
-    margin-top:2px;
-    overflow:hidden;
-    color:#cbd5e1;
-    font-size:8.5px;
-    font-weight:750;
-    white-space:nowrap;
-    text-overflow:ellipsis;
-  }
-  .vf-candidate-detail-line .vf-green strong{color:#34d399}
+  .vf-college-sheet-head{display:grid;grid-template-columns:minmax(0,1fr) 32px;gap:8px;align-items:start;padding-bottom:10px;border-bottom:1px solid rgba(148,163,184,.10)}
+  .vf-college-sheet-head span{display:block;color:#71839c;font-size:8px;font-weight:850;letter-spacing:.06em;text-transform:uppercase}
+  .vf-college-sheet-head strong{display:block;margin-top:3px;color:#f8fafc;font-size:13px;line-height:1.2}
+  .vf-college-sheet-close{width:32px;height:32px;padding:0;border:1px solid rgba(148,163,184,.16);border-radius:9px;background:#18263c;color:#9aacbf;font-size:19px;line-height:1}
 
-  body.vf-mobile.vf-candidate-list-active #view-table-colegios{padding-top:8px!important}
-  body.vf-mobile.vf-candidate-list-active #view-table-colegios>.vf-mobile-page-head,
-  body.vf-mobile.vf-candidate-list-active #view-table-colegios>div:first-child{margin-bottom:7px!important}
-  body.vf-mobile.vf-candidate-list-active #view-table-colegios>div:first-child h2{font-size:16px!important;line-height:1.1!important}
-  body.vf-mobile.vf-candidate-list-active #view-table-colegios>div:first-child p{font-size:9px!important;margin-top:2px!important}
+  .vf-college-sheet-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:9px}
+  .vf-college-sheet-stats div{min-width:0;padding:7px;border-radius:9px;background:#17253a}
+  .vf-college-sheet-stats span{display:block;color:#6e819b;font-size:6.8px;font-weight:850;text-transform:uppercase}
+  .vf-college-sheet-stats strong{display:block;margin-top:3px;overflow:hidden;color:#dbe6f2;font-size:10px;white-space:nowrap;text-overflow:ellipsis}
+  .vf-college-sheet-stats .vf-blue strong{color:#60a5fa}
+  .vf-college-sheet-stats .vf-green strong{color:#34d399}
+
+  .vf-college-sheet-address{margin-top:8px;padding:8px 9px;border-radius:9px;background:rgba(30,41,59,.48);color:#96a6ba;font-size:9px;line-height:1.3}
+  .vf-college-sheet-action{width:100%;min-height:39px;margin-top:9px;border:1px solid rgba(52,211,153,.28);border-radius:10px;background:rgba(16,185,129,.12);color:#4ade80;font-size:10.5px;font-weight:800}
+
+  body.vf-mobile.vf-candidate-list-active #view-table-colegios{padding-top:7px!important;padding-left:7px!important;padding-right:7px!important}
 }
 
 @media (max-width:360px){
-  .vf-candidate-college-row{
-    grid-template-columns:24px minmax(0,1fr) 44px 62px;
-    gap:5px;
-    padding-left:6px;
-    padding-right:6px;
-  }
-  .vf-candidate-row-actions{grid-template-columns:29px 29px;gap:3px}
-  .vf-candidate-row-action{width:29px!important;height:29px!important;min-width:29px!important;min-height:29px!important}
-  .vf-candidate-college-copy strong{font-size:9.8px}
-  .vf-candidate-vote-box strong{font-size:10px}
+  .vf-candidate-college-row{grid-template-columns:21px minmax(0,1fr) 43px 58px;gap:4px;padding-left:5px;padding-right:5px}
+  .vf-candidate-row-actions{grid-template-columns:27px 27px}
+  .vf-candidate-row-action{width:27px!important;height:27px!important;min-width:27px!important;min-height:27px!important}
+  .vf-candidate-college-copy strong{font-size:8.8px}
+  .vf-candidate-vote-box strong{font-size:9px}
 }
