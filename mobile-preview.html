@@ -18,17 +18,18 @@
   <script>
     (async function () {
       try {
-        var response = await fetch('/desktop-source?vf-mobile-source=5', { cache: 'no-store' });
+        var response = await fetch('/desktop-source?vf-mobile-source=6', { cache: 'no-store' });
         if (!response.ok) throw new Error('HTTP ' + response.status);
         var html = await response.text();
-        var version = '20260904-5';
+        var version = '20260904-6';
         var headAssets =
           '<meta name="theme-color" content="#080d17">' +
           '<style>#vf-preview-badge{display:none!important}</style>' +
           '<link rel="stylesheet" href="/mobile-shell.css?v=' + version + '">' +
           '<link rel="stylesheet" href="/mobile-views.css?v=' + version + '">' +
           '<link rel="stylesheet" href="/mobile-polish.css?v=' + version + '">';
-        var scriptTag = '<scr' + 'ipt src="/mobile-ui.js?v=' + version + '"></scr' + 'ipt>';
+        var scriptTag = '<scr' + 'ipt src="/mobile-ui.js?v=' + version + '"></scr' + 'ipt>' +
+          '<scr' + 'ipt src="/mobile-polish.js?v=' + version + '"></scr' + 'ipt>';
         html = html.replace('</head>', headAssets + '</head>');
         html = html.replace('</body>', scriptTag + '</body>');
         document.open();
