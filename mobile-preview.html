@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#080d17">
+  <title>Mapa Eleitoral - Mobile</title>
+  <style>
+    *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;background:#080d17;color:#e2e8f0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{display:grid;place-items:center}.loader{display:flex;flex-direction:column;align-items:center;gap:12px;padding:28px;text-align:center}.spinner{width:34px;height:34px;border:3px solid rgba(148,163,184,.2);border-top-color:#3b82f6;border-radius:50%;animation:spin .8s linear infinite}.loader strong{font-size:15px}.loader small{color:#94a3b8}.loader button{min-height:44px;padding:0 18px;border:0;border-radius:12px;background:#2563eb;color:#fff;font-weight:750}@keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+  <main class="loader">
+    <div class="spinner" aria-hidden="true"></div>
+    <strong>Preparando a experiencia mobile...</strong>
+    <small>Mapa Eleitoral de Arapongas</small>
+  </main>
+  <script>
+    (async function () {
+      try {
+        var response = await fetch('/index.html?vf-mobile-source=3', { cache: 'no-store' });
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        var html = await response.text();
+        var version = '20260904-3';
+        var headAssets =
+          '<meta name="theme-color" content="#080d17">' +
+          '<style>#vf-preview-badge{display:none!important}</style>' +
+          '<link rel="stylesheet" href="/mobile-shell.css?v=' + version + '">' +
+          '<link rel="stylesheet" href="/mobile-views.css?v=' + version + '">';
+        var scriptTag = '<scr' + 'ipt src="/mobile-ui.js?v=' + version + '"></scr' + 'ipt>';
+        html = html.replace('</head>', headAssets + '</head>');
+        html = html.replace('</body>', scriptTag + '</body>');
+        document.open();
+        document.write(html);
+        document.close();
+      } catch (error) {
+        document.body.innerHTML = '<main class="loader"><strong>Nao foi possivel carregar a previa mobile.</strong><small>' + String(error && error.message ? error.message : error) + '</small><button onclick="location.reload()">Tentar novamente</button></main>';
+      }
+    }());
+  </script>
+</body>
+</html>
