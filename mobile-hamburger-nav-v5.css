@@ -1,0 +1,26 @@
+/* v5 - navegacao principal no hamburger; perfil permanece no avatar */
+@media(max-width:900px){
+  :root{--vf-nav:0px}
+  body.vf-mobile #app-root{padding-bottom:var(--vf-safe-bottom)!important}
+  .vf-mobile-bottom-nav{display:none!important}
+  .vf-mobile-drawer{width:min(88vw,344px)!important;max-width:344px!important}
+  .vf-drawer-head{min-height:calc(58px + var(--vf-safe-top))!important;padding:calc(9px + var(--vf-safe-top)) 12px 9px!important}
+  .vf-drawer-scroll{padding:10px 12px calc(14px + var(--vf-safe-bottom))!important}
+  .vf-drawer-account{display:none!important}
+  .vf-drawer-section{margin-top:12px!important}
+  .vf-drawer-label{margin:0 2px 7px!important;font-size:9px!important;letter-spacing:.11em!important}
+  .vf-drawer-navigation{margin-top:2px!important}
+  .vf-drawer-nav-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .vf-drawer-nav-grid button{min-height:48px;padding:7px 10px;display:flex;align-items:center;gap:9px;border:1px solid rgba(148,163,184,.15);border-radius:13px;background:#142137;color:#a8b5c8;font-size:11px;font-weight:760;text-align:left;touch-action:manipulation}
+  .vf-drawer-nav-grid button svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+  .vf-drawer-nav-grid button.active{border-color:rgba(96,165,250,.35);background:rgba(37,99,235,.17);color:#fff}
+  .vf-drawer-nav-grid button.active svg{color:#60a5fa}
+  .vf-drawer-actions{display:grid!important;grid-template-columns:1fr 1fr;gap:7px!important}
+  .vf-mobile-drawer .vf-drawer-actions>.btn-topbar{height:44px!important;min-height:44px!important;padding:0 10px!important;justify-content:center!important;font-size:11px!important}
+  .vf-drawer-filters{gap:7px!important}
+  .vf-mobile-drawer .layers-box-compact{min-height:43px!important;padding:5px 8px!important}
+  .vf-mobile-drawer .select-filter{min-height:43px!important;height:43px!important;font-size:14px!important}
+  .vf-drawer-preview{margin-top:12px!important;padding:9px 10px!important;font-size:10px!important}
+  .vf-map-leaders-button{bottom:calc(var(--vf-safe-bottom) + 12px)!important}
+  body.vf-mobile .sidebar-panel{bottom:var(--vf-safe-bottom)!important;max-height:calc(100dvh - var(--vf-header) - var(--vf-safe-top) - var(--vf-safe-bottom) - 12px)!important}
+}
