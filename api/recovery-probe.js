@@ -1,11 +1,7 @@
 const TARGET_URL = 'https://votofortearapongas-security-preview-3l0fa1ydj.vercel.app/';
-const TEMPORARY_SHARE_TOKEN = 'knRxsTMdGk5lTayPw2dhbLnvGYZutyrx';
 
 function readSetCookies(headers) {
-  if (typeof headers.getSetCookie === 'function') {
-    return headers.getSetCookie();
-  }
-
+  if (typeof headers.getSetCookie === 'function') return headers.getSetCookie();
   const raw = headers.get('set-cookie');
   return raw ? [raw] : [];
 }
@@ -22,35 +18,47 @@ function storeCookies(jar, headers) {
 }
 
 function cookieHeader(jar) {
-  return Array.from(jar.entries())
-    .map(([name, value]) => `${name}=${value}`)
-    .join('; ');
+  return Array.from(jar.entries()).map(([name, value]) => `${name}=${value}`).join('; ');
 }
 
 function safeLocation(value) {
   if (!value) return null;
   try {
     const parsed = new URL(value);
-    if (parsed.searchParams.has('_vercel_share')) {
-      parsed.searchParams.set('_vercel_share', '[redacted]');
-    }
+    if (parsed.searchParams.has('_vercel_share')) parsed.searchParams.set('_vercel_share', '[redacted]');
+    if (parsed.searchParams.has('share')) parsed.searchParams.set('share', '[redacted]');
     return parsed.toString();
   } catch (_) {
     return value;
   }
 }
 
+function readAuthCallback(status, contentType, body) {
+  if (status !== 401 || !String(contentType || '').includes('application/json')) return null;
+  try {
+    const payload = JSON.parse(body);
+    return payload?.protection?.vercel_auth_callback
+      ? String(payload.protection.vercel_auth_callback)
+      : null;
+  } catch (_) {
+    return null;
+  }
+}
+
 module.exports = async function recoveryProbe(request, response) {
   response.setHeader('Cache-Control', 'no-store, max-age=0');
 
+  const shareToken = request.query && request.query.share ? String(request.query.share) : '';
+  if (!shareToken) return response.status(400).json({ ok: false, reason: 'missing_share_token' });
+
   const jar = new Map();
   const steps = [];
-  let currentUrl = `${TARGET_URL}?_vercel_share=${encodeURIComponent(TEMPORARY_SHARE_TOKEN)}`;
+  let currentUrl = `${TARGET_URL}?_vercel_share=${encodeURIComponent(shareToken)}`;
   let finalResponse = null;
   let finalBody = '';
 
   try {
-    for (let index = 0; index < 8; index += 1) {
+    for (let index = 0; index < 10; index += 1) {
       const upstream = await fetch(currentUrl, {
         method: 'GET',
         redirect: 'manual',
@@ -63,18 +71,25 @@ module.exports = async function recoveryProbe(request, response) {
 
       storeCookies(jar, upstream.headers);
       const body = await upstream.text();
+      const contentType = upstream.headers.get('content-type');
       const location = upstream.headers.get('location');
+      const authCallback = readAuthCallback(upstream.status, contentType, body);
 
       steps.push({
         index: index + 1,
         status: upstream.status,
         url: safeLocation(currentUrl),
         location: safeLocation(location),
-        contentType: upstream.headers.get('content-type'),
+        authCallback: safeLocation(authCallback),
+        contentType,
         bodyLength: body.length,
         cookieNames: Array.from(jar.keys())
       });
 
+      if (authCallback) {
+        currentUrl = new URL(authCallback, currentUrl).toString();
+        continue;
+      }
       if (upstream.status >= 300 && upstream.status < 400 && location) {
         currentUrl = new URL(location, currentUrl).toString();
         continue;
@@ -86,23 +101,11 @@ module.exports = async function recoveryProbe(request, response) {
     }
 
     if (!finalResponse) {
-      return response.status(508).json({
-        ok: false,
-        reason: 'redirect_limit_reached',
-        steps
-      });
+      return response.status(508).json({ ok: false, reason: 'redirect_limit_reached', cookieNames: Array.from(jar.keys()), steps });
     }
 
     const isHtml = /<!doctype html|<html/i.test(finalBody);
     const rawRequested = request.query && String(request.query.raw || '') === '1';
-
-    console.log(JSON.stringify({
-      event: 'vercel_share_recovery',
-      status: finalResponse.status,
-      bodyLength: finalBody.length,
-      isHtml,
-      steps
-    }));
 
     if (rawRequested && finalResponse.ok && isHtml) {
       response.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -123,11 +126,11 @@ module.exports = async function recoveryProbe(request, response) {
       sample: finalBody.slice(0, 220)
     });
   } catch (error) {
-    console.error('vercel_share_recovery_failed', error);
     return response.status(500).json({
       ok: false,
       reason: 'share_flow_failed',
       message: error instanceof Error ? error.message : String(error),
+      cookieNames: Array.from(jar.keys()),
       steps
     });
   }
