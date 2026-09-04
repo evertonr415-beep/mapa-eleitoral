@@ -18,7 +18,7 @@
   <script>
     (async function(){
       var stable='d7a280e173dd1f4431d1e910fd9b6672dab37e33';
-      var mobile='cf44e756f0c796993cba016fad20db3cca3d29c4';
+      var mobile='1a94a3fc0fa14ad53b6f05b2de086b933db986a3';
       var cdn='https://cdn.jsdelivr.net/gh/evertonr415-beep/mapa-eleitoral@';
       try{
         var response=await fetch(cdn+stable+'/index.html',{cache:'no-store'});
@@ -32,7 +32,8 @@
           '<link rel="stylesheet" href="'+cdn+mobile+'/mobile-shell.css">'+
           '<link rel="stylesheet" href="'+cdn+mobile+'/mobile-views.css">'+
           '<link rel="stylesheet" href="'+cdn+mobile+'/mobile-polish.css">'+
-          '<link rel="stylesheet" href="'+cdn+mobile+'/mobile-layer-fix.css">';
+          '<link rel="stylesheet" href="'+cdn+mobile+'/mobile-layer-fix.css">'+
+          '<link rel="stylesheet" href="'+cdn+mobile+'/mobile-candidate-list.css">';
         var mobileScripts=
           '<scr'+'ipt src="'+cdn+mobile+'/mobile-ui.js"></scr'+'ipt>'+
           '<scr'+'ipt src="'+cdn+mobile+'/mobile-polish.js"></scr'+'ipt>'+
