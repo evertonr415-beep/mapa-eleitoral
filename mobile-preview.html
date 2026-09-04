@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#090d16">
+    <title>Preview Mobile - Mapa Eleitoral</title>
+    <style>
+        * { box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #020617; }
+        body { display: grid; place-items: center; }
+        #mobile-preview-frame {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            background: #090d16;
+        }
+        #preview-loading {
+            position: fixed;
+            inset: 0;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 24px;
+            background: #090d16;
+            color: #f8fafc;
+            font: 600 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            text-align: center;
+            transition: opacity 180ms ease;
+        }
+        #preview-loading.done { opacity: 0; pointer-events: none; }
+        .spinner {
+            width: 34px;
+            height: 34px;
+            border: 3px solid rgba(148, 163, 184, 0.25);
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (min-width: 901px) {
+            body { padding: 26px; }
+            #mobile-preview-frame {
+                width: 430px;
+                height: min(880px, calc(100vh - 52px));
+                border: 1px solid rgba(255,255,255,.15);
+                border-radius: 28px;
+                box-shadow: 0 30px 80px rgba(0,0,0,.65);
+                overflow: hidden;
+            }
+            #preview-loading {
+                inset: 50% auto auto 50%;
+                width: 430px;
+                height: min(880px, calc(100vh - 52px));
+                border-radius: 28px;
+                transform: translate(-50%, -50%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="preview-loading">
+        <div class="spinner" aria-hidden="true"></div>
+        <div>Carregando a preview mobile do Mapa Eleitoral...</div>
+    </div>
+
+    <iframe
+        id="mobile-preview-frame"
+        src="index.html?mobile-preview=1"
+        title="Mapa Eleitoral - Preview Mobile"
+        allow="geolocation; clipboard-write"
+    ></iframe>
+
+    <script>
+        (() => {
+            const frame = document.getElementById('mobile-preview-frame');
+            const loading = document.getElementById('preview-loading');
+            let injected = false;
+
+            const finish = () => loading.classList.add('done');
+
+            frame.addEventListener('load', () => {
+                if (injected) {
+                    finish();
+                    return;
+                }
+
+                try {
+                    const doc = frame.contentDocument;
+                    if (!doc || !doc.head || !doc.body) throw new Error('Conteúdo da preview indisponível.');
+
+                    const mobileStyles = doc.createElement('link');
+                    mobileStyles.rel = 'stylesheet';
+                    mobileStyles.href = `mobile.css?v=${Date.now()}`;
+                    mobileStyles.dataset.mobilePreview = 'true';
+                    doc.head.appendChild(mobileStyles);
+
+                    const mobileScript = doc.createElement('script');
+                    mobileScript.src = `mobile-enhancements.js?v=${Date.now()}`;
+                    mobileScript.defer = true;
+                    mobileScript.dataset.mobilePreview = 'true';
+                    doc.body.appendChild(mobileScript);
+
+                    injected = true;
+                    mobileStyles.addEventListener('load', () => setTimeout(finish, 180), { once: true });
+                    setTimeout(finish, 1600);
+                } catch (error) {
+                    console.error('Falha ao aplicar o modo mobile:', error);
+                    loading.querySelector('div:last-child').textContent = 'Não foi possível carregar a preview mobile neste navegador.';
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
