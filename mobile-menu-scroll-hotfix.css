@@ -1,0 +1,36 @@
+/* Hotfix isolado sobre a base mobile aprovada (7d2cd / mobile grid). */
+@media (max-width:900px){
+  body.vf-mobile .vf-mobile-drawer{
+    height:100dvh !important;
+    max-height:100dvh !important;
+    overscroll-behavior:contain !important;
+  }
+
+  body.vf-mobile .vf-drawer-scroll{
+    flex:1 1 auto !important;
+    min-height:0 !important;
+    height:auto !important;
+    overflow-x:hidden !important;
+    overflow-y:scroll !important;
+    overscroll-behavior-y:contain !important;
+    -webkit-overflow-scrolling:touch !important;
+    touch-action:pan-y !important;
+    scrollbar-gutter:stable;
+  }
+
+  body.vf-mobile.vf-drawer-open{
+    overflow:hidden !important;
+  }
+
+  body.vf-mobile.vf-drawer-open .vf-mobile-drawer{
+    pointer-events:auto !important;
+  }
+
+  body.vf-mobile.vf-drawer-open .vf-drawer-scroll{
+    pointer-events:auto !important;
+  }
+
+  .vf-mobile-overlay{
+    touch-action:manipulation;
+  }
+}
