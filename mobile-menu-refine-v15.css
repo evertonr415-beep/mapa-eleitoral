@@ -1,0 +1,61 @@
+/* Mobile v15: compact quick actions and filters */
+@media (max-width:900px){
+  body.vf-mobile .vf-drawer-section{margin-top:8px!important}
+  body.vf-mobile .vf-drawer-label{margin:0 2px 4px!important;font-size:7.5px!important}
+
+  body.vf-mobile .vf-mobile-drawer .vf-drawer-actions>.btn-topbar-whatsapp{
+    width:100%!important;
+    min-height:34px!important;
+    height:34px!important;
+    padding:0 10px!important;
+    border-radius:9px!important;
+    font-size:10px!important;
+    gap:7px!important;
+  }
+  body.vf-mobile .vf-mobile-drawer .vf-drawer-actions>.btn-topbar-whatsapp svg{
+    width:15px!important;
+    height:15px!important;
+  }
+
+  body.vf-mobile .vf-drawer-filters{
+    gap:4px!important;
+  }
+  body.vf-mobile .vf-mobile-drawer .layers-box-compact{
+    min-height:32px!important;
+    height:32px!important;
+    padding:2px 6px!important;
+    border-radius:9px!important;
+  }
+  body.vf-mobile .vf-mobile-drawer .layer-item-label{
+    min-height:24px!important;
+    padding:0 1px!important;
+    gap:4px!important;
+    font-size:9px!important;
+  }
+  body.vf-mobile .vf-mobile-drawer .layer-item-label input{
+    width:15px!important;
+    height:15px!important;
+    margin:0!important;
+  }
+
+  body.vf-mobile .vf-mobile-drawer .select-filter{
+    min-height:32px!important;
+    height:32px!important;
+    padding:0 26px 0 8px!important;
+    border-radius:9px!important;
+    font-size:10.5px!important;
+    line-height:32px!important;
+  }
+
+  body.vf-mobile .vf-drawer-actions,
+  body.vf-mobile .vf-drawer-filters{
+    width:100%!important;
+  }
+
+  body.vf-mobile .vf-drawer-section:has(.vf-drawer-actions){margin-top:8px!important}
+  body.vf-mobile .vf-drawer-section:has(.vf-drawer-filters){margin-top:8px!important}
+}
+
+@media (max-width:390px){
+  body.vf-mobile .vf-mobile-drawer .select-filter{font-size:10px!important}
+}
