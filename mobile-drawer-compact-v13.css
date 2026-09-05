@@ -1,0 +1,60 @@
+/* Mobile v13: compact modern hamburger drawer */
+@media (max-width:900px){
+  body.vf-mobile .vf-mobile-drawer{
+    width:min(78vw,318px)!important;
+    max-width:318px!important;
+    border-right:1px solid rgba(148,163,184,.14)!important;
+    background:linear-gradient(180deg,#0f1726 0%,#0b1220 100%)!important;
+    box-shadow:18px 0 42px rgba(0,0,0,.40)!important;
+  }
+  body.vf-mobile .vf-drawer-head{
+    min-height:calc(54px + var(--vf-safe-top))!important;
+    padding:calc(8px + var(--vf-safe-top)) 10px 8px!important;
+    gap:8px!important;
+  }
+  body.vf-mobile .vf-drawer-brand{gap:8px!important}
+  body.vf-mobile .vf-drawer-brand img{width:32px!important;height:21px!important;border-radius:4px!important}
+  body.vf-mobile .vf-drawer-brand strong{font-size:13px!important;line-height:1.05!important}
+  body.vf-mobile .vf-drawer-brand span{font-size:9px!important;margin-top:2px!important}
+  body.vf-mobile .vf-drawer-close{width:36px!important;height:36px!important;border-radius:11px!important}
+  body.vf-mobile .vf-drawer-scroll{padding:10px 10px calc(14px + var(--vf-safe-bottom))!important}
+  body.vf-mobile .vf-drawer-section{margin-top:11px!important}
+  body.vf-mobile .vf-drawer-label{margin:0 2px 6px!important;font-size:8px!important;letter-spacing:.10em!important}
+  body.vf-mobile .vf-drawer-navigation{margin-top:1px!important}
+  body.vf-mobile .vf-drawer-nav-grid{gap:6px!important}
+  body.vf-mobile .vf-drawer-nav-grid button{
+    min-height:42px!important;
+    padding:6px 8px!important;
+    gap:7px!important;
+    border-radius:11px!important;
+    font-size:10px!important;
+  }
+  body.vf-mobile .vf-drawer-nav-grid button svg{width:16px!important;height:16px!important}
+  body.vf-mobile .vf-drawer-actions{gap:6px!important}
+  body.vf-mobile .vf-mobile-drawer .vf-drawer-actions>.btn-topbar{
+    min-height:40px!important;
+    height:40px!important;
+    padding:0 10px!important;
+    border-radius:11px!important;
+    font-size:10px!important;
+  }
+  body.vf-mobile .vf-drawer-filters{gap:6px!important}
+  body.vf-mobile .vf-mobile-drawer .layers-box-compact{
+    min-height:40px!important;
+    padding:4px 7px!important;
+    border-radius:11px!important;
+  }
+  body.vf-mobile .vf-mobile-drawer .layer-item-label{min-height:29px!important;font-size:10px!important}
+  body.vf-mobile .vf-mobile-drawer .select-filter{
+    min-height:40px!important;
+    height:40px!important;
+    padding:0 9px!important;
+    border-radius:11px!important;
+    font-size:13px!important;
+  }
+  body.vf-mobile .vf-drawer-preview{margin-top:10px!important;padding:8px 9px!important;border-radius:11px!important;font-size:9px!important}
+}
+
+@media (max-width:390px){
+  body.vf-mobile .vf-mobile-drawer{width:min(80vw,302px)!important;max-width:302px!important}
+}
