@@ -16,7 +16,7 @@
       sheet=document.createElement('section');
       sheet.className='vf-map-filter-sheet';
       sheet.setAttribute('aria-label','Filtros do mapa');
-      sheet.innerHTML='<div class="vf-map-filter-sheet-head"><div class="vf-map-filter-sheet-title"><strong>Filtros</strong><span>Camadas e vereador selecionado</span></div><button type="button" class="vf-map-filter-sheet-close" aria-label="Fechar filtros">'+iconClose()+'</button></div><div class="vf-map-filter-sheet-body"><div class="vf-map-filter-controls"></div><div class="vf-map-filter-sheet-note"><b>Vereador:</b> esta seleção continua valendo também para a aba Colégios.</div></div>';
+      sheet.innerHTML='<div class="vf-map-filter-sheet-head"><div class="vf-map-filter-sheet-title"><strong>Filtros</strong><span>Camadas e seleção eleitoral</span></div><button type="button" class="vf-map-filter-sheet-close" aria-label="Fechar filtros">'+iconClose()+'</button></div><div class="vf-map-filter-sheet-body"><div class="vf-map-filter-controls"></div><div class="vf-map-filter-sheet-note"><b>Seleção:</b> a lista completa continua vinculada ao mapa e também à aba Colégios.</div></div>';
       var backdrop=document.createElement('button');
       backdrop.type='button';
       backdrop.className='vf-map-filter-backdrop';
@@ -27,24 +27,34 @@
     }
 
     var controls=sheet.querySelector('.vf-map-filter-controls');
-    if(drawerFilters.parentElement)drawerFilters.parentElement.classList.add('vf-filter-section-moved');
+    var oldSection=drawerFilters.closest('.vf-drawer-section');
+    if(oldSection)oldSection.classList.add('vf-filter-section-moved');
     if(drawerFilters.parentElement!==controls)controls.appendChild(drawerFilters);
 
     var cand=document.getElementById('cand-select');
     var ver=document.getElementById('filter-liderancas-vereador');
+
+    if(cand){
+      cand.style.removeProperty('visibility');
+      cand.style.removeProperty('opacity');
+      cand.removeAttribute('hidden');
+    }
+
     if(cand&&!cand.previousElementSibling?.classList?.contains('vf-map-filter-field-label')){
-      var lab=document.createElement('div');lab.className='vf-map-filter-field-label';lab.innerHTML='Vereador <small>filtra mapa e colégios</small>';cand.parentNode.insertBefore(lab,cand);
+      var lab=document.createElement('div');
+      lab.className='vf-map-filter-field-label';
+      lab.innerHTML='Vereador / candidato <small>lista completa</small>';
+      cand.parentNode.insertBefore(lab,cand);
     }
     if(ver&&!ver.previousElementSibling?.classList?.contains('vf-map-filter-field-label')){
-      var lab2=document.createElement('div');lab2.className='vf-map-filter-field-label vf-map-filter-secondary-label';lab2.textContent='Lideranças por vereador';ver.parentNode.insertBefore(lab2,ver);
+      var lab2=document.createElement('div');
+      lab2.className='vf-map-filter-field-label vf-map-filter-secondary-label';
+      lab2.textContent='Lideranças por vereador';
+      ver.parentNode.insertBefore(lab2,ver);
     }
     syncSecondaryLabel();
 
-    var filterBtn=document.querySelector('.vf-map-toolbar .vf-map-filter');
-    if(filterBtn&&!filterBtn.dataset.vfV16Bound){
-      filterBtn.dataset.vfV16Bound='1';
-      filterBtn.addEventListener('click',function(ev){ev.stopPropagation();toggleSheet();},true);
-    }
+    bindFilterButton();
 
     if(cand&&!cand.dataset.vfV16Bound){
       cand.dataset.vfV16Bound='1';
@@ -67,7 +77,28 @@
       el.addEventListener('change',function(){setTimeout(closeSheet,100);});
     });
 
-    document.addEventListener('keydown',function(ev){if(ev.key==='Escape')closeSheet();},{once:false});
+    if(!document.documentElement.dataset.vfV16Esc){
+      document.documentElement.dataset.vfV16Esc='1';
+      document.addEventListener('keydown',function(ev){if(ev.key==='Escape')closeSheet();});
+    }
+  }
+
+  function bindFilterButton(){
+    var oldBtn=document.querySelector('.vf-map-toolbar .vf-map-filter');
+    if(!oldBtn)return;
+    if(oldBtn.dataset.vfV16Clean==='1')return;
+
+    /* Clone removes the original mobile-ui openDrawer listener so the new
+       map filter sheet is the only action triggered by this control. */
+    var btn=oldBtn.cloneNode(true);
+    btn.dataset.vfV16Clean='1';
+    oldBtn.parentNode.replaceChild(btn,oldBtn);
+    btn.addEventListener('click',function(ev){
+      ev.preventDefault();
+      ev.stopImmediatePropagation();
+      document.body.classList.remove('vf-drawer-open');
+      toggleSheet();
+    });
   }
 
   function syncSecondaryLabel(){
