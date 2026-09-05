@@ -2,15 +2,64 @@
   'use strict';
   if(window.__vfSharedFilterV17)return;window.__vfSharedFilterV17=true;
 
+  var cleanMain=null;
+  var collegeSelect=null;
+  var collegeObserver=null;
+
+  function renderCandidate(value){
+    try{
+      if(typeof state!=='undefined'&&state)state.selectedCandidate=value;
+      if(typeof renderMapColegios==='function')renderMapColegios();
+      if(typeof renderTableColegios==='function')renderTableColegios();
+    }catch(_){ }
+  }
+
   function syncCollegeSelectFromMain(main,college){
     if(!main||!college)return;
+    var value=main.value;
     college.innerHTML=main.innerHTML;
-    college.value=main.value;
+    college.value=value;
+  }
+
+  function cleanLegacyCandidateSelect(){
+    var current=document.getElementById('cand-select');
+    if(!current)return null;
+    if(current.dataset.vfV17Clean==='1'){
+      cleanMain=current;
+      return current;
+    }
+
+    var value=current.value;
+    var clean=current.cloneNode(true);
+    clean.value=value;
+
+    /* Prevent delayed helpers from reattaching the old behavior. */
+    clean.dataset.vfV17Clean='1';
+    clean.dataset.vfV16Bound='1';
+    clean.dataset.previewFixInstalled='1';
+    delete clean.dataset.vfV17Sync;
+    delete clean.dataset.vfV17Stay;
+    delete clean.dataset.vfV17Protect;
+
+    current.parentNode.replaceChild(clean,current);
+    clean.value=value;
+    cleanMain=clean;
+
+    clean.addEventListener('change',function(ev){
+      ev.stopImmediatePropagation();
+      renderCandidate(clean.value);
+      if(collegeSelect)syncCollegeSelectFromMain(clean,collegeSelect);
+      document.body.classList.remove('vf-map-filter-sheet-open');
+      /* Deliberately remain on the current view. Selecting a candidate is a filter,
+         never a navigation action. */
+    },true);
+
+    return clean;
   }
 
   function ensureCollegeFilter(){
     if(!document.body.classList.contains('vf-mobile'))return;
-    var main=document.getElementById('cand-select');
+    var main=cleanLegacyCandidateSelect();
     var collegeView=document.getElementById('view-table-colegios');
     if(!main||!collegeView){setTimeout(ensureCollegeFilter,120);return;}
 
@@ -22,32 +71,25 @@
       collegeView.insertBefore(wrap,collegeView.firstChild);
     }
 
-    var college=wrap.querySelector('#vf-college-candidate-select');
-    syncCollegeSelectFromMain(main,college);
+    collegeSelect=wrap.querySelector('#vf-college-candidate-select');
+    syncCollegeSelectFromMain(main,collegeSelect);
 
-    if(!college.dataset.vfV17Bound){
-      college.dataset.vfV17Bound='1';
-      college.addEventListener('change',function(){
-        if(main.value!==college.value){
-          main.value=college.value;
-          main.dispatchEvent(new Event('change',{bubbles:true}));
-        }else{
-          try{
-            if(typeof state!=='undefined'&&state)state.selectedCandidate=college.value;
-            if(typeof renderMapColegios==='function')renderMapColegios();
-            if(typeof renderTableColegios==='function')renderTableColegios();
-          }catch(_){ }
-        }
-      });
+    if(!collegeSelect.dataset.vfV17Bound){
+      collegeSelect.dataset.vfV17Bound='1';
+      collegeSelect.addEventListener('change',function(ev){
+        ev.stopImmediatePropagation();
+        main.value=collegeSelect.value;
+        renderCandidate(collegeSelect.value);
+        syncCollegeSelectFromMain(main,collegeSelect);
+        /* Stay inside Colégios when selection happens there. */
+      },true);
     }
 
-    if(!main.dataset.vfV17Sync){
-      main.dataset.vfV17Sync='1';
-      main.addEventListener('change',function(){
-        syncCollegeSelectFromMain(main,college);
+    if(!collegeObserver){
+      collegeObserver=new MutationObserver(function(){
+        if(cleanMain&&collegeSelect)syncCollegeSelectFromMain(cleanMain,collegeSelect);
       });
-      var obs=new MutationObserver(function(){syncCollegeSelectFromMain(main,college);});
-      obs.observe(main,{childList:true,subtree:true});
+      collegeObserver.observe(main,{childList:true,subtree:true});
     }
 
     var sheet=document.querySelector('.vf-map-filter-sheet');
@@ -62,56 +104,19 @@
         document.body.classList.remove('vf-map-filter-sheet-open');
         if(typeof window.switchView==='function')window.switchView('colegios');
         setTimeout(function(){
-          syncCollegeSelectFromMain(main,college);
-          try{college.focus({preventScroll:true});}catch(_){ }
+          syncCollegeSelectFromMain(main,collegeSelect);
+          try{collegeSelect.focus({preventScroll:true});}catch(_){ }
         },120);
       });
     }
-
-    installMapStayFix(main);
   }
 
-  function installMapStayFix(main){
-    if(main.dataset.vfV17Stay==='1')return;
-    main.dataset.vfV17Stay='1';
-
-    main.addEventListener('change',function(){
-      setTimeout(function(){
-        var mapTab=document.getElementById('tab-btn-map');
-        var currentMap=mapTab&&mapTab.classList.contains('active');
-        if(!currentMap)return;
-        try{
-          if(typeof state!=='undefined'&&state)state.selectedCandidate=main.value;
-          if(typeof renderMapColegios==='function')renderMapColegios();
-          if(typeof renderTableColegios==='function')renderTableColegios();
-        }catch(_){ }
-      },0);
-    },true);
+  function init(){
+    cleanLegacyCandidateSelect();
+    ensureCollegeFilter();
   }
 
-  /* The legacy preview helper forces switchView('colegios') on cand-select change.
-     Re-dispatching from a clone would lose app listeners, so instead we wrap switchView
-     only during a map candidate change and ignore that single forced navigation. */
-  function protectForcedCollegeNavigation(){
-    var main=document.getElementById('cand-select');
-    if(!main||main.dataset.vfV17Protect==='1'){return;}
-    main.dataset.vfV17Protect='1';
-    var original=window.switchView;
-    if(typeof original!=='function'){setTimeout(protectForcedCollegeNavigation,120);return;}
-    var suppress=false;
-    main.addEventListener('change',function(){
-      var mapTab=document.getElementById('tab-btn-map');
-      suppress=!!(mapTab&&mapTab.classList.contains('active'));
-      setTimeout(function(){suppress=false;},50);
-    },true);
-    window.switchView=function(view){
-      if(suppress&&view==='colegios')return;
-      return original.apply(this,arguments);
-    };
-  }
-
-  function init(){ensureCollegeFilter();protectForcedCollegeNavigation();}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(init,220);},{once:true});else setTimeout(init,220);
-  setTimeout(init,800);
-  setTimeout(init,1600);
+  setTimeout(init,650);
+  setTimeout(init,1300);
 })();
