@@ -1,0 +1,13 @@
+/* Mobile v12: remove redundant quick-action leadership button */
+@media (max-width:900px){
+  body.vf-mobile .vf-mobile-drawer .vf-drawer-actions > .btn-topbar-primary{
+    display:none!important;
+  }
+  body.vf-mobile .vf-mobile-drawer .vf-drawer-actions{
+    grid-template-columns:1fr!important;
+  }
+  body.vf-mobile .vf-mobile-drawer .vf-drawer-actions > .btn-topbar-whatsapp{
+    width:100%!important;
+    max-width:none!important;
+  }
+}
