@@ -1,0 +1,48 @@
+name: Import official TSE photos
+
+on:
+  push:
+    branches:
+      - preview-politician-photos-v27
+    paths:
+      - 'scripts/fetch_tse_photos.py'
+      - '.github/workflows/import-tse-photos.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  import-photos:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout preview branch
+        uses: actions/checkout@v4
+        with:
+          ref: preview-politician-photos-v27
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Download and match official TSE photos
+        run: python scripts/fetch_tse_photos.py
+
+      - name: Show import report
+        run: |
+          echo '--- photos.json ---'
+          cat assets/politicians/photos.json
+          echo '--- report.json ---'
+          cat assets/politicians/report.json
+
+      - name: Commit imported photos
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/politicians
+          if git diff --cached --quiet; then
+            echo 'No photo changes to commit.'
+            exit 0
+          fi
+          git commit -m 'preview v27.3: import official TSE politician photos'
+          git push origin HEAD:preview-politician-photos-v27
