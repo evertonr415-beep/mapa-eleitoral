@@ -4,11 +4,11 @@
   "zone": "0061",
   "sections_2024": 246,
   "sections_2024_processed": 246,
-  "sections_2022": 0,
-  "sections_2022_processed": 0,
+  "sections_2022": 239,
+  "sections_2022_processed": 239,
   "tse_locals_2024": 29,
-  "tse_locals_2022": 0,
-  "location_mapping": [
+  "tse_locals_2022": 28,
+  "location_mapping_2024": [
     {
       "tse_local": "1368",
       "app_id": "CLG-01",
@@ -242,6 +242,178 @@
       "sections_tse": 1
     }
   ],
+  "location_mapping_2022": [
+    {
+      "tse_local_2022": "1015",
+      "app_id": "CLG-14",
+      "method": "same-local-code",
+      "sections": 8
+    },
+    {
+      "tse_local_2022": "1023",
+      "app_id": "CLG-13",
+      "method": "same-local-code",
+      "sections": 9
+    },
+    {
+      "tse_local_2022": "1066",
+      "app_id": "CLG-09",
+      "method": "same-local-code",
+      "sections": 11
+    },
+    {
+      "tse_local_2022": "1082",
+      "app_id": "CLG-24",
+      "method": "same-local-code",
+      "sections": 2
+    },
+    {
+      "tse_local_2022": "1112",
+      "app_id": "CLG-07",
+      "method": "same-local-code",
+      "sections": 10
+    },
+    {
+      "tse_local_2022": "1120",
+      "app_id": "CLG-23",
+      "method": "same-local-code",
+      "sections": 5
+    },
+    {
+      "tse_local_2022": "1163",
+      "app_id": "CLG-10",
+      "method": "same-local-code",
+      "sections": 10
+    },
+    {
+      "tse_local_2022": "1201",
+      "app_id": "CLG-08",
+      "method": "same-local-code",
+      "sections": 8
+    },
+    {
+      "tse_local_2022": "1210",
+      "app_id": "CLG-18",
+      "method": "same-local-code",
+      "sections": 5
+    },
+    {
+      "tse_local_2022": "1228",
+      "app_id": "CLG-21",
+      "method": "same-local-code",
+      "sections": 10
+    },
+    {
+      "tse_local_2022": "1236",
+      "app_id": "CLG-02",
+      "method": "same-local-code",
+      "sections": 13
+    },
+    {
+      "tse_local_2022": "1244",
+      "app_id": "CLG-15",
+      "method": "same-local-code",
+      "sections": 8
+    },
+    {
+      "tse_local_2022": "1252",
+      "app_id": "CLG-08",
+      "method": "section-number-continuity",
+      "sections_2022": 2,
+      "sections_with_2024_match": 2
+    },
+    {
+      "tse_local_2022": "1260",
+      "app_id": "CLG-03",
+      "method": "section-number-continuity",
+      "sections_2022": 14,
+      "sections_with_2024_match": 14
+    },
+    {
+      "tse_local_2022": "1279",
+      "app_id": "CLG-19",
+      "method": "same-local-code",
+      "sections": 6
+    },
+    {
+      "tse_local_2022": "1295",
+      "app_id": "CLG-27",
+      "method": "same-local-code",
+      "sections": 5
+    },
+    {
+      "tse_local_2022": "1309",
+      "app_id": "CLG-17",
+      "method": "same-local-code",
+      "sections": 8
+    },
+    {
+      "tse_local_2022": "1317",
+      "app_id": "CLG-25",
+      "method": "same-local-code",
+      "sections": 5
+    },
+    {
+      "tse_local_2022": "1325",
+      "app_id": "CLG-16",
+      "method": "same-local-code",
+      "sections": 8
+    },
+    {
+      "tse_local_2022": "1333",
+      "app_id": "CLG-20",
+      "method": "same-local-code",
+      "sections": 7
+    },
+    {
+      "tse_local_2022": "1341",
+      "app_id": "CLG-04",
+      "method": "same-local-code",
+      "sections": 14
+    },
+    {
+      "tse_local_2022": "1350",
+      "app_id": "CLG-05",
+      "method": "same-local-code",
+      "sections": 11
+    },
+    {
+      "tse_local_2022": "1368",
+      "app_id": "CLG-01",
+      "method": "same-local-code",
+      "sections": 13
+    },
+    {
+      "tse_local_2022": "1376",
+      "app_id": "CLG-12",
+      "method": "same-local-code",
+      "sections": 19
+    },
+    {
+      "tse_local_2022": "1384",
+      "app_id": "CLG-28",
+      "method": "same-local-code",
+      "sections": 5
+    },
+    {
+      "tse_local_2022": "1392",
+      "app_id": "CLG-06",
+      "method": "same-local-code",
+      "sections": 12
+    },
+    {
+      "tse_local_2022": "1406",
+      "app_id": "CLG-22",
+      "method": "same-local-code",
+      "sections": 6
+    },
+    {
+      "tse_local_2022": "1414",
+      "app_id": "CLG-26",
+      "method": "same-local-code",
+      "sections": 5
+    }
+  ],
   "coverage": {
     "20220": 29,
     "55155": 29,
@@ -309,7 +481,27 @@
     "22622": 700,
     "22123": 673
   },
-  "totals_2022": {},
+  "totals_2022": {
+    "dep_fed_lupion": 14066,
+    "dep_fed_filipe": 5901,
+    "dep_fed_beto": 4060,
+    "dep_fed_angelica": 3731,
+    "dep_fed_deltan": 2228,
+    "dep_fed_luisa": 1777,
+    "dep_fed_fahur": 2225,
+    "dep_fed_zeca": 84,
+    "dep_fed_aliel": 316,
+    "dep_fed_francischini": 913,
+    "dep_fed_sperafico": 20,
+    "dep_est_tiago": 15471,
+    "dep_est_bazana": 9843,
+    "dep_est_tercilio": 617,
+    "dep_est_curi": 390,
+    "dep_est_jacovos": 1403,
+    "dep_est_cobra": 2190,
+    "dep_est_pacheco": 42,
+    "dep_est_arilson": 818
+  },
   "elected_integrity_check": {
     "20220": {
       "tse": 2135,
