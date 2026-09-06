@@ -67,10 +67,17 @@
 
   function apply(){applyCollege();applyDistrict();}
 
+  function loadV27(){
+    if(window.__vfPoliticianPhotosV27Boot)return;window.__vfPoliticianPhotosV27Boot=true;
+    var css=document.createElement('link');css.rel='stylesheet';css.href=location.origin+'/mobile-politician-photos-v27.css?v=27';document.head.appendChild(css);
+    var js=document.createElement('script');js.src=location.origin+'/mobile-politician-photos-v27.js?v=27';js.defer=true;document.head.appendChild(js);
+  }
+
   var obs=new MutationObserver(function(){setTimeout(apply,0);});
   function install(){
     if(document.body)obs.observe(document.body,{childList:true,subtree:true});
     apply();
+    loadV27();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
   setInterval(apply,500);
