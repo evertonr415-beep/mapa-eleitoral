@@ -1,0 +1,131 @@
+{
+  "2022": {
+    "aux_url": "https://resultados.tse.jus.br/oficial/ele2022/arquivo-urna/406/dados/pr/74276/0061/0299/p000406-pr-m74276-z0061-s0299-aux.json",
+    "aux_status": 200,
+    "aux_type": "application/json",
+    "aux": {
+      "dg": "30/11/2022",
+      "hg": "17:48:08",
+      "f": "O",
+      "st": "Totalizada",
+      "ds": "",
+      "hashes": [
+        {
+          "hash": "426a313032737a3976764245326a5866616b6d4736507a56794c513855746335786c67305871727a636c773d",
+          "dr": "02/10/2022",
+          "hr": "19:59:55",
+          "st": "Totalizado",
+          "ds": "",
+          "nmarq": [
+            "o00406-7427600610299.bu",
+            "o00406-7427600610299.logjez",
+            "o00406-7427600610299.vscmr",
+            "o00406-7427600610299.rdv",
+            "o00406-7427600610299.imgbu"
+          ]
+        }
+      ]
+    },
+    "hashes_summary": [
+      {
+        "hash": "426a313032737a3976764245326a5866616b6d4736507a56794c513855746335786c67305871727a636c773d",
+        "nmarq": [
+          "o00406-7427600610299.bu",
+          "o00406-7427600610299.logjez",
+          "o00406-7427600610299.vscmr",
+          "o00406-7427600610299.rdv",
+          "o00406-7427600610299.imgbu"
+        ],
+        "st": "Totalizado"
+      }
+    ],
+    "structured_tests": [
+      {
+        "url": "https://resultados.tse.jus.br/oficial/ele2022/arquivo-urna/406/dados/pr/74276/0061/0299/p000406-pr-m74276-z0061-s0299-bu.json",
+        "status": 404,
+        "content_type": "text/html; charset=iso-8859-1",
+        "size": 196
+      },
+      {
+        "url": "https://resultados.tse.jus.br/oficial/ele2022/arquivo-urna/406/dados/pr/74276/0061/0299/p000406-pr-m74276-z0061-s0299.json",
+        "status": 404,
+        "content_type": "text/html; charset=iso-8859-1",
+        "size": 196
+      },
+      {
+        "url": "https://resultados.tse.jus.br/oficial/ele2022/arquivo-urna/406/dados/pr/74276/0061/0299/p000406-pr-m74276-z0061-s0299-v.json",
+        "status": 404,
+        "content_type": "text/html; charset=iso-8859-1",
+        "size": 196
+      }
+    ]
+  },
+  "2024": {
+    "aux_url": "https://resultados.tse.jus.br/oficial/ele2024/arquivo-urna/452/dados/pr/74276/0061/0299/p000452-pr-m74276-z0061-s0299-aux.json",
+    "aux_status": 200,
+    "aux_type": "application/json",
+    "aux": {
+      "dg": "06/10/2024",
+      "hg": "19:14:21",
+      "f": "O",
+      "st": "Totalizada",
+      "hashes": [
+        {
+          "hash": "554752592d6b4276344b764f5639654d76447a503367746241686f4e374c6d506c656f6e6b47435a6141343d",
+          "dr": "06/10/2024",
+          "hr": "18:28:47",
+          "st": "Totalizado",
+          "arq": [
+            {
+              "nm": "o00452pr7427600610299-rdv.dat",
+              "tp": "rdv"
+            },
+            {
+              "nm": "o00452pr7427600610299-bu.dat",
+              "tp": "bu"
+            },
+            {
+              "nm": "o00452pr7427600610299-vota.vsc",
+              "tp": "vota"
+            },
+            {
+              "nm": "o00452pr7427600610299-log.jez",
+              "tp": "log"
+            },
+            {
+              "nm": "o00452pr7427600610299-imgbu.dat",
+              "tp": "imgbu"
+            }
+          ]
+        }
+      ]
+    },
+    "hashes_summary": [
+      {
+        "hash": "554752592d6b4276344b764f5639654d76447a503367746241686f4e374c6d506c656f6e6b47435a6141343d",
+        "nmarq": null,
+        "st": "Totalizado"
+      }
+    ],
+    "structured_tests": [
+      {
+        "url": "https://resultados.tse.jus.br/oficial/ele2024/arquivo-urna/452/dados/pr/74276/0061/0299/p000452-pr-m74276-z0061-s0299-bu.json",
+        "status": 404,
+        "content_type": "text/html; charset=iso-8859-1",
+        "size": 196
+      },
+      {
+        "url": "https://resultados.tse.jus.br/oficial/ele2024/arquivo-urna/452/dados/pr/74276/0061/0299/p000452-pr-m74276-z0061-s0299.json",
+        "status": 404,
+        "content_type": "text/html; charset=iso-8859-1",
+        "size": 196
+      },
+      {
+        "url": "https://resultados.tse.jus.br/oficial/ele2024/arquivo-urna/452/dados/pr/74276/0061/0299/p000452-pr-m74276-z0061-s0299-v.json",
+        "status": 404,
+        "content_type": "text/html; charset=iso-8859-1",
+        "size": 196
+      }
+    ]
+  }
+}
