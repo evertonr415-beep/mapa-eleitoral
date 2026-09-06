@@ -1,0 +1,17 @@
+{
+  "fed2022": {
+    "url": "https://resultados.tse.jus.br/oficial/ele2022/544/dados/pr/pr74276-c0006-e000544-v.json",
+    "status": 404,
+    "error": "HTTP Error 404: Not Found"
+  },
+  "est2022": {
+    "url": "https://resultados.tse.jus.br/oficial/ele2022/544/dados/pr/pr74276-c0007-e000544-v.json",
+    "status": 404,
+    "error": "HTTP Error 404: Not Found"
+  },
+  "ver2024": {
+    "url": "https://resultados.tse.jus.br/oficial/ele2024/619/dados/pr/pr74276-c0013-e000619-v.json",
+    "status": 404,
+    "error": "HTTP Error 404: Not Found"
+  }
+}
