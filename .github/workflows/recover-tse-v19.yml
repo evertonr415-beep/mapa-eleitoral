@@ -23,6 +23,22 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Probe official TSE and TRE sources
+        run: |
+          set -x
+          curl -L --fail --retry 3 -A 'Mozilla/5.0' -o /tmp/v22.zip 'https://cdn.tse.jus.br/estatistica/sead/odsele/votacao_secao/votacao_secao_2022_PR.zip'
+          curl -L --fail --retry 3 -A 'Mozilla/5.0' -o /tmp/v24.zip 'https://cdn.tse.jus.br/estatistica/sead/odsele/votacao_secao/votacao_secao_2024_PR.zip'
+          curl -L --fail --retry 3 -A 'Mozilla/5.0' -o /tmp/loc24 'https://www.tre-pr.jus.br/eleicoes/estatisticas/arquivos/tre-pr-elo-cadastro-eleitoral-enderecos-das-secoes-do-parana-2024'
+          curl -L --fail --retry 3 -A 'Mozilla/5.0' -o /tmp/loc22 'https://www.tre-pr.jus.br/eleicoes/estatisticas/arquivos/tre-pr-elo-cadastro-eleitoral-enderecos-das-secoes-do-parana-2022'
+          file /tmp/v22.zip /tmp/v24.zip /tmp/loc24 /tmp/loc22
+          unzip -l /tmp/v22.zip | head -20
+          unzip -l /tmp/v24.zip | head -20
+          if command -v pdftotext >/dev/null 2>&1; then
+            pdftotext -layout /tmp/loc24 /tmp/loc24.txt || true
+            pdftotext -layout /tmp/loc22 /tmp/loc22.txt || true
+            grep -in -A 80 -B 10 'ARAPONGAS' /tmp/loc24.txt | head -220 || true
+            grep -in -A 80 -B 10 'ARAPONGAS' /tmp/loc22.txt | head -220 || true
+          fi
       - name: Reconstruct votes from official TSE open data
         run: python scripts/recover_tse_votes.py
       - name: Show validation report
