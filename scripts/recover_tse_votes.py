@@ -1,180 +1,177 @@
 #!/usr/bin/env python3
-import csv, io, json, os, re, sys, tempfile, unicodedata, urllib.request, zipfile
+import json, os, re, urllib.request, time
 from collections import defaultdict
-from difflib import SequenceMatcher
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import asn1tools
 
-REPO_ROOT=os.path.abspath(os.path.join(os.path.dirname(__file__),'..'))
-CITY='ARAPONGAS'
+ROOT=os.path.abspath(os.path.join(os.path.dirname(__file__),'..'))
+MUN='74276'; ZONE='0061'; UF='pr'
+ELECTED=['20220','55155','11234','44044','70000','40133','20120','11555','44567','55555','55147','22777','44190','55120','12500']
+TARGET24=ELECTED+['11500','11444','13100','55456','10123','22622','22123']
+TARGET22={
+'dep_fed_lupion':1111,'dep_fed_filipe':2201,'dep_fed_beto':5501,'dep_fed_angelica':9020,'dep_fed_deltan':1919,'dep_fed_luisa':5511,'dep_fed_fahur':5590,'dep_fed_zeca':1310,'dep_fed_aliel':4343,'dep_fed_francischini':4444,'dep_fed_sperafico':1122,
+'dep_est_tiago':55155,'dep_est_bazana':55600,'dep_est_tercilio':55043,'dep_est_curi':55128,'dep_est_jacovos':22038,'dep_est_cobra':55055,'dep_est_pacheco':10100,'dep_est_arilson':13000}
 
-TARGET_2024={
-'20220':'20220','55155':'55155','11234':'11234','44044':'44044','70000':'70000','40133':'40133','20120':'20120','11555':'11555','44567':'44567','55555':'55555','55147':'55147','22777':'22777','44190':'44190','55120':'55120','12500':'12500',
-'11500':'11500','11444':'11444','13100':'13100','55456':'55456','10123':'10123','22622':'22622','22123':'22123'
-}
-TARGET_2022={
-'dep_fed_lupion':'Pedro Lupion','dep_fed_filipe':'Filipe Barros','dep_fed_beto':'Beto Preto','dep_fed_angelica':'Angélica Enfermeira','dep_fed_deltan':'Deltan Dallagnol','dep_fed_luisa':'Luísa Canziani','dep_fed_fahur':'Sargento Fahur','dep_fed_zeca':'Zeca Dirceu','dep_fed_aliel':'Aliel Machado','dep_fed_francischini':'Felipe Francischini','dep_fed_sperafico':'Dilceu Sperafico',
-'dep_est_tiago':'Tiago Amaral','dep_est_bazana':'Pedro Paulo Bazana','dep_est_tercilio':'Tercilio Turini','dep_est_curi':'Alexandre Curi','dep_est_jacovos':'Delegado Jacovós','dep_est_cobra':'Cobra Repórter','dep_est_pacheco':'Márcio Pacheco','dep_est_arilson':'Arilson Chiorato'
-}
+UA={'User-Agent':'Mozilla/5.0'}
+def get(url,binary=False,retries=4):
+    err=None
+    for i in range(retries):
+        try:
+            req=urllib.request.Request(url,headers=UA)
+            with urllib.request.urlopen(req,timeout=60) as r:
+                return r.read() if binary else json.load(r)
+        except Exception as e:
+            err=e; time.sleep(.4*(i+1))
+    raise err
 
-def norm(s):
-    s=unicodedata.normalize('NFKD',str(s or '')).encode('ascii','ignore').decode().upper()
-    return re.sub(r'[^A-Z0-9]+',' ',s).strip()
+def download_text(url,path):
+    open(path,'wb').write(get(url,True))
 
-def http_json(url):
-    req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'})
-    with urllib.request.urlopen(req,timeout=90) as r:return json.load(r)
-
-def resolve_resource(package, contains):
-    data=http_json('https://dadosabertos.tse.jus.br/api/3/action/package_show?id='+package)['result']
-    terms=[norm(x) for x in contains]
-    ranked=[]
-    for r in data['resources']:
-        n=norm(r.get('name',''))
-        score=sum(1 for t in terms if t in n)
-        if score: ranked.append((score,n,r.get('url')))
-    ranked.sort(reverse=True)
-    if not ranked: raise RuntimeError('Resource not found: '+package+' '+repr(contains))
-    return ranked[0][2]
-
-def download(url,path):
-    print('Downloading',url,flush=True)
-    req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'})
-    with urllib.request.urlopen(req,timeout=180) as r, open(path,'wb') as f:
-        while True:
-            b=r.read(1024*1024)
-            if not b:break
-            f.write(b)
-
-def csv_from_zip(path):
-    z=zipfile.ZipFile(path)
-    names=[n for n in z.namelist() if n.lower().endswith('.csv')]
-    if not names: raise RuntimeError('No CSV in '+path)
-    # prefer the principal data CSV, not README/metadata
-    names.sort(key=lambda n:(('leiame' in norm(n).lower()),len(n)))
-    return z.open(names[0],'r')
-
-def iter_rows_from_zip(path):
-    raw=csv_from_zip(path)
-    text=io.TextIOWrapper(raw,encoding='latin-1',newline='')
-    return csv.DictReader(text,delimiter=';')
-
-def parse_app_locations():
-    txt=open(os.path.join(REPO_ROOT,'app.js'),encoding='utf-8').read()
-    pat=re.compile(r'\{\s*id:\s*"(CLG-\d+)"\s*,\s*name:\s*"([^"]+)"\s*,\s*address:\s*"([^"]*)"[^\}]*?sections:\s*(\d+)',re.S)
+def parse_app():
+    txt=open(os.path.join(ROOT,'app.js'),encoding='utf-8').read()
+    pat=re.compile(r'\{\s*id:\s*"(CLG-\d+)"\s*,\s*name:\s*"([^"]+)"\s*,\s*address:\s*"([^"]*)"\s*,\s*lat:[^,]+,\s*lng:[^,]+,\s*sections:\s*(\d+)\s*,\s*total_pref:[^,]+,\s*total_ver:[^,]+,\s*votes:\s*\{([^}]*)\}\s*\}',re.S)
     out=[]
     for m in pat.finditer(txt):
-        out.append({'id':m.group(1),'name':m.group(2),'address':m.group(3),'sections':int(m.group(4))})
-    uniq={x['id']:x for x in out}
-    out=[uniq[k] for k in sorted(uniq)]
-    if len(out)!=29: raise RuntimeError('Expected 29 app locations, found %d'%len(out))
+        vp={k:int(v) for k,v in re.findall(r'"([^"]+)"\s*:\s*(\d+)',m.group(5))}
+        out.append({'id':m.group(1),'name':m.group(2),'address':m.group(3),'sections':int(m.group(4)),'votes':vp})
+    uniq={x['id']:x for x in out}; out=[uniq[k] for k in sorted(uniq)]
+    if len(out)!=29: raise RuntimeError(f'Expected 29 app locations, found {len(out)}')
     return out
 
-def load_local_metadata(zip_path):
-    by_code={}
-    for row in iter_rows_from_zip(zip_path):
-        if norm(row.get('NM_MUNICIPIO'))!=CITY: continue
-        code=str(row.get('NR_LOCAL_VOTACAO') or '').strip()
-        if not code: continue
-        if code not in by_code:
-            by_code[code]={'code':code,'name':row.get('NM_LOCAL_VOTACAO',''),'address':row.get('DS_ENDERECO',''),'zone':row.get('NR_ZONA','')}
-    if not by_code: raise RuntimeError('No Arapongas local metadata')
-    return by_code
+def section_list(year,pleito):
+    cfg=get(f'https://resultados.tse.jus.br/oficial/ele{year}/arquivo-urna/{pleito}/config/pr/pr-p000{pleito}-cs.json')
+    for abr in cfg.get('abr',[]):
+        for mu in abr.get('mu',[]):
+            if mu.get('cd')==MUN:
+                for z in mu.get('zon',[]):
+                    if z.get('cd')==ZONE:
+                        return [s['ns'] for s in z.get('sec',[]) if not s.get('nsp')]
+    raise RuntimeError(f'Arapongas not found in {year} config')
 
-def score_location(app,tse):
-    an=norm(app['name']); tn=norm(tse['name']); aa=norm(app['address']); ta=norm(tse['address'])
-    name=SequenceMatcher(None,an,tn).ratio()
-    addr=SequenceMatcher(None,aa,ta).ratio() if aa and ta else 0
-    token=len(set(an.split()) & set(tn.split()))/max(1,len(set(an.split())|set(tn.split())))
-    sec_bonus=0
-    return 0.62*name+0.25*token+0.13*addr+sec_bonus
+def decode_one(year,pleito,sec,conv):
+    base=f'https://resultados.tse.jus.br/oficial/ele{year}/arquivo-urna/{pleito}/dados/{UF}/{MUN}/{ZONE}/{sec}'
+    aux=get(f'{base}/p000{pleito}-{UF}-m{MUN}-z{ZONE}-s{sec}-aux.json')
+    hashes=[h for h in aux.get('hashes',[]) if 'totaliz' in str(h.get('st','')).lower()] or aux.get('hashes',[])
+    if not hashes: raise RuntimeError(f'No hash {year} sec {sec}')
+    h=hashes[0]; hh=h['hash']
+    if year==2024:
+        files=[x.get('nm') for x in h.get('arq',[]) if x.get('tp')=='bu']
+    else:
+        files=[x for x in h.get('nmarq',[]) if x.endswith('.bu')]
+    if not files: raise RuntimeError(f'No BU {year} sec {sec}')
+    raw=get(f'{base}/{hh}/{files[0]}',True)
+    env=conv.decode('EntidadeEnvelopeGenerico',bytearray(raw)); bu=conv.decode('EntidadeBoletimUrna',env['conteudo'])
+    ident=bu.get('identificacaoSecao') or env.get('identificacao',(None,{}))[1]
+    local=str(ident['local']); votes={}
+    for e in bu.get('resultadosVotacaoPorEleicao',[]):
+        for r in e.get('resultadosVotacao',[]):
+            for c in r.get('totaisVotosCargo',[]):
+                cargo=c.get('codigoCargo'); cargo=cargo[1] if isinstance(cargo,tuple) else str(cargo)
+                if year==2024 and cargo!='vereador': continue
+                if year==2022 and cargo not in ('deputadoFederal','deputadoEstadual'): continue
+                for v in c.get('votosVotaveis',[]):
+                    if v.get('tipoVoto')!='nominal': continue
+                    iv=v.get('identificacaoVotavel') or {}; code=int(iv.get('codigo',-1)); q=int(v.get('quantidadeVotos',0))
+                    votes[(cargo,code)]=votes.get((cargo,code),0)+q
+    return sec,local,votes
 
-def match_locations(app_locs,tse_meta):
-    pairs=[]
-    remaining=set(tse_meta)
-    # exact normalized names first
-    mapping={}
-    for a in app_locs:
-        exact=[c for c in remaining if norm(tse_meta[c]['name'])==norm(a['name'])]
+def collect(year,pleito,spec):
+    secs=section_list(year,pleito); conv=asn1tools.compile_files(spec,codec='ber')
+    perlocal=defaultdict(lambda:defaultdict(int)); section_counts=defaultdict(int); errors=[]
+    def worker(s): return decode_one(year,pleito,s,conv)
+    with ThreadPoolExecutor(max_workers=14) as ex:
+        fut={ex.submit(worker,s):s for s in secs}
+        done=0
+        for f in as_completed(fut):
+            s=fut[f]
+            try:
+                _,local,v=f.result(); section_counts[local]+=1
+                for k,q in v.items(): perlocal[local][k]+=q
+            except Exception as e: errors.append({'section':s,'error':str(e)})
+            done+=1
+            if done%40==0: print(year,'processed',done,'/',len(secs),flush=True)
+    if errors: raise RuntimeError(f'{year}: {len(errors)} section failures, first={errors[:3]}')
+    return dict(perlocal),dict(section_counts),secs
+
+def app_vector(a): return tuple(a['votes'].get(k,0) for k in ELECTED)
+def tse_vector(v): return tuple(v.get(('vereador',int(k)),0) for k in ELECTED)
+
+def map_locations(app,raw24,counts24):
+    # Strongest validation: exact vector of all 15 elected councillors.
+    remaining=set(raw24); mapping={}; details=[]
+    for a in app:
+        av=app_vector(a); exact=[loc for loc in remaining if tse_vector(raw24[loc])==av]
         if len(exact)==1:
-            c=exact[0];mapping[c]=a['id'];remaining.remove(c);pairs.append({'tse':c,'app':a['id'],'score':1.0,'tse_name':tse_meta[c]['name'],'app_name':a['name']})
-    for a in app_locs:
-        if a['id'] in mapping.values(): continue
-        ranked=sorted(((score_location(a,tse_meta[c]),c) for c in remaining),reverse=True)
-        if not ranked: continue
-        score,c=ranked[0]
-        if score<0.48: continue
-        mapping[c]=a['id'];remaining.remove(c);pairs.append({'tse':c,'app':a['id'],'score':round(score,4),'tse_name':tse_meta[c]['name'],'app_name':a['name']})
-    return mapping,pairs,remaining
+            loc=exact[0]; remaining.remove(loc); mapping[loc]=a['id']; details.append({'tse_local':loc,'app_id':a['id'],'name':a['name'],'method':'exact-15-candidate-vector','sections_app':a['sections'],'sections_tse':counts24.get(loc)})
+    # If historical app values differ, use unique minimum L1 only when it is overwhelmingly better and section count agrees.
+    unresolved=[a for a in app if a['id'] not in mapping.values()]
+    while unresolved:
+        progress=False
+        for a in list(unresolved):
+            cand=[]; av=app_vector(a)
+            for loc in remaining:
+                tv=tse_vector(raw24[loc]); diff=sum(abs(x-y) for x,y in zip(av,tv)); sec_pen=0 if counts24.get(loc)==a['sections'] else 100000
+                cand.append((sec_pen+diff,diff,loc))
+            cand.sort()
+            if not cand: continue
+            best=cand[0]; second=cand[1] if len(cand)>1 else (10**9,10**9,'')
+            # Require section-count match plus clear separation; never accept a vague match.
+            if best[0]<100000 and (best[1]==0 or second[0]-best[0]>=40):
+                loc=best[2]; remaining.remove(loc); mapping[loc]=a['id']; details.append({'tse_local':loc,'app_id':a['id'],'name':a['name'],'method':'validated-nearest-vector','l1_difference':best[1],'sections_app':a['sections'],'sections_tse':counts24.get(loc)}); unresolved.remove(a); progress=True
+        if not progress: break
+    if len(mapping)!=29:
+        diag=[]
+        for a in unresolved:
+            ranked=sorted((sum(abs(x-y) for x,y in zip(app_vector(a),tse_vector(raw24[l]))),counts24.get(l),l) for l in remaining)[:4]
+            diag.append({'app':a['id'],'name':a['name'],'sections':a['sections'],'closest':ranked})
+        raise RuntimeError('Could not safely map all 29 locations: '+json.dumps(diag,ensure_ascii=False))
+    return mapping,details
 
-def aggregate_votes(zip_path, year, local_to_app):
-    votes=defaultdict(lambda:defaultdict(int)); names=defaultdict(dict); totals=defaultdict(int)
-    for row in iter_rows_from_zip(zip_path):
-        if norm(row.get('NM_MUNICIPIO'))!=CITY: continue
-        turno=str(row.get('NR_TURNO') or '').strip()
-        if turno and turno!='1': continue
-        local=str(row.get('NR_LOCAL_VOTACAO') or '').strip()
-        app_id=local_to_app.get(local)
-        if not app_id: continue
-        cargo=norm(row.get('DS_CARGO_PERGUNTA') or row.get('DS_CARGO') or '')
-        nr=str(row.get('NR_VOTAVEL') or '').strip()
-        nm=row.get('NM_VOTAVEL','')
-        q=int(float(str(row.get('QT_VOTOS') or '0').replace(',','.')))
+def aggregate_targets(raw,mapping,year):
+    out=defaultdict(lambda:defaultdict(int)); totals=defaultdict(int)
+    for local,votes in raw.items():
+        cid=mapping.get(local)
+        if not cid: continue
         if year==2024:
-            if 'VEREADOR' not in cargo: continue
-            if nr not in TARGET_2024.values(): continue
-            key=nr
+            for key in TARGET24:
+                q=votes.get(('vereador',int(key)),0); out[key][cid]+=q; totals[key]+=q
         else:
-            if 'DEPUTADO FEDERAL' not in cargo and 'DEPUTADO ESTADUAL' not in cargo: continue
-            nn=norm(nm)
-            best=None
-            for k,target in TARGET_2022.items():
-                s=SequenceMatcher(None,nn,norm(target)).ratio()
-                if best is None or s>best[0]: best=(s,k,target)
-            if not best or best[0]<0.78: continue
-            key=best[1]
-            names[key]['matched_name']=nm
-        votes[key][app_id]+=q
-        totals[key]+=q
-    return votes,totals,names
+            for key,num in TARGET22.items():
+                cargo='dep_fed' if key.startswith('dep_fed_') else 'dep_est'
+                ck='deputadoFederal' if cargo=='dep_fed' else 'deputadoEstadual'
+                q=votes.get((ck,num),0); out[key][cid]+=q; totals[key]+=q
+    allids=sorted(mapping.values())
+    for k in (TARGET24 if year==2024 else TARGET22):
+        for cid in allids: out[k].setdefault(cid,0)
+    return {k:dict(v) for k,v in out.items()},dict(totals)
 
-def build_js(app_locs,votes24,totals24,votes22,totals22,report):
-    merged={}
-    totals={}
-    for key,data in list(votes24.items())+list(votes22.items()): merged[key]=dict(data)
-    totals.update(totals24);totals.update(totals22)
-    # Only mark complete when every current app location has an explicit number. Missing locations are legitimate zero only if TSE local mapping is complete.
-    allids=[x['id'] for x in app_locs]
-    for key in merged:
-        for cid in allids: merged[key].setdefault(cid,0)
-    payload=json.dumps({'votes':merged,'totals':totals,'report':report},ensure_ascii=False,separators=(',',':'))
-    return """(function(){\n'use strict';\nvar D=%s;\nfunction apply(){\n try{\n  if(typeof ELEICAO_2024_DATA==='undefined'||!ELEICAO_2024_DATA||!Array.isArray(ELEICAO_2024_DATA.locais))return setTimeout(apply,80);\n  ELEICAO_2024_DATA.locais.forEach(function(loc){var id=loc.id;loc.votes=loc.votes||{};Object.keys(D.votes).forEach(function(k){if(Object.prototype.hasOwnProperty.call(D.votes[k],id))loc.votes[k]=D.votes[k][id];});});\n  Object.keys(D.totals).forEach(function(k){var c=ELEICAO_2024_DATA.candidates&&ELEICAO_2024_DATA.candidates[k];if(c)c.tseOfficialTotal=D.totals[k];});\n  window.__vfTseFullDataV19=D;window.__vfTseFullDataV19Ready=true;\n  try{if(typeof renderMapColegios==='function')renderMapColegios();if(typeof renderTableColegios==='function')renderTableColegios();}catch(_){}\n }catch(e){console.error('TSE v19 apply failed',e);}\n}\nif(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(apply,80)},{once:true});else setTimeout(apply,80);\n})();\n"""%payload
+def build_js(votes,totals,report):
+    payload=json.dumps({'votes':votes,'totals':totals,'report':report},ensure_ascii=False,separators=(',',':'))
+    return """(function(){'use strict';var D=%s;function apply(){try{if(typeof ELEICAO_2024_DATA==='undefined'||!ELEICAO_2024_DATA||!Array.isArray(ELEICAO_2024_DATA.locais))return setTimeout(apply,80);ELEICAO_2024_DATA.locais.forEach(function(loc){loc.votes=loc.votes||{};Object.keys(D.votes).forEach(function(k){loc.votes[k]=D.votes[k][loc.id]||0;});});Object.keys(D.totals).forEach(function(k){var c=ELEICAO_2024_DATA.candidates&&ELEICAO_2024_DATA.candidates[k];if(c)c.tseOfficialTotal=D.totals[k];});window.__vfTseFullDataV19=D;window.__vfTseFullDataV19Ready=true;try{if(typeof renderMapColegios==='function')renderMapColegios();if(typeof renderTableColegios==='function')renderTableColegios();}catch(_){} }catch(e){console.error('TSE v19 apply failed',e);}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(apply,80)},{once:true});else setTimeout(apply,80);})();\n"""%payload
 
 def main():
-    app=parse_app_locations()
-    with tempfile.TemporaryDirectory() as td:
-        urls={
-          'v24':resolve_resource('resultados-2024',['PR','Votação por seção eleitoral','2024']),
-          'v22':resolve_resource('resultados-2022',['PR','Votação por seção eleitoral','2022']),
-          'l24':resolve_resource('eleitorado-2024',['Eleitorado por local de votação','2024']),
-          'l22':resolve_resource('eleitorado-2022',['Eleitorado por local de votação','2022'])
-        }
-        paths={k:os.path.join(td,k+'.zip') for k in urls}
-        for k,u in urls.items(): download(u,paths[k])
-        meta24=load_local_metadata(paths['l24']);meta22=load_local_metadata(paths['l22'])
-        map24,pairs24,un24=match_locations(app,meta24);map22,pairs22,un22=match_locations(app,meta22)
-        print('2024 locals',len(meta24),'mapped',len(map24),'unmatched',len(un24))
-        print('2022 locals',len(meta22),'mapped',len(map22),'unmatched',len(un22))
-        if len(map24)<29: raise RuntimeError('2024 location mapping incomplete: %d/29'%len(map24))
-        # 2022 may have a historical local difference; require at least 27 and report any unmatched rather than inventing a match.
-        if len(map22)<27: raise RuntimeError('2022 location mapping too incomplete: %d'%len(map22))
-        v24,t24,n24=aggregate_votes(paths['v24'],2024,map24)
-        v22,t22,n22=aggregate_votes(paths['v22'],2022,map22)
-        missing24=sorted(set(TARGET_2024)-set(v24));missing22=sorted(set(TARGET_2022)-set(v22))
-        report={'source_urls':urls,'mapping_2024':pairs24,'mapping_2022':pairs22,'unmatched_local_codes_2024':sorted(un24),'unmatched_local_codes_2022':sorted(un22),'totals_2024':t24,'totals_2022':t22,'candidate_name_matches_2022':n22,'missing_2024':missing24,'missing_2022':missing22}
-        if missing24 or missing22: raise RuntimeError('Missing candidates 2024=%s 2022=%s'%(missing24,missing22))
-        # Completeness per candidate after mapping. We only write zeros for mapped current locations; this produces 29 slots while preserving reported historical mapping gaps.
-        js=build_js(app,v24,t24,v22,t22,report)
-        open(os.path.join(REPO_ROOT,'tse-full-data-v19.js'),'w',encoding='utf-8').write(js)
-        open(os.path.join(REPO_ROOT,'tse-full-data-v19-report.json'),'w',encoding='utf-8').write(json.dumps(report,ensure_ascii=False,indent=2))
-        print(json.dumps({'totals_2024':t24,'totals_2022':t22,'mapped_2024':len(map24),'mapped_2022':len(map22)},ensure_ascii=False,indent=2))
+    app=parse_app()
+    spec24='/tmp/bu24.asn1'; spec22='/tmp/bu22.asn1'
+    download_text('https://raw.githubusercontent.com/doccaz/urnas-br/main/docv2/spec/bu.asn1',spec24)
+    download_text('https://raw.githubusercontent.com/doccaz/urnas-br/main/doc/spec/bu.asn1',spec22)
+    raw24,c24,s24=collect(2024,'452',spec24)
+    print('2024 local count',len(raw24),'section count',sum(c24.values()),flush=True)
+    mapping,details=map_locations(app,raw24,c24)
+    raw22,c22,s22=collect(2022,'406',spec22)
+    print('2022 local count',len(raw22),'section count',sum(c22.values()),flush=True)
+    unknown22=sorted(set(raw22)-set(mapping))
+    if unknown22: raise RuntimeError('2022 contains local numbers not mapped from 2024: '+repr(unknown22))
+    v24,t24=aggregate_targets(raw24,mapping,2024); v22,t22=aggregate_targets(raw22,mapping,2022)
+    votes={**v24,**v22}; totals={**t24,**t22}
+    coverage={k:len(v) for k,v in votes.items()}
+    bad=[k for k,n in coverage.items() if n!=29]
+    if bad: raise RuntimeError('Not 29/29: '+repr(bad))
+    # Verify the 15 elected councillor totals against the current app totals as an independent integrity check.
+    app_tot={k:sum(a['votes'].get(k,0) for a in app) for k in ELECTED}
+    elected_check={k:{'tse':t24[k],'previous_app':app_tot[k],'match':t24[k]==app_tot[k]} for k in ELECTED}
+    report={'source':'Official TSE ballot-box BU files (resultados.tse.jus.br)','municipality_code':MUN,'zone':ZONE,'sections_2024':len(s24),'sections_2024_processed':sum(c24.values()),'sections_2022':len(s22),'sections_2022_processed':sum(c22.values()),'tse_locals_2024':len(raw24),'tse_locals_2022':len(raw22),'location_mapping':details,'coverage':coverage,'totals_2024':t24,'totals_2022':t22,'elected_integrity_check':elected_check,'candidate_numbers_2022':TARGET22}
+    open(os.path.join(ROOT,'tse-full-data-v19.js'),'w',encoding='utf-8').write(build_js(votes,totals,report))
+    open(os.path.join(ROOT,'tse-full-data-v19-report.json'),'w',encoding='utf-8').write(json.dumps(report,ensure_ascii=False,indent=2))
+    print(json.dumps({'all_coverage_29':not bad,'totals_2024':t24,'totals_2022':t22,'elected_integrity_check':elected_check},ensure_ascii=False,indent=2))
 
 if __name__=='__main__': main()
