@@ -1,0 +1,52 @@
+name: Recover TSE full vote data v19
+
+on:
+  push:
+    branches:
+      - recovery-tse-full-data-20260906
+    paths:
+      - 'scripts/recover_tse_votes.py'
+      - '.github/workflows/recover-tse-v19.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: recovery-tse-full-data-20260906
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Reconstruct votes from official TSE open data
+        run: python scripts/recover_tse_votes.py
+      - name: Show validation report
+        run: |
+          python - <<'PY'
+          import json
+          r=json.load(open('tse-full-data-v19-report.json',encoding='utf-8'))
+          print(json.dumps({
+            'missing_2024':r['missing_2024'],
+            'missing_2022':r['missing_2022'],
+            'mapped_2024':len(r['mapping_2024']),
+            'mapped_2022':len(r['mapping_2022']),
+            'totals_2024':r['totals_2024'],
+            'totals_2022':r['totals_2022']
+          },ensure_ascii=False,indent=2))
+          PY
+      - name: Commit reconstructed data
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tse-full-data-v19.js tse-full-data-v19-report.json
+          if git diff --cached --quiet; then
+            echo 'No generated changes.'
+          else
+            git commit -m 'data v19: reconstruct full TSE votes by polling place'
+            git push origin HEAD:recovery-tse-full-data-20260906
+          fi
