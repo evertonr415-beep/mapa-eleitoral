@@ -23,55 +23,68 @@ jobs:
           ref: recovery-tse-full-data-20260906
           fetch-depth: 0
 
-      - name: Probe one official TSE section in 2022 and 2024
+      - name: Install ASN.1 decoder
+        run: python -m pip install --quiet asn1tools
+
+      - name: Download official 2024 BU specification and one Arapongas bulletin
         shell: python
         run: |
-          import json, urllib.request, urllib.error
-          BASE='https://resultados.tse.jus.br/oficial'
-          HEAD={'User-Agent':'Mozilla/5.0','Accept':'application/json,text/plain,*/*'}
-          def fetch(url):
-              req=urllib.request.Request(url,headers=HEAD)
-              try:
-                  with urllib.request.urlopen(req,timeout=60) as r:
-                      body=r.read()
-                      return {'status':r.status,'content_type':r.headers.get('content-type',''),'body':body}
-              except urllib.error.HTTPError as e:
-                  return {'status':e.code,'content_type':e.headers.get('content-type',''),'body':e.read()}
-          out={}
-          for year,pleito in [(2022,'406'),(2024,'452')]:
-              d=f'{BASE}/ele{year}/arquivo-urna/{pleito}/dados/pr/74276/0061/0299'
-              b=f'p000{pleito}-pr-m74276-z0061-s0299'
-              auxurl=f'{d}/{b}-aux.json'
-              a=fetch(auxurl)
-              rec={'aux_url':auxurl,'aux_status':a['status'],'aux_type':a['content_type']}
-              if a['status']==200:
-                  try:
-                      aux=json.loads(a['body'].decode('utf-8'))
-                      rec['aux']=aux
-                      hashes=aux.get('hashes') or []
-                      rec['hashes_summary']=[{'hash':x.get('hash'),'nmarq':x.get('nmarq'),'st':x.get('st')} for x in hashes]
-                  except Exception as e: rec['aux_parse_error']=repr(e)
-              tests=[]
-              for suffix in ['-bu.json','.json','-v.json']:
-                  u=f'{d}/{b}{suffix}'
-                  x=fetch(u)
-                  item={'url':u,'status':x['status'],'content_type':x['content_type'],'size':len(x['body'])}
-                  if x['status']==200 and 'json' in x['content_type'].lower():
-                      try:
-                          j=json.loads(x['body'].decode('utf-8'))
-                          item['top_keys']=list(j.keys()) if isinstance(j,dict) else None
-                          item['sample']=j
-                      except Exception as e: item['parse_error']=repr(e)
-                  tests.append(item)
-              rec['structured_tests']=tests
-              out[str(year)]=rec
-          open('tse-section-probe.json','w',encoding='utf-8').write(json.dumps(out,ensure_ascii=False,indent=2))
+          import json, pathlib, urllib.request, zipfile
+          H={'User-Agent':'Mozilla/5.0','Accept':'*/*'}
+          def get(url):
+              req=urllib.request.Request(url,headers=H)
+              with urllib.request.urlopen(req,timeout=90) as r:return r.read()
+          spec='https://www.tse.jus.br/eleicoes/eleicoes-2024-content/arquivos/tse-formato-dos-arquivos-de-bu-rdv-e-assinatura-digital-formato-zip'
+          pathlib.Path('/tmp/spec24.zip').write_bytes(get(spec))
+          with zipfile.ZipFile('/tmp/spec24.zip') as z:z.extractall('/tmp/spec24')
+          auxurl='https://resultados.tse.jus.br/oficial/ele2024/arquivo-urna/452/dados/pr/74276/0061/0299/p000452-pr-m74276-z0061-s0299-aux.json'
+          aux=json.loads(get(auxurl).decode())
+          group=aux['hashes'][0]; h=group['hash']
+          files=group.get('arq') or []
+          bu=next(x['nm'] for x in files if x.get('tp')=='bu')
+          buurl=f'https://resultados.tse.jus.br/oficial/ele2024/arquivo-urna/452/dados/pr/74276/0061/0299/{h}/{bu}'
+          pathlib.Path('/tmp/sample24.bu').write_bytes(get(buurl))
+          listing=[]
+          for p in pathlib.Path('/tmp/spec24').rglob('*'):
+              if p.is_file():listing.append({'path':str(p.relative_to('/tmp/spec24')),'size':p.stat().st_size})
+          pathlib.Path('tse-parser-files.json').write_text(json.dumps({'spec_url':spec,'bu_url':buurl,'files':listing},ensure_ascii=False,indent=2),encoding='utf-8')
 
-      - name: Commit section probe
+      - name: Decode one official 2024 bulletin
+        shell: python
+        run: |
+          import asn1tools,json,pathlib,traceback
+          out={}
+          def safe(v,depth=0):
+              if depth>8:return '<depth>'
+              if isinstance(v,bytes):return {'bytes_len':len(v),'hex':v[:24].hex()}
+              if isinstance(v,bytearray):return {'bytes_len':len(v),'hex':bytes(v[:24]).hex()}
+              if isinstance(v,dict):return {str(k):safe(x,depth+1) for k,x in v.items()}
+              if isinstance(v,(list,tuple)):return [safe(x,depth+1) for x in v[:30]]
+              return v
+          try:
+              asn=list(pathlib.Path('/tmp/spec24').rglob('*.asn1'))
+              out['asn1_files']=[str(x) for x in asn]
+              preferred=[x for x in asn if x.name.lower()=='bu.asn1'] or asn
+              conv=asn1tools.compile_files([str(x) for x in preferred],codec='ber')
+              raw=pathlib.Path('/tmp/sample24.bu').read_bytes()
+              env=conv.decode('EntidadeEnvelopeGenerico',raw)
+              out['envelope']=safe({k:v for k,v in env.items() if k!='conteudo'})
+              bu=conv.decode('EntidadeBoletimUrna',env['conteudo'])
+              out['bu_keys']=list(bu.keys())
+              out['identificacao']=safe({k:v for k,v in bu.items() if k!='resultadosVotacaoPorEleicao'})
+              out['resultados']=safe(bu.get('resultadosVotacaoPorEleicao'))
+              out['success']=True
+          except Exception as e:
+              out['success']=False;out['error']=repr(e);out['trace']=traceback.format_exc()
+          pathlib.Path('tse-parser-probe.json').write_text(json.dumps(out,ensure_ascii=False,indent=2),encoding='utf-8')
+          if not out.get('success'):raise SystemExit(out['error'])
+
+      - name: Commit parser probe
+        if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add tse-section-probe.json
+          git add tse-parser-files.json tse-parser-probe.json 2>/dev/null || true
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m "recovery: inspect official TSE section bulletin structure"
+          git commit -m "recovery: decode official 2024 Arapongas ballot sample"
           git push origin HEAD:recovery-tse-full-data-20260906
