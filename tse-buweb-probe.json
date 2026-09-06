@@ -1,0 +1,12 @@
+{
+  "2022": {
+    "url": "https://cdn.tse.jus.br/estatistica/sead/eleicoes/eleicoes2022/buweb/bweb_1t_PR_051020221321.zip",
+    "status": 403,
+    "error": "HTTP Error 403: Forbidden"
+  },
+  "2024": {
+    "url": "https://cdn.tse.jus.br/estatistica/sead/eleicoes/eleicoes2024/buweb/bweb_1t_PR_091020241636.zip",
+    "status": 403,
+    "error": "HTTP Error 403: Forbidden"
+  }
+}
