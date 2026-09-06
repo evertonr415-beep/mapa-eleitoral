@@ -12,6 +12,47 @@
   function isMobile(){return document.body.classList.contains('vf-mobile')||matchMedia('(max-width:900px)').matches;}
   function textForOption(opt){return String(opt&&opt.textContent||'').replace(/\s+/g,' ').trim();}
 
+  function hasMapBreakdown(value){
+    if(value==='ALL')return true;
+    try{
+      if(typeof ELEICAO_2024_DATA==='undefined'||!ELEICAO_2024_DATA)return false;
+      if(!ELEICAO_2024_DATA.candidates||!ELEICAO_2024_DATA.candidates[value])return false;
+      var locais=Array.isArray(ELEICAO_2024_DATA.locais)?ELEICAO_2024_DATA.locais:[];
+      return locais.some(function(loc){
+        return !!(loc&&loc.votes&&Object.prototype.hasOwnProperty.call(loc.votes,value));
+      });
+    }catch(_){return false;}
+  }
+
+  function isPlatformOnlyOption(opt){
+    var parent=opt&&opt.parentElement;
+    if(!parent||String(parent.tagName).toLowerCase()!=='optgroup')return false;
+    return /cadastrados\s+na\s+plataforma/i.test(String(parent.label||''));
+  }
+
+  function isValidMapOption(opt){
+    if(!opt)return false;
+    if(opt.disabled&&opt.value==='')return false;
+    if(isPlatformOnlyOption(opt))return false;
+    return hasMapBreakdown(String(opt.value));
+  }
+
+  function canonicalOption(value){
+    if(!sourceSelect)return null;
+    var found=null;
+    Array.from(sourceSelect.options||[]).some(function(opt){
+      if(String(opt.value)===String(value)&&isValidMapOption(opt)){found=opt;return true;}
+      return false;
+    });
+    return found;
+  }
+
+  function sanitizeValue(value){
+    value=String(value==null?'ALL':value);
+    if(value==='ALL')return 'ALL';
+    return canonicalOption(value)?value:'ALL';
+  }
+
   function ensureShell(){
     if(sheet)return;
     backdrop=document.createElement('button');
@@ -24,7 +65,7 @@
     sheet.setAttribute('role','dialog');
     sheet.setAttribute('aria-modal','true');
     sheet.setAttribute('aria-label','Selecionar vereador ou candidato');
-    sheet.innerHTML='<div class="vf-mobile-candidate-head"><div><strong>Selecionar vereador</strong><span>Escolha um nome para aplicar o filtro</span></div><button type="button" class="vf-mobile-candidate-close" aria-label="Fechar">×</button></div><div class="vf-mobile-candidate-list" role="listbox"></div>';
+    sheet.innerHTML='<div class="vf-mobile-candidate-head"><div><strong>Selecionar vereador</strong><span>Apenas nomes com votos detalhados por colégio</span></div><button type="button" class="vf-mobile-candidate-close" aria-label="Fechar">×</button></div><div class="vf-mobile-candidate-list" role="listbox"></div>';
     list=sheet.querySelector('.vf-mobile-candidate-list');
     document.body.append(backdrop,sheet);
 
@@ -41,8 +82,19 @@
 
   function dispatchSelect(select,value){
     if(!select)return;
+    value=sanitizeValue(value);
     if(select.value!==value)select.value=value;
     select.dispatchEvent(new Event('change',{bubbles:true}));
+  }
+
+  function normalizeCurrentSelection(){
+    if(!sourceSelect)return;
+    var safe=sanitizeValue(sourceSelect.value);
+    if(sourceSelect.value!==safe){
+      sourceSelect.value=safe;
+      sourceSelect.dispatchEvent(new Event('change',{bubbles:true}));
+    }
+    if(collegeSelect&&collegeSelect.value!==safe)collegeSelect.value=safe;
   }
 
   function updateTriggers(){
@@ -50,8 +102,10 @@
       var targetId=btn.dataset.targetSelect;
       var sel=document.getElementById(targetId);
       if(!sel)return;
-      var opt=sel.options[sel.selectedIndex];
-      var text=opt?textForOption(opt):'Selecionar vereador';
+      var safe=sanitizeValue(sel.value);
+      if(sel.value!==safe)sel.value=safe;
+      var opt=canonicalOption(safe)||(sel.options&&sel.options[sel.selectedIndex]);
+      var text=opt?textForOption(opt):'Visão Geral dos 29 Colégios';
       var span=btn.querySelector('.vf-mobile-candidate-trigger-text');
       if(span)span.textContent=text;
       btn.setAttribute('aria-label','Vereador selecionado: '+text+'. Toque para alterar.');
@@ -61,30 +115,40 @@
   function rebuildList(targetSelect){
     if(!targetSelect||!list)return;
     list.innerHTML='';
-    Array.from(targetSelect.options).forEach(function(opt){
-      if(opt.disabled&&opt.value==='')return;
+    var selectedValue=sanitizeValue(targetSelect.value);
+    var seen={};
+    var options=sourceSelect?Array.from(sourceSelect.options||[]):Array.from(targetSelect.options||[]);
+
+    options.forEach(function(opt){
+      var value=String(opt.value);
+      if(seen[value]||!isValidMapOption(opt))return;
+      seen[value]=true;
+
       var b=document.createElement('button');
       b.type='button';
       b.className='vf-mobile-candidate-option';
       b.setAttribute('role','option');
-      b.setAttribute('aria-selected',String(opt.value===targetSelect.value));
-      b.dataset.value=opt.value;
+      b.setAttribute('aria-selected',String(value===selectedValue));
+      b.dataset.value=value;
+
       var span=document.createElement('span');
       span.className='vf-mobile-candidate-option-text';
       span.textContent=textForOption(opt);
       b.appendChild(span);
+
       b.addEventListener('click',function(){
-        var value=b.dataset.value;
+        var safe=sanitizeValue(b.dataset.value);
         syncSourceRefs();
         var currentTarget=document.getElementById(sheet.dataset.targetSelect||'cand-select');
-        if(currentTarget)dispatchSelect(currentTarget,value);
-        if(sourceSelect&&sourceSelect!==currentTarget){sourceSelect.value=value;}
-        if(collegeSelect&&collegeSelect!==currentTarget){collegeSelect.value=value;}
+        if(currentTarget)dispatchSelect(currentTarget,safe);
+        if(sourceSelect&&sourceSelect!==currentTarget)sourceSelect.value=safe;
+        if(collegeSelect&&collegeSelect!==currentTarget)collegeSelect.value=safe;
         updateTriggers();
         closePicker();
       });
       list.appendChild(b);
     });
+
     var selected=list.querySelector('[aria-selected="true"]');
     if(selected)setTimeout(function(){try{selected.scrollIntoView({block:'center'});}catch(_){ }},40);
   }
@@ -92,6 +156,8 @@
   function openPicker(targetId){
     if(!isMobile())return;
     ensureShell();
+    syncSourceRefs();
+    normalizeCurrentSelection();
     var target=document.getElementById(targetId);
     if(!target)return;
     sheet.dataset.targetSelect=targetId;
@@ -114,9 +180,11 @@
     btn.addEventListener('click',function(){openPicker(select.id);});
     select.addEventListener('change',function(){
       syncSourceRefs();
+      var safe=sanitizeValue(select.value);
+      if(select.value!==safe)select.value=safe;
       if(sourceSelect&&collegeSelect){
-        if(select===sourceSelect)collegeSelect.value=sourceSelect.value;
-        else if(select===collegeSelect)sourceSelect.value=collegeSelect.value;
+        if(select===sourceSelect)collegeSelect.value=safe;
+        else if(select===collegeSelect)sourceSelect.value=safe;
       }
       updateTriggers();
     });
@@ -126,6 +194,7 @@
     if(!sourceSelect||sourceObserver)return;
     sourceObserver=new MutationObserver(function(){
       syncSourceRefs();
+      normalizeCurrentSelection();
       updateTriggers();
       if(document.body.classList.contains('vf-mobile-candidate-open')){
         var target=document.getElementById(sheet&&sheet.dataset.targetSelect||'cand-select');
@@ -139,12 +208,14 @@
     if(!isMobile())return;
     if(!syncSourceRefs()){setTimeout(install,100);return;}
     ensureShell();
+    normalizeCurrentSelection();
     installTrigger(sourceSelect);
     if(collegeSelect)installTrigger(collegeSelect);
     observeOptions();
     updateTriggers();
     setTimeout(function(){
       syncSourceRefs();
+      normalizeCurrentSelection();
       if(collegeSelect)installTrigger(collegeSelect);
       updateTriggers();
     },250);
