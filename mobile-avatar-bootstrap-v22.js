@@ -72,19 +72,34 @@
     Promise.resolve().then(function(){queued=false;apply();});
   }
 
+  function discoverRenderedAvatar(){
+    try{
+      var img=document.querySelector('.vf-mobile-avatar img,.vf-drawer-account-avatar img,.vf-profile-photo img:not([hidden])');
+      if(!img)return false;
+      var src=img.getAttribute('src')||img.src||'';
+      if(!src)return false;
+      if(!cache||cache.url!==src)save(src,'',sessionUserId());
+      return true;
+    }catch(_){return false;}
+  }
+
   function discoverSynchronousAvatar(){
-    if(cache&&cache.url)return;
     try{
       if(typeof state!=='undefined'&&state&&state.currentUser&&state.currentUser.avatar_url){
-        save(state.currentUser.avatar_url,state.currentUser.nome,state.currentUser.id);return;
+        if(!cache||cache.url!==String(state.currentUser.avatar_url))save(state.currentUser.avatar_url,state.currentUser.nome,state.currentUser.id);
+        return true;
       }
     }catch(_){ }
     try{
       if(window.SupabaseService&&typeof window.SupabaseService.getCurrentUser==='function'){
         var u=window.SupabaseService.getCurrentUser();
-        if(u&&u.avatar_url)save(u.avatar_url,u.nome,u.id);
+        if(u&&u.avatar_url){
+          if(!cache||cache.url!==String(u.avatar_url))save(u.avatar_url,u.nome,u.id);
+          return true;
+        }
       }
     }catch(_){ }
+    return discoverRenderedAvatar();
   }
 
   cache=read();
@@ -102,7 +117,7 @@
     apply();
     if(observer||!document.documentElement)return;
     observer=new MutationObserver(function(){discoverSynchronousAvatar();queueApply();});
-    observer.observe(document.documentElement,{childList:true,subtree:true,characterData:true});
+    observer.observe(document.documentElement,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['src','hidden']});
   }
 
   install();
