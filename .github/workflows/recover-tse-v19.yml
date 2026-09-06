@@ -23,38 +23,39 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Probe official TSE JSON sources
+      - name: Probe official TSE JSON and polling-place sources
         run: |
           set -x
-          curl -L --fail --retry 3 -A 'Mozilla/5.0' -o /tmp/pr24.json 'https://resultados.tse.jus.br/oficial/ele2024/arquivo-urna/452/config/pr/pr-p000452-cs.json'
-          curl -L --fail --retry 3 -A 'Mozilla/5.0' -o /tmp/pr22.json 'https://resultados.tse.jus.br/oficial/ele2022/arquivo-urna/406/config/pr/pr-p000406-cs.json'
+          curl -L --fail -A 'Mozilla/5.0' -o /tmp/pr24.json 'https://resultados.tse.jus.br/oficial/ele2024/arquivo-urna/452/config/pr/pr-p000452-cs.json'
+          curl -L --fail -A 'Mozilla/5.0' -o /tmp/pr22.json 'https://resultados.tse.jus.br/oficial/ele2022/arquivo-urna/406/config/pr/pr-p000406-cs.json'
+          curl -L --fail -A 'Mozilla/5.0' -o /tmp/aux24.json 'https://resultados.tse.jus.br/oficial/ele2024/arquivo-urna/452/dados/pr/74276/0061/0001/p000452-pr-m74276-z0061-s0001-aux.json'
+          curl -L --fail -A 'Mozilla/5.0' -o /tmp/aux22.json 'https://resultados.tse.jus.br/oficial/ele2022/arquivo-urna/406/dados/pr/74276/0061/0001/p000406-pr-m74276-z0061-s0001-aux.json'
           python - <<'PY'
           import json
           for year,path in [(2024,'/tmp/pr24.json'),(2022,'/tmp/pr22.json')]:
-            d=json.load(open(path))
-            found=[]
+            d=json.load(open(path)); found=[]
             for abr in d.get('abr',[]):
               for mu in abr.get('mu',[]):
                 if 'ARAPONGAS' in mu.get('nm','').upper(): found.append(mu)
-            print('YEAR',year,'FOUND',json.dumps(found,ensure_ascii=False)[:20000])
+            print('YEAR',year,'ARAPONGAS',json.dumps(found,ensure_ascii=False)[:12000])
+          for year,path in [(2024,'/tmp/aux24.json'),(2022,'/tmp/aux22.json')]:
+            print('AUX',year,json.dumps(json.load(open(path)),ensure_ascii=False)[:30000])
           PY
-      - name: Reconstruct votes from official TSE JSON data
-        run: python scripts/recover_tse_votes.py
-      - name: Show validation report
-        run: |
-          python - <<'PY'
-          import json
-          r=json.load(open('tse-full-data-v19-report.json',encoding='utf-8'))
-          print(json.dumps(r,ensure_ascii=False,indent=2)[:50000])
-          PY
-      - name: Commit reconstructed data
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add tse-full-data-v19.js tse-full-data-v19-report.json
-          if git diff --cached --quiet; then
-            echo 'No generated changes.'
-          else
-            git commit -m 'data v19: reconstruct full TSE votes by polling place'
-            git push origin HEAD:recovery-tse-full-data-20260906
-          fi
+          for code in 619 439 452 406 544; do
+            for file in o00452pr00610001-qbu.js o00452pr061001-qbu.js; do
+              url="https://qrcodenobu.tse.jus.br/json-bu/oficial/${code}/${file}"
+              echo "PROBE $url"
+              curl -L -sS -A 'Mozilla/5.0' -w ' HTTP=%{http_code} SIZE=%{size_download}\n' -o "/tmp/q-${code}-${file}" "$url" || true
+              head -c 300 "/tmp/q-${code}-${file}" 2>/dev/null || true; echo
+            done
+          done
+          for url in \
+            'https://www.tre-pr.jus.br/eleicoes/estatisticas/arquivos/tre-pr-elo-cadastro-eleitoral-enderecos-das-secoes-do-parana-2024' \
+            'https://www.tre-pr.jus.br/eleicoes/estatisticas/arquivos/tre-pr-elo-cadastro-eleitoral-enderecos-das-secoes-do-parana-2022'; do
+            out="/tmp/loc-$(echo "$url" | tail -c 5)"
+            curl -L -sS -A 'Mozilla/5.0' -w ' TRE_HTTP=%{http_code} SIZE=%{size_download}\n' -o "$out" "$url" || true
+            file "$out" || true
+            head -c 80 "$out" | xxd || true
+          done
+      - name: Stop after probe
+        run: echo 'Probe complete; reconstruction script will be updated from these official structures.'
