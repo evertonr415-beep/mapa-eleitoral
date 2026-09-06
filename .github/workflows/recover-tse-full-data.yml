@@ -1,4 +1,3 @@
-# recovery run trigger 2026-09-06
 name: Recover TSE full electoral data
 
 on:
@@ -24,69 +23,34 @@ jobs:
           ref: recovery-tse-full-data-20260906
           fetch-depth: 0
 
-      - name: Resolve official TSE resource URLs
-        shell: python
+      - name: Set official TSE resource URLs
         run: |
-          import json, os, unicodedata, urllib.parse, urllib.request
-
-          API='https://dadosabertos.tse.jus.br/api/3/action/package_show?id='
-
-          def norm(s):
-              s=unicodedata.normalize('NFKD',str(s or ''))
-              s=''.join(c for c in s if not unicodedata.combining(c)).upper()
-              return ' '.join(s.split())
-
-          def package(slug):
-              with urllib.request.urlopen(API+urllib.parse.quote(slug), timeout=90) as r:
-                  data=json.load(r)
-              if not data.get('success'):
-                  raise RuntimeError('CKAN package_show failed for '+slug)
-              return data['result']['resources']
-
-          def pick(resources, year, kind):
-              scored=[]
-              for r in resources:
-                  name=norm(r.get('name') or r.get('description') or '')
-                  url=r.get('url') or ''
-                  score=0
-                  if kind=='votes':
-                      if 'VOTACAO POR SECAO ELEITORAL' in name: score+=100
-                      if name.startswith('PR ') or ' PR ' in (' '+name+' '): score+=50
-                      if str(year) in name: score+=10
-                      if 'HASH' in name or 'BR ' in name[:3]: score-=100
-                  else:
-                      if 'ELEITORADO POR LOCAL DE VOTACAO' in name: score+=100
-                      if str(year) in name: score+=10
-                  if url: scored.append((score,name,url))
-              scored.sort(reverse=True)
-              if not scored or scored[0][0] < 90:
-                  raise RuntimeError('Could not resolve '+kind+' '+str(year)+'; top='+repr(scored[:10]))
-              print(kind,year,scored[0])
-              return scored[0][2]
-
-          resources_2024=package('resultados-2024')
-          resources_2022=package('resultados-2022')
-          eleitorado_2024=package('eleitorado-2024')
-          eleitorado_2022=package('eleitorado-2022')
-
-          urls={
-              'VOTE_2024_URL':pick(resources_2024,2024,'votes'),
-              'VOTE_2022_URL':pick(resources_2022,2022,'votes'),
-              'LOCAL_2024_URL':pick(eleitorado_2024,2024,'local'),
-              'LOCAL_2022_URL':pick(eleitorado_2022,2022,'local'),
+          cat >> "$GITHUB_ENV" <<'EOF'
+          VOTE_2024_URL=https://cdn.tse.jus.br/estatistica/sead/odsele/votacao_secao/votacao_secao_2024_PR.zip
+          VOTE_2022_URL=https://cdn.tse.jus.br/estatistica/sead/odsele/votacao_secao/votacao_secao_2022_PR.zip
+          LOCAL_2024_URL=https://cdn.tse.jus.br/estatistica/sead/odsele/eleitorado_local_votacao/eleitorado_local_votacao_2024.zip
+          LOCAL_2022_URL=https://cdn.tse.jus.br/estatistica/sead/odsele/eleitorado_locais_votacao/eleitorado_local_votacao_2022.zip
+          EOF
+          cat > tse-source-urls.json <<'EOF'
+          {
+            "VOTE_2024_URL": "https://cdn.tse.jus.br/estatistica/sead/odsele/votacao_secao/votacao_secao_2024_PR.zip",
+            "VOTE_2022_URL": "https://cdn.tse.jus.br/estatistica/sead/odsele/votacao_secao/votacao_secao_2022_PR.zip",
+            "LOCAL_2024_URL": "https://cdn.tse.jus.br/estatistica/sead/odsele/eleitorado_local_votacao/eleitorado_local_votacao_2024.zip",
+            "LOCAL_2022_URL": "https://cdn.tse.jus.br/estatistica/sead/odsele/eleitorado_locais_votacao/eleitorado_local_votacao_2022.zip"
           }
-          with open(os.environ['GITHUB_ENV'],'a',encoding='utf-8') as f:
-              for k,v in urls.items(): f.write(k+'='+v+'\n')
-          with open('tse-source-urls.json','w',encoding='utf-8') as f:
-              json.dump(urls,f,ensure_ascii=False,indent=2)
+          EOF
 
       - name: Download official TSE datasets
         run: |
           set -euo pipefail
-          curl --fail --location --retry 4 --retry-delay 3 "$VOTE_2024_URL" -o /tmp/vote2024.zip
-          curl --fail --location --retry 4 --retry-delay 3 "$VOTE_2022_URL" -o /tmp/vote2022.zip
-          curl --fail --location --retry 4 --retry-delay 3 "$LOCAL_2024_URL" -o /tmp/local2024.zip
-          curl --fail --location --retry 4 --retry-delay 3 "$LOCAL_2022_URL" -o /tmp/local2022.zip
+          UA='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/140 Safari/537.36'
+          curl -A "$UA" --fail --location --retry 4 --retry-delay 3 "$VOTE_2024_URL" -o /tmp/vote2024.zip
+          curl -A "$UA" --fail --location --retry 4 --retry-delay 3 "$VOTE_2022_URL" -o /tmp/vote2022.zip
+          if ! curl -A "$UA" --fail --location --retry 3 --retry-delay 2 "$LOCAL_2024_URL" -o /tmp/local2024.zip; then
+            LOCAL_2024_URL='https://cdn.tse.jus.br/estatistica/sead/odsele/eleitorado_locais_votacao/eleitorado_local_votacao_2024.zip'
+            curl -A "$UA" --fail --location --retry 4 --retry-delay 3 "$LOCAL_2024_URL" -o /tmp/local2024.zip
+          fi
+          curl -A "$UA" --fail --location --retry 4 --retry-delay 3 "$LOCAL_2022_URL" -o /tmp/local2022.zip
           unzip -t /tmp/vote2024.zip >/dev/null
           unzip -t /tmp/vote2022.zip >/dev/null
           unzip -t /tmp/local2024.zip >/dev/null
@@ -106,7 +70,7 @@ jobs:
       - name: Validate recovered dataset
         shell: python
         run: |
-          import json,sys
+          import json
           r=json.load(open('tse-full-data-report.json',encoding='utf-8'))
           print('ready=',r['ready'])
           print('recovered=',r['recovered_candidate_count'],'of',r['system_candidate_count'])
