@@ -7,6 +7,8 @@
   var collegeSelect=null;
   var boundCollege=null;
   var boundMain=null;
+  var renderHookInstalled=false;
+  var lastPanelKey=null;
 
   function isMobile(){return document.body.classList.contains('vf-mobile')||matchMedia('(max-width:900px)').matches;}
   function fmt(n){try{return Number(n||0).toLocaleString('pt-BR');}catch(_){return String(n||0);}}
@@ -54,9 +56,11 @@
     try{collegeSelect.click();}catch(_){ }
   }
 
-  function renderPanel(){
+  function renderPanel(force){
     if(!ensure())return;
     var key=selected();
+    if(!force&&key===lastPanelKey)return;
+    lastPanelKey=key;
     var c=info(key);
     var btn=panel.querySelector('.vf-college-candidate-open');
     var avatar=panel.querySelector('.vf-college-candidate-avatar');
@@ -95,11 +99,27 @@
     syncControls(value);
     try{if(typeof renderTableColegios==='function')renderTableColegios();}catch(_){ }
     if(renderMapToo){try{if(typeof renderMapColegios==='function')renderMapColegios();}catch(_){ }}
-    setTimeout(renderPanel,20);
+    setTimeout(function(){renderPanel(true);},20);
+  }
+
+  function installRenderHook(){
+    if(renderHookInstalled)return;
+    if(typeof window.renderTableColegios!=='function'){setTimeout(installRenderHook,120);return;}
+    renderHookInstalled=true;
+    var original=window.renderTableColegios;
+    window.renderTableColegios=function(){
+      var out=original.apply(this,arguments);
+      setTimeout(function(){
+        syncControls(selected());
+        renderPanel(true);
+      },0);
+      return out;
+    };
   }
 
   function bind(){
     if(!ensure()){setTimeout(bind,120);return;}
+    installRenderHook();
 
     collegeSelect=document.getElementById('vf-college-candidate-select');
     if(collegeSelect&&collegeSelect!==boundCollege){
@@ -117,15 +137,24 @@
         var value=String(main.value||'ALL');
         setTimeout(function(){
           syncControls(value);
-          renderPanel();
-        },20);
+          renderPanel(true);
+        },0);
       });
     }
 
     cleanOldV20();
-    renderPanel();
+    syncControls(selected());
+    renderPanel(true);
     try{if(typeof renderTableColegios==='function')renderTableColegios();}catch(_){ }
   }
+
+  /* v17 uses a capture listener with stopImmediatePropagation, so keep the visual
+     panel synchronized from the authoritative state even when later listeners are blocked. */
+  setInterval(function(){
+    if(!isMobile())return;
+    var key=selected();
+    if(key!==lastPanelKey){syncControls(key);renderPanel(true);}
+  },180);
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(bind,520)},{once:true});else setTimeout(bind,520);
   setTimeout(bind,1000);
