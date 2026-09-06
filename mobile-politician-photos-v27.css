@@ -1,0 +1,60 @@
+/* Mobile v27: official politician photos, with existing initials as fallback */
+@media (max-width:900px){
+  .vf-college-candidate-avatar.vf-politician-photo-avatar,
+  .vf24-candidate-avatar.vf-politician-photo-avatar{
+    background-size:cover!important;
+    background-position:center 18%!important;
+    background-repeat:no-repeat!important;
+    color:transparent!important;
+    text-shadow:none!important;
+    overflow:hidden!important;
+  }
+
+  .vf-mobile-candidate-option.vf-has-politician-photo{
+    padding-left:54px!important;
+  }
+  .vf-politician-list-photo{
+    position:absolute;
+    left:11px;
+    top:50%;
+    transform:translateY(-50%);
+    width:31px;
+    height:31px;
+    border-radius:9px;
+    background-size:cover;
+    background-position:center 16%;
+    background-repeat:no-repeat;
+    border:1px solid rgba(148,163,184,.30);
+    box-shadow:0 2px 9px rgba(0,0,0,.26);
+    pointer-events:none;
+  }
+  .vf-mobile-candidate-option.vf-has-politician-photo[aria-selected="true"]:before{
+    left:34px!important;
+    top:calc(50% + 7px)!important;
+    width:13px;
+    height:13px;
+    display:grid;
+    place-items:center;
+    transform:none!important;
+    border-radius:999px;
+    background:#2563eb;
+    border:2px solid #242930;
+    color:#fff;
+    font-size:8px!important;
+    line-height:1!important;
+  }
+}
+
+@media (max-width:390px){
+  .vf-mobile-candidate-option.vf-has-politician-photo{
+    padding-left:51px!important;
+  }
+  .vf-politician-list-photo{
+    left:10px;
+    width:29px;
+    height:29px;
+  }
+  .vf-mobile-candidate-option.vf-has-politician-photo[aria-selected="true"]:before{
+    left:31px!important;
+  }
+}
