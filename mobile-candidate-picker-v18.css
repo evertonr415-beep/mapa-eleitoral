@@ -1,0 +1,203 @@
+/* Mobile v18: consistent candidate picker on every phone */
+@media (max-width:900px){
+  body.vf-mobile .vf-mobile-candidate-trigger{
+    width:100%;
+    min-height:42px;
+    padding:8px 38px 8px 12px;
+    position:relative;
+    display:flex;
+    align-items:center;
+    text-align:left;
+    border:1px solid rgba(241,196,61,.28);
+    border-radius:11px;
+    background:#14263f;
+    color:#fff;
+    font-size:11px;
+    line-height:1.25;
+    font-weight:760;
+    box-shadow:none;
+  }
+  body.vf-mobile .vf-mobile-candidate-trigger:after{
+    content:'⌄';
+    position:absolute;
+    right:12px;
+    top:50%;
+    transform:translateY(-52%);
+    color:#b9c7d9;
+    font-size:15px;
+    line-height:1;
+  }
+  body.vf-mobile .vf-mobile-candidate-trigger .vf-mobile-candidate-trigger-text{
+    display:block;
+    width:100%;
+    white-space:normal;
+    overflow-wrap:anywhere;
+    word-break:normal;
+  }
+  body.vf-mobile .vf-native-candidate-hidden{
+    position:absolute!important;
+    width:1px!important;
+    height:1px!important;
+    opacity:0!important;
+    pointer-events:none!important;
+    overflow:hidden!important;
+  }
+
+  .vf-mobile-candidate-backdrop{
+    position:fixed;
+    z-index:3480;
+    inset:0;
+    border:0;
+    padding:0;
+    background:rgba(2,6,23,.56);
+    backdrop-filter:blur(2px);
+    -webkit-backdrop-filter:blur(2px);
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+    transition:opacity .16s ease,visibility .16s ease;
+  }
+  .vf-mobile-candidate-sheet{
+    position:fixed;
+    z-index:3490;
+    left:50%;
+    bottom:calc(10px + env(safe-area-inset-bottom));
+    width:min(92vw,560px);
+    max-height:min(76dvh,720px);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    border:1px solid rgba(148,163,184,.18);
+    border-radius:18px;
+    background:linear-gradient(180deg,#2c3138 0%,#242930 100%);
+    box-shadow:0 28px 72px rgba(0,0,0,.48);
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+    transform:translate(-50%,18px) scale(.985);
+    transition:opacity .16s ease,transform .16s ease,visibility .16s ease;
+  }
+  body.vf-mobile.vf-mobile-candidate-open .vf-mobile-candidate-backdrop{
+    opacity:1;
+    visibility:visible;
+    pointer-events:auto;
+  }
+  body.vf-mobile.vf-mobile-candidate-open .vf-mobile-candidate-sheet{
+    opacity:1;
+    visibility:visible;
+    pointer-events:auto;
+    transform:translate(-50%,0) scale(1);
+  }
+  .vf-mobile-candidate-head{
+    flex:none;
+    min-height:48px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:10px 12px;
+    border-bottom:1px solid rgba(255,255,255,.12);
+    background:rgba(19,24,31,.72);
+  }
+  .vf-mobile-candidate-head strong{
+    color:#fff;
+    font-size:13px;
+    line-height:1.15;
+    font-weight:820;
+  }
+  .vf-mobile-candidate-head span{
+    display:block;
+    margin-top:2px;
+    color:#aab6c6;
+    font-size:8.5px;
+    line-height:1.15;
+  }
+  .vf-mobile-candidate-close{
+    flex:none;
+    width:34px;
+    height:34px;
+    display:grid;
+    place-items:center;
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:10px;
+    background:#303740;
+    color:#fff;
+    font-size:18px;
+    line-height:1;
+  }
+  .vf-mobile-candidate-list{
+    flex:1;
+    min-height:0;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+    padding:0;
+  }
+  .vf-mobile-candidate-option{
+    width:100%;
+    min-height:58px;
+    padding:13px 16px 13px 52px;
+    position:relative;
+    display:flex;
+    align-items:center;
+    text-align:left;
+    border:0;
+    border-bottom:1px solid rgba(255,255,255,.12);
+    background:transparent;
+    color:#f8fafc;
+    font-size:14px;
+    line-height:1.35;
+    font-weight:540;
+    letter-spacing:0;
+  }
+  .vf-mobile-candidate-option:last-child{border-bottom:0}
+  .vf-mobile-candidate-option .vf-mobile-candidate-option-text{
+    display:block;
+    width:100%;
+    white-space:normal;
+    overflow-wrap:anywhere;
+    word-break:normal;
+  }
+  .vf-mobile-candidate-option[aria-selected="true"]{
+    background:rgba(255,255,255,.035);
+  }
+  .vf-mobile-candidate-option[aria-selected="true"]:before{
+    content:'✓';
+    position:absolute;
+    left:18px;
+    top:50%;
+    transform:translateY(-50%);
+    color:#fff;
+    font-size:20px;
+    font-weight:700;
+  }
+
+  /* Same visual rule inside Colégios */
+  body.vf-mobile #view-table-colegios .vf-college-candidate-filter{
+    align-items:stretch!important;
+  }
+  body.vf-mobile #view-table-colegios .vf-college-candidate-filter .vf-mobile-candidate-trigger{
+    flex:1;
+    min-width:0;
+    min-height:36px;
+    font-size:10px;
+    padding-top:7px;
+    padding-bottom:7px;
+  }
+}
+
+@media (max-width:390px){
+  .vf-mobile-candidate-sheet{
+    width:calc(100vw - 16px);
+    bottom:calc(8px + env(safe-area-inset-bottom));
+    max-height:78dvh;
+    border-radius:16px;
+  }
+  .vf-mobile-candidate-option{
+    min-height:54px;
+    padding:12px 14px 12px 46px;
+    font-size:13px;
+    line-height:1.32;
+  }
+  .vf-mobile-candidate-option[aria-selected="true"]:before{left:15px}
+}
