@@ -24,9 +24,18 @@ function photoUrl(c){
 function list(payload){return payload&&Array.isArray(payload.candidatos)?payload.candidatos:[];}
 async function getJson(url){
   const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),12000);
+  const timer=setTimeout(()=>controller.abort(),15000);
   try{
-    const r=await fetch(url,{headers:{'accept':'application/json','user-agent':'VotoForte-Arapongas/1.0'},signal:controller.signal});
+    const r=await fetch(url,{
+      headers:{
+        'accept':'application/json, text/plain, */*',
+        'user-agent':'Mozilla/5.0 (compatible; VotoForteArapongas/1.0)',
+        'referer':'https://divulgacandcontas.tse.jus.br/divulga/',
+        'origin':'https://divulgacandcontas.tse.jus.br'
+      },
+      redirect:'follow',
+      signal:controller.signal
+    });
     if(!r.ok)throw new Error('HTTP '+r.status);
     return await r.json();
   }finally{clearTimeout(timer);}
