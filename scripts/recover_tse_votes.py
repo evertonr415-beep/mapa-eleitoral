@@ -45,7 +45,12 @@ def section_list(year,pleito):
             if mu.get('cd')==MUN:
                 for z in mu.get('zon',[]):
                     if z.get('cd')==ZONE:
-                        return [s['ns'] for s in z.get('sec',[]) if not s.get('nsp')]
+                        secs=z.get('sec',[])
+                        # In 2022 nsp is populated even when it points to the same section.
+                        # In 2024 nsp is used only for a truly replaced section (e.g. 0369 -> 0200).
+                        if year==2022:
+                            return [s['ns'] for s in secs]
+                        return [s['ns'] for s in secs if not s.get('nsp')]
     raise RuntimeError(f'Arapongas not found in {year} config')
 
 def decode_one(year,pleito,sec,conv):
@@ -97,13 +102,11 @@ def app_vector(a): return tuple(a['votes'].get(k,0) for k in ELECTED)
 def tse_vector(v): return tuple(v.get(('vereador',int(k)),0) for k in ELECTED)
 
 def map_locations(app,raw24,counts24):
-    # Strongest validation: exact vector of all 15 elected councillors.
     remaining=set(raw24); mapping={}; details=[]
     for a in app:
         av=app_vector(a); exact=[loc for loc in remaining if tse_vector(raw24[loc])==av]
         if len(exact)==1:
             loc=exact[0]; remaining.remove(loc); mapping[loc]=a['id']; details.append({'tse_local':loc,'app_id':a['id'],'name':a['name'],'method':'exact-15-candidate-vector','sections_app':a['sections'],'sections_tse':counts24.get(loc)})
-    # If historical app values differ, use unique minimum L1 only when it is overwhelmingly better and section count agrees.
     unresolved=[a for a in app if a['id'] not in mapping.values()]
     while unresolved:
         progress=False
@@ -115,7 +118,6 @@ def map_locations(app,raw24,counts24):
             cand.sort()
             if not cand: continue
             best=cand[0]; second=cand[1] if len(cand)>1 else (10**9,10**9,'')
-            # Require section-count match plus clear separation; never accept a vague match.
             if best[0]<100000 and (best[1]==0 or second[0]-best[0]>=40):
                 loc=best[2]; remaining.remove(loc); mapping[loc]=a['id']; details.append({'tse_local':loc,'app_id':a['id'],'name':a['name'],'method':'validated-nearest-vector','l1_difference':best[1],'sections_app':a['sections'],'sections_tse':counts24.get(loc)}); unresolved.remove(a); progress=True
         if not progress: break
@@ -137,8 +139,7 @@ def aggregate_targets(raw,mapping,year):
                 q=votes.get(('vereador',int(key)),0); out[key][cid]+=q; totals[key]+=q
         else:
             for key,num in TARGET22.items():
-                cargo='dep_fed' if key.startswith('dep_fed_') else 'dep_est'
-                ck='deputadoFederal' if cargo=='dep_fed' else 'deputadoEstadual'
+                ck='deputadoFederal' if key.startswith('dep_fed_') else 'deputadoEstadual'
                 q=votes.get((ck,num),0); out[key][cid]+=q; totals[key]+=q
     allids=sorted(mapping.values())
     for k in (TARGET24 if year==2024 else TARGET22):
@@ -159,14 +160,19 @@ def main():
     mapping,details=map_locations(app,raw24,c24)
     raw22,c22,s22=collect(2022,'406',spec22)
     print('2022 local count',len(raw22),'section count',sum(c22.values()),flush=True)
+    if not s22 or not raw22: raise RuntimeError('2022 reconstruction returned no sections or locals')
     unknown22=sorted(set(raw22)-set(mapping))
     if unknown22: raise RuntimeError('2022 contains local numbers not mapped from 2024: '+repr(unknown22))
+    missing2022locals=sorted(set(mapping)-set(raw22))
+    if missing2022locals: raise RuntimeError('2022 is missing mapped polling places: '+repr(missing2022locals))
     v24,t24=aggregate_targets(raw24,mapping,2024); v22,t22=aggregate_targets(raw22,mapping,2022)
+    if set(t22)!=set(TARGET22): raise RuntimeError('Missing 2022 candidate totals: '+repr(sorted(set(TARGET22)-set(t22))))
+    zero22=[k for k,v in t22.items() if v<=0]
+    if zero22: raise RuntimeError('Zero 2022 candidate totals: '+repr(zero22))
     votes={**v24,**v22}; totals={**t24,**t22}
     coverage={k:len(v) for k,v in votes.items()}
     bad=[k for k,n in coverage.items() if n!=29]
     if bad: raise RuntimeError('Not 29/29: '+repr(bad))
-    # Verify the 15 elected councillor totals against the current app totals as an independent integrity check.
     app_tot={k:sum(a['votes'].get(k,0) for a in app) for k in ELECTED}
     elected_check={k:{'tse':t24[k],'previous_app':app_tot[k],'match':t24[k]==app_tot[k]} for k in ELECTED}
     report={'source':'Official TSE ballot-box BU files (resultados.tse.jus.br)','municipality_code':MUN,'zone':ZONE,'sections_2024':len(s24),'sections_2024_processed':sum(c24.values()),'sections_2022':len(s22),'sections_2022_processed':sum(c22.values()),'tse_locals_2024':len(raw24),'tse_locals_2022':len(raw22),'location_mapping':details,'coverage':coverage,'totals_2024':t24,'totals_2022':t22,'elected_integrity_check':elected_check,'candidate_numbers_2022':TARGET22}
