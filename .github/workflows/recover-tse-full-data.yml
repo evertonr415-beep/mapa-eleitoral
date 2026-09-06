@@ -1,0 +1,128 @@
+name: Recover TSE full electoral data
+
+on:
+  push:
+    branches:
+      - recovery-tse-full-data-20260906
+    paths:
+      - '.github/workflows/recover-tse-full-data.yml'
+      - 'scripts/recover_tse_data.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout recovery branch
+        uses: actions/checkout@v4
+        with:
+          ref: recovery-tse-full-data-20260906
+          fetch-depth: 0
+
+      - name: Resolve official TSE resource URLs
+        shell: python
+        run: |
+          import json, os, unicodedata, urllib.parse, urllib.request
+
+          API='https://dadosabertos.tse.jus.br/api/3/action/package_show?id='
+
+          def norm(s):
+              s=unicodedata.normalize('NFKD',str(s or ''))
+              s=''.join(c for c in s if not unicodedata.combining(c)).upper()
+              return ' '.join(s.split())
+
+          def package(slug):
+              with urllib.request.urlopen(API+urllib.parse.quote(slug), timeout=90) as r:
+                  data=json.load(r)
+              if not data.get('success'):
+                  raise RuntimeError('CKAN package_show failed for '+slug)
+              return data['result']['resources']
+
+          def pick(resources, year, kind):
+              scored=[]
+              for r in resources:
+                  name=norm(r.get('name') or r.get('description') or '')
+                  url=r.get('url') or ''
+                  score=0
+                  if kind=='votes':
+                      if 'VOTACAO POR SECAO ELEITORAL' in name: score+=100
+                      if name.startswith('PR ') or ' PR ' in (' '+name+' '): score+=50
+                      if str(year) in name: score+=10
+                      if 'HASH' in name or 'BR ' in name[:3]: score-=100
+                  else:
+                      if 'ELEITORADO POR LOCAL DE VOTACAO' in name: score+=100
+                      if str(year) in name: score+=10
+                  if url: scored.append((score,name,url))
+              scored.sort(reverse=True)
+              if not scored or scored[0][0] < 90:
+                  raise RuntimeError('Could not resolve '+kind+' '+str(year)+'; top='+repr(scored[:10]))
+              print(kind,year,scored[0])
+              return scored[0][2]
+
+          resources_2024=package('resultados-2024')
+          resources_2022=package('resultados-2022')
+          eleitorado_2024=package('eleitorado-2024')
+          eleitorado_2022=package('eleitorado-2022')
+
+          urls={
+              'VOTE_2024_URL':pick(resources_2024,2024,'votes'),
+              'VOTE_2022_URL':pick(resources_2022,2022,'votes'),
+              'LOCAL_2024_URL':pick(eleitorado_2024,2024,'local'),
+              'LOCAL_2022_URL':pick(eleitorado_2022,2022,'local'),
+          }
+          with open(os.environ['GITHUB_ENV'],'a',encoding='utf-8') as f:
+              for k,v in urls.items(): f.write(k+'='+v+'\n')
+          with open('tse-source-urls.json','w',encoding='utf-8') as f:
+              json.dump(urls,f,ensure_ascii=False,indent=2)
+
+      - name: Download official TSE datasets
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 4 --retry-delay 3 "$VOTE_2024_URL" -o /tmp/vote2024.zip
+          curl --fail --location --retry 4 --retry-delay 3 "$VOTE_2022_URL" -o /tmp/vote2022.zip
+          curl --fail --location --retry 4 --retry-delay 3 "$LOCAL_2024_URL" -o /tmp/local2024.zip
+          curl --fail --location --retry 4 --retry-delay 3 "$LOCAL_2022_URL" -o /tmp/local2022.zip
+          unzip -t /tmp/vote2024.zip >/dev/null
+          unzip -t /tmp/vote2022.zip >/dev/null
+          unzip -t /tmp/local2024.zip >/dev/null
+          unzip -t /tmp/local2022.zip >/dev/null
+
+      - name: Reconstruct Arapongas 29-college dataset
+        run: |
+          python scripts/recover_tse_data.py \
+            app.js \
+            /tmp/vote2024.zip \
+            /tmp/vote2022.zip \
+            /tmp/local2024.zip \
+            /tmp/local2022.zip \
+            tse-full-data-v19.js \
+            tse-full-data-report.json
+
+      - name: Validate recovered dataset
+        shell: python
+        run: |
+          import json,sys
+          r=json.load(open('tse-full-data-report.json',encoding='utf-8'))
+          print('ready=',r['ready'])
+          print('recovered=',r['recovered_candidate_count'],'of',r['system_candidate_count'])
+          review={k:v for k,v in r['candidates'].items() if v.get('status')!='ok'}
+          print('review=',json.dumps(review,ensure_ascii=False,indent=2))
+          if not r['ready']:
+              raise SystemExit('TSE reconstruction did not pass validation; no false complete dataset will be published.')
+
+      - name: Commit validated full dataset to recovery branch
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tse-full-data-v19.js tse-full-data-report.json tse-source-urls.json
+          if git diff --cached --quiet; then
+            echo "No recovered-data changes to commit."
+            exit 0
+          fi
+          git commit -m "recovery: rebuild complete Arapongas vote distribution from official TSE section data"
+          git push origin HEAD:recovery-tse-full-data-20260906
