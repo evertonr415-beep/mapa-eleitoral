@@ -56,6 +56,14 @@
     try{collegeSelect.click();}catch(_){ }
   }
 
+  function renderMobileGrid(){
+    try{
+      if(window.VFCollegeV7&&typeof window.VFCollegeV7.render==='function'){
+        window.VFCollegeV7.render();
+      }
+    }catch(_){ }
+  }
+
   function renderPanel(force){
     if(!ensure())return;
     var key=selected();
@@ -74,6 +82,7 @@
       name.textContent='Selecionar candidato';
       meta.textContent='Toque aqui e escolha um nome para ver os votos por colégio';
       btn.setAttribute('aria-label','Selecionar candidato para ver votos por colégio');
+      renderMobileGrid();
       return;
     }
 
@@ -84,6 +93,7 @@
     name.textContent=c.name;
     meta.textContent=(c.party?c.party+' • ':'')+(total?fmt(total)+' votos em Arapongas':'Resultado por colégio');
     btn.setAttribute('aria-label','Candidato '+c.name+'. Toque para escolher outro candidato.');
+    renderMobileGrid();
   }
 
   function syncControls(value){
@@ -98,8 +108,9 @@
     try{if(typeof state!=='undefined'&&state)state.selectedCandidate=value;}catch(_){ }
     syncControls(value);
     try{if(typeof renderTableColegios==='function')renderTableColegios();}catch(_){ }
+    renderMobileGrid();
     if(renderMapToo){try{if(typeof renderMapColegios==='function')renderMapColegios();}catch(_){ }}
-    setTimeout(function(){renderPanel(true);},20);
+    setTimeout(function(){renderPanel(true);renderMobileGrid();},20);
   }
 
   function installRenderHook(){
@@ -112,6 +123,7 @@
       setTimeout(function(){
         syncControls(selected());
         renderPanel(true);
+        renderMobileGrid();
       },0);
       return out;
     };
@@ -138,6 +150,7 @@
         setTimeout(function(){
           syncControls(value);
           renderPanel(true);
+          renderMobileGrid();
         },0);
       });
     }
@@ -146,14 +159,19 @@
     syncControls(selected());
     renderPanel(true);
     try{if(typeof renderTableColegios==='function')renderTableColegios();}catch(_){ }
+    renderMobileGrid();
   }
 
-  /* v17 uses a capture listener with stopImmediatePropagation, so keep the visual
-     panel synchronized from the authoritative state even when later listeners are blocked. */
+  /* v17 replaces the main selector and blocks later change listeners. The v7 mobile
+     college grid was bound to the old selector, so re-render it from authoritative state. */
   setInterval(function(){
     if(!isMobile())return;
     var key=selected();
-    if(key!==lastPanelKey){syncControls(key);renderPanel(true);}
+    if(key!==lastPanelKey){
+      syncControls(key);
+      renderPanel(true);
+      renderMobileGrid();
+    }
   },180);
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(bind,520)},{once:true});else setTimeout(bind,520);
