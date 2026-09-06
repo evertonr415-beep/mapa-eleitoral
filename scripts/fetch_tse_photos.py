@@ -66,8 +66,20 @@ def norm(value):
 
 def download(url):
     print('Downloading', url)
-    req = urllib.request.Request(url, headers={'User-Agent':'Mozilla/5.0 VotoForte/1.0'})
-    with urllib.request.urlopen(req, timeout=90) as r:
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36',
+        'Referer': 'https://dadosabertos.tse.jus.br/',
+        'Accept': 'application/zip,application/octet-stream;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'cross-site',
+        'Upgrade-Insecure-Requests': '1',
+    }
+    req = urllib.request.Request(url, headers=headers)
+    with urllib.request.urlopen(req, timeout=120) as r:
         return r.read()
 
 
@@ -148,7 +160,6 @@ def choose_by_name(rows, target_name, cargo_prefix=None, municipality_only=False
             matches.append(row)
     if not matches:
         return None
-    # Prefer exact urna-name match, then active/deferido-ish rows.
     matches.sort(key=lambda r:(
         0 if norm(r.get('NM_URNA_CANDIDATO')) == target else 1,
         0 if 'DEFER' in norm(r.get('DS_SITUACAO_CANDIDATURA')) else 1,
