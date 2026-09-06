@@ -61,4 +61,5 @@ jobs:
             exit 0
           fi
           git commit -m 'preview v27.6: store all 43 validated politician photos locally'
+          git pull --rebase origin preview-politician-photos-v27
           git push origin HEAD:preview-politician-photos-v27
