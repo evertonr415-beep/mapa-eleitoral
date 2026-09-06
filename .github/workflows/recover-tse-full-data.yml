@@ -6,7 +6,6 @@ on:
       - recovery-tse-full-data-20260906
     paths:
       - '.github/workflows/recover-tse-full-data.yml'
-      - 'scripts/recover_tse_static.py'
   workflow_dispatch:
 
 permissions:
@@ -23,47 +22,52 @@ jobs:
           ref: recovery-tse-full-data-20260906
           fetch-depth: 0
 
-      - name: Probe TSE BUWeb decoded CSVs for Paraná
+      - name: Install decoder
+        run: python -m pip install --quiet asn1tools
+
+      - name: Decode 2024 BU while treating evolved Urna field as ANY
         shell: python
         run: |
-          import json, pathlib, urllib.request, urllib.error, zipfile, io
-          H={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36','Accept':'*/*'}
-          urls={
-            '2022':'https://cdn.tse.jus.br/estatistica/sead/eleicoes/eleicoes2022/buweb/bweb_1t_PR_051020221321.zip',
-            '2024':'https://cdn.tse.jus.br/estatistica/sead/eleicoes/eleicoes2024/buweb/bweb_1t_PR_091020241636.zip'
-          }
-          out={}
-          for year,url in urls.items():
-              rec={'url':url}
-              try:
-                  req=urllib.request.Request(url,headers=H)
-                  with urllib.request.urlopen(req,timeout=180) as r:data=r.read()
-                  rec['status']=200;rec['zip_size']=len(data)
-                  z=zipfile.ZipFile(io.BytesIO(data))
-                  rec['files']=[{'name':x.filename,'size':x.file_size} for x in z.infolist()]
-                  csvs=[x for x in z.infolist() if x.filename.lower().endswith('.csv')]
-                  if csvs:
-                      x=max(csvs,key=lambda a:a.file_size)
-                      raw=z.open(x).read(30000)
-                      text=raw.decode('latin-1',errors='replace')
-                      lines=text.splitlines()
-                      rec['csv_name']=x.filename
-                      rec['head']=lines[:6]
-                      rec['header']=lines[0].split(';') if lines else []
-              except urllib.error.HTTPError as e:
-                  rec['status']=e.code;rec['error']=str(e)
-              except Exception as e:
-                  rec['status']='error';rec['error']=repr(e)
-              out[year]=rec
-              print(year,rec.get('status'),rec.get('zip_size'),rec.get('csv_name'))
-          pathlib.Path('tse-buweb-probe.json').write_text(json.dumps(out,ensure_ascii=False,indent=2),encoding='utf-8')
+          import json,pathlib,urllib.request,asn1tools,traceback,re
+          H={'User-Agent':'Mozilla/5.0','Accept':'*/*'}
+          def get(url):
+              req=urllib.request.Request(url,headers=H)
+              with urllib.request.urlopen(req,timeout=90) as r:return r.read()
+          schema=get('https://raw.githubusercontent.com/kuca-belludo/urnas/main/spec/bu.asn1').decode('utf-8')
+          start=schema.index('EntidadeBoletimUrna ::= SEQUENCE')
+          pos=schema.index('urna',start)
+          end=schema.index(',',pos)
+          old=schema[pos:end+1]
+          schema=schema[:pos]+'urna                        ANY,'+schema[end+1:]
+          pathlib.Path('/tmp/bu-any.asn1').write_text(schema,encoding='utf-8')
+          auxurl='https://resultados.tse.jus.br/oficial/ele2024/arquivo-urna/452/dados/pr/74276/0061/0299/p000452-pr-m74276-z0061-s0299-aux.json'
+          aux=json.loads(get(auxurl).decode())
+          g=aux['hashes'][0]; h=g['hash']; bu=next(x['nm'] for x in g['arq'] if x.get('tp')=='bu')
+          buurl=f'https://resultados.tse.jus.br/oficial/ele2024/arquivo-urna/452/dados/pr/74276/0061/0299/{h}/{bu}'
+          raw=get(buurl)
+          out={'replaced':old,'bu_url':buurl}
+          def safe(v,d=0):
+              if d>12:return '<depth>'
+              if isinstance(v,(bytes,bytearray)):return {'bytes_len':len(v),'hex':bytes(v[:32]).hex()}
+              if isinstance(v,dict):return {str(k):safe(x,d+1) for k,x in v.items()}
+              if isinstance(v,(list,tuple)):return [safe(x,d+1) for x in v[:200]]
+              return v
+          try:
+              conv=asn1tools.compile_files('/tmp/bu-any.asn1',codec='ber')
+              env=conv.decode('EntidadeEnvelopeGenerico',raw)
+              decoded=conv.decode('EntidadeBoletimUrna',env['conteudo'])
+              out['success']=True;out['keys']=list(decoded.keys());out['decoded']=safe(decoded)
+          except Exception as e:
+              out['success']=False;out['error']=repr(e);out['trace']=traceback.format_exc()
+          pathlib.Path('tse-bu-any-probe.json').write_text(json.dumps(out,ensure_ascii=False,indent=2),encoding='utf-8')
+          print(json.dumps({'success':out['success'],'error':out.get('error')},ensure_ascii=False))
 
-      - name: Commit BUWeb probe
+      - name: Commit ANY probe
         if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add tse-buweb-probe.json 2>/dev/null || true
+          git add tse-bu-any-probe.json 2>/dev/null || true
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m "recovery: probe decoded TSE BUWeb Paraná datasets"
+          git commit -m "recovery: bypass evolved 2024 urna metadata and decode vote results"
           git push origin HEAD:recovery-tse-full-data-20260906
