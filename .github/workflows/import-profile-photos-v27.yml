@@ -6,6 +6,7 @@ on:
       - preview-politician-photos-v27
     paths:
       - 'scripts/import_profile_photos.py'
+      - 'scripts/import_remaining_photos.py'
       - '.github/workflows/import-profile-photos-v27.yml'
 
 permissions:
@@ -25,13 +26,29 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Import and validate politician photos
+      - name: Import first 35 validated photos
+        continue-on-error: true
         run: python scripts/import_profile_photos.py
 
-      - name: Show import report
+      - name: Import final eight validated photos
+        run: python scripts/import_remaining_photos.py
+
+      - name: Verify complete 43-photo manifest
+        run: |
+          python - <<'PY'
+          import json
+          p='assets/politicians/photos.json'
+          data=json.load(open(p,encoding='utf-8'))
+          print('Validated local politician photos:',len(data))
+          if len(data)!=43:
+              raise SystemExit(f'Expected 43 photos, got {len(data)}')
+          PY
+
+      - name: Show import reports
         if: always()
         run: |
           if [ -f assets/politicians/profile-import-report.json ]; then cat assets/politicians/profile-import-report.json; fi
+          if [ -f assets/politicians/remaining-import-report.json ]; then cat assets/politicians/remaining-import-report.json; fi
           if [ -f assets/politicians/photos.json ]; then cat assets/politicians/photos.json; fi
 
       - name: Commit local politician photos
@@ -43,5 +60,5 @@ jobs:
             echo 'No photo changes to commit.'
             exit 0
           fi
-          git commit -m 'preview v27.6: store validated politician photos locally'
+          git commit -m 'preview v27.6: store all 43 validated politician photos locally'
           git push origin HEAD:preview-politician-photos-v27
