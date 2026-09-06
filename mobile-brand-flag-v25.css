@@ -1,4 +1,14 @@
 @media (max-width:900px){
+  /* Authenticated mobile shell: prevent the legacy registration/login modal from
+     painting during bootstrap. Authentication is already validated by
+     mobile-production.html before this stylesheet is loaded. */
+  #modal-auth-flow{
+    display:none!important;
+    visibility:hidden!important;
+    opacity:0!important;
+    pointer-events:none!important;
+  }
+
   .vf-college-candidate-avatar.vf-brand-flag-avatar,
   .vf24-candidate-avatar.vf-brand-flag-avatar{
     overflow:hidden!important;
