@@ -23,39 +23,42 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Probe official TSE JSON and polling-place sources
+      - name: Decode one official BU from each election
         run: |
-          set -x
-          curl -L --fail -A 'Mozilla/5.0' -o /tmp/pr24.json 'https://resultados.tse.jus.br/oficial/ele2024/arquivo-urna/452/config/pr/pr-p000452-cs.json'
-          curl -L --fail -A 'Mozilla/5.0' -o /tmp/pr22.json 'https://resultados.tse.jus.br/oficial/ele2022/arquivo-urna/406/config/pr/pr-p000406-cs.json'
-          curl -L --fail -A 'Mozilla/5.0' -o /tmp/aux24.json 'https://resultados.tse.jus.br/oficial/ele2024/arquivo-urna/452/dados/pr/74276/0061/0001/p000452-pr-m74276-z0061-s0001-aux.json'
-          curl -L --fail -A 'Mozilla/5.0' -o /tmp/aux22.json 'https://resultados.tse.jus.br/oficial/ele2022/arquivo-urna/406/dados/pr/74276/0061/0001/p000406-pr-m74276-z0061-s0001-aux.json'
+          python -m pip install --quiet asn1tools
+          curl -L --fail -A 'Mozilla/5.0' -o /tmp/bu24.asn1 'https://raw.githubusercontent.com/doccaz/urnas-br/main/docv2/spec/bu.asn1'
+          curl -L --fail -A 'Mozilla/5.0' -o /tmp/bu22.asn1 'https://raw.githubusercontent.com/doccaz/urnas-br/main/doc/spec/bu.asn1'
           python - <<'PY'
-          import json
-          for year,path in [(2024,'/tmp/pr24.json'),(2022,'/tmp/pr22.json')]:
-            d=json.load(open(path)); found=[]
-            for abr in d.get('abr',[]):
-              for mu in abr.get('mu',[]):
-                if 'ARAPONGAS' in mu.get('nm','').upper(): found.append(mu)
-            print('YEAR',year,'ARAPONGAS',json.dumps(found,ensure_ascii=False)[:12000])
-          for year,path in [(2024,'/tmp/aux24.json'),(2022,'/tmp/aux22.json')]:
-            print('AUX',year,json.dumps(json.load(open(path)),ensure_ascii=False)[:30000])
+          import urllib.request,json,asn1tools,pprint
+          def get(url,binary=False):
+            r=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'})
+            with urllib.request.urlopen(r,timeout=60) as f:return f.read() if binary else json.load(f)
+          def decode(year,geral,pleito,spec):
+            uf='pr';mun='74276';zone='0061';sec='0001'
+            base=f'https://resultados.tse.jus.br/oficial/{geral}/arquivo-urna/{pleito}/dados/{uf}/{mun}/{zone}/{sec}'
+            aux=get(f'{base}/p000{pleito}-{uf}-m{mun}-z{zone}-s{sec}-aux.json')
+            h=aux['hashes'][0]; hh=h['hash']
+            if year==2024:
+              fn=[x['nm'] for x in h['arq'] if x.get('tp')=='bu'][0]
+            else:
+              fn=[x for x in h['nmarq'] if x.endswith('.bu')][0]
+            data=get(f'{base}/{hh}/{fn}',True)
+            conv=asn1tools.compile_files(spec,codec='ber')
+            env=conv.decode('EntidadeEnvelopeGenerico',bytearray(data)); enc=env['conteudo']; del env['conteudo']
+            bu=conv.decode('EntidadeBoletimUrna',enc)
+            print('\n=== YEAR',year,'ENV ==='); pprint.pp(env,width=180)
+            print('\n=== YEAR',year,'BU KEYS ===',bu.keys())
+            print('identificacaoSecao=',bu.get('identificacaoSecao'))
+            print('resultados count=',len(bu.get('resultadosVotacaoPorEleicao',[])))
+            for ei,e in enumerate(bu.get('resultadosVotacaoPorEleicao',[])):
+              print('ELEICAO',ei,'keys',e.keys(),'id',e.get('idEleicao'),'aptos',e.get('qtdEleitoresAptos'))
+              for ri,r in enumerate(e.get('resultadosVotacao',[])):
+                print(' RESULT',ri,'keys',r.keys())
+                for ci,c in enumerate(r.get('totaisVotosCargo',[])):
+                  print('  CARGO',ci,'keys',c.keys(),'cargo',c.get('codigoCargo'),'votos_count',len(c.get('votosVotaveis',[])))
+                  print('   sample',c.get('votosVotaveis',[])[:8])
+          decode(2024,'ele2024','452','/tmp/bu24.asn1')
+          decode(2022,'ele2022','406','/tmp/bu22.asn1')
           PY
-          for code in 619 439 452 406 544; do
-            for file in o00452pr00610001-qbu.js o00452pr061001-qbu.js; do
-              url="https://qrcodenobu.tse.jus.br/json-bu/oficial/${code}/${file}"
-              echo "PROBE $url"
-              curl -L -sS -A 'Mozilla/5.0' -w ' HTTP=%{http_code} SIZE=%{size_download}\n' -o "/tmp/q-${code}-${file}" "$url" || true
-              head -c 300 "/tmp/q-${code}-${file}" 2>/dev/null || true; echo
-            done
-          done
-          for url in \
-            'https://www.tre-pr.jus.br/eleicoes/estatisticas/arquivos/tre-pr-elo-cadastro-eleitoral-enderecos-das-secoes-do-parana-2024' \
-            'https://www.tre-pr.jus.br/eleicoes/estatisticas/arquivos/tre-pr-elo-cadastro-eleitoral-enderecos-das-secoes-do-parana-2022'; do
-            out="/tmp/loc-$(echo "$url" | tail -c 5)"
-            curl -L -sS -A 'Mozilla/5.0' -w ' TRE_HTTP=%{http_code} SIZE=%{size_download}\n' -o "$out" "$url" || true
-            file "$out" || true
-            head -c 80 "$out" | xxd || true
-          done
-      - name: Stop after probe
-        run: echo 'Probe complete; reconstruction script will be updated from these official structures.'
+      - name: Stop after decode probe
+        run: echo 'Decode probe complete.'
