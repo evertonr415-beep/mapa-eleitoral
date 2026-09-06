@@ -21,6 +21,11 @@ SOURCES={
   'dep_fed_angelica':('Angelica Enfermeira','9020','https://tnonline.uol.com.br/eleicoes/2022/deputado-federal/angelica-enfermeira-candidata-a-deputada-federal-672695','tn'),
 }
 
+DIRECT_IMAGES={
+  'pref_milani':'https://f.i.uol.com.br/folha/eleicoes/2024/pr/arapongas/11_924347.jpg?20250102153041',
+  '11500':'https://f.i.uol.com.br/folha/eleicoes/2024/pr/arapongas/13_1247836.jpg?20250102153041',
+}
+
 def get(url,binary=False,referer=None):
     headers={
       'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/140.0 Safari/537.36',
@@ -44,12 +49,11 @@ def find_folha(html):
 def find_tn(html,name):
     raw=html_lib.unescape(html).replace('\\/','/')
     urls=re.findall(r'https?://cdn\.tnonline\.com\.br/img/Artigo-Destaque/[^"\'<> ]+',raw,re.I)
-    # candidate portraits on TN are under Artigo-Destaque and usually contain the candidate name or 'Candidato'.
     parts=[p.lower() for p in re.sub(r'[^A-Za-z0-9]+',' ',name).split() if len(p)>=4]
     ranked=[]
     for u in urls:
         low=urllib.parse.unquote(u).lower()
-        if 'tnonline-share' in low or 'fallback=' in low and 'tnonline-share' in low:continue
+        if 'tnonline-share' in low or ('fallback=' in low and 'tnonline-share' in low):continue
         score=0
         if 'candidat' in low:score+=30
         score+=sum(8 for p in parts if p in low)
@@ -57,8 +61,7 @@ def find_tn(html,name):
         if 'fallback=' in low:score+=2
         ranked.append((score,u))
     ranked.sort(reverse=True)
-    if ranked and ranked[0][0]>=20:return ranked[0][1]
-    return ''
+    return ranked[0][1] if ranked and ranked[0][0]>=20 else ''
 
 def ext_for(url,headers):
     ct=str(headers.get('Content-Type','')).lower()
@@ -77,7 +80,7 @@ def main():
         try:
             raw,h,final=get(page);html=raw.decode('utf-8','ignore')
             if not text_ok(html,name,number):raise RuntimeError('identity_validation_failed')
-            image=find_folha(html) if kind=='folha' else find_tn(html,name)
+            image=DIRECT_IMAGES.get(key) or (find_folha(html) if kind=='folha' else find_tn(html,name))
             if not image:raise RuntimeError('candidate_image_not_found')
             data,ih,ifinal=get(image,binary=True,referer=final)
             if len(data)<1800:raise RuntimeError('candidate_image_too_small')
