@@ -118,7 +118,7 @@
     if(p1!==p2){status('.vf-profile-pass-status','As senhas não conferem.',false);return;}
     try{var s=await client();var r=await s.auth.updateUser({password:p1});if(r.error)throw r.error;sheet.querySelector('.vf-profile-pass1').value='';sheet.querySelector('.vf-profile-pass2').value='';status('.vf-profile-pass-status','Senha atualizada com sucesso.',true);}catch(e){status('.vf-profile-pass-status',e.message||'Não foi possível atualizar a senha.',false);}
   }
-  async function logout(){try{var s=await client();await s.auth.signOut();location.replace('/?login=1');}catch(_){location.replace('/?login=1');}}
+  async function logout(){var target=location.origin+'/?login=1';try{var s=await client();await s.auth.signOut();location.replace(target);}catch(_){location.replace(target);}}
 
   function bind(){
     if(!isMobile())return;ensure();
