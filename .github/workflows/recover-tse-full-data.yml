@@ -23,53 +23,55 @@ jobs:
           ref: recovery-tse-full-data-20260906
           fetch-depth: 0
 
-      - name: Probe official TSE static result service
+      - name: Probe one official TSE section in 2022 and 2024
         shell: python
         run: |
-          import json, urllib.request, unicodedata
-
+          import json, urllib.request, urllib.error
           BASE='https://resultados.tse.jus.br/oficial'
-          UA={'User-Agent':'Mozilla/5.0','Accept':'application/json,text/plain,*/*'}
-          def get(url):
-              req=urllib.request.Request(url,headers=UA)
-              with urllib.request.urlopen(req,timeout=60) as r:
-                  return json.load(r)
-          def norm(v):
-              s=unicodedata.normalize('NFKD',str(v or ''))
-              s=''.join(c for c in s if not unicodedata.combining(c))
-              return ' '.join(s.upper().split())
-          def find_arapongas(obj):
-              found=[]
-              def walk(v,path='root'):
-                  if isinstance(v,dict):
-                      blob=' '.join(str(x) for x in v.values() if isinstance(x,(str,int,float)))
-                      if 'ARAPONGAS' in norm(blob): found.append({'path':path,'value':v})
-                      for k,x in v.items(): walk(x,path+'.'+str(k))
-                  elif isinstance(v,list):
-                      for i,x in enumerate(v): walk(x,path+'['+str(i)+']')
-              walk(obj)
-              return found
+          HEAD={'User-Agent':'Mozilla/5.0','Accept':'application/json,text/plain,*/*'}
+          def fetch(url):
+              req=urllib.request.Request(url,headers=HEAD)
+              try:
+                  with urllib.request.urlopen(req,timeout=60) as r:
+                      body=r.read()
+                      return {'status':r.status,'content_type':r.headers.get('content-type',''),'body':body}
+              except urllib.error.HTTPError as e:
+                  return {'status':e.code,'content_type':e.headers.get('content-type',''),'body':e.read()}
+          out={}
+          for year,pleito in [(2022,'406'),(2024,'452')]:
+              d=f'{BASE}/ele{year}/arquivo-urna/{pleito}/dados/pr/74276/0061/0299'
+              b=f'p000{pleito}-pr-m74276-z0061-s0299'
+              auxurl=f'{d}/{b}-aux.json'
+              a=fetch(auxurl)
+              rec={'aux_url':auxurl,'aux_status':a['status'],'aux_type':a['content_type']}
+              if a['status']==200:
+                  try:
+                      aux=json.loads(a['body'].decode('utf-8'))
+                      rec['aux']=aux
+                      hashes=aux.get('hashes') or []
+                      rec['hashes_summary']=[{'hash':x.get('hash'),'nmarq':x.get('nmarq'),'st':x.get('st')} for x in hashes]
+                  except Exception as e: rec['aux_parse_error']=repr(e)
+              tests=[]
+              for suffix in ['-bu.json','.json','-v.json']:
+                  u=f'{d}/{b}{suffix}'
+                  x=fetch(u)
+                  item={'url':u,'status':x['status'],'content_type':x['content_type'],'size':len(x['body'])}
+                  if x['status']==200 and 'json' in x['content_type'].lower():
+                      try:
+                          j=json.loads(x['body'].decode('utf-8'))
+                          item['top_keys']=list(j.keys()) if isinstance(j,dict) else None
+                          item['sample']=j
+                      except Exception as e: item['parse_error']=repr(e)
+                  tests.append(item)
+              rec['structured_tests']=tests
+              out[str(year)]=rec
+          open('tse-section-probe.json','w',encoding='utf-8').write(json.dumps(out,ensure_ascii=False,indent=2))
 
-          probe={}
-          urls={
-            'mun2022':BASE+'/ele2022/544/config/mun-e000544-cm.json',
-            'mun2024':BASE+'/ele2024/619/config/mun-e000619-cm.json',
-            'sections2022':BASE+'/ele2022/arquivo-urna/406/config/pr/pr-p000406-cs.json',
-            'sections2024':BASE+'/ele2024/arquivo-urna/452/config/pr/pr-p000452-cs.json'
-          }
-          for key,url in urls.items():
-              print('fetch',key,url)
-              data=get(url)
-              hits=find_arapongas(data)
-              probe[key]={'url':url,'hits':hits,'top_keys':list(data.keys()) if isinstance(data,dict) else None,'type':type(data).__name__}
-              print(key,'hits',len(hits))
-          open('tse-static-probe.json','w',encoding='utf-8').write(json.dumps(probe,ensure_ascii=False,indent=2))
-
-      - name: Commit probe
+      - name: Commit section probe
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add tse-static-probe.json
+          git add tse-section-probe.json
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m "recovery: probe TSE static section service for Arapongas"
+          git commit -m "recovery: inspect official TSE section bulletin structure"
           git push origin HEAD:recovery-tse-full-data-20260906
