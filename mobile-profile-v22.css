@@ -8,7 +8,42 @@
   .vf-profile-close{width:38px;height:38px;border:1px solid rgba(148,163,184,.18);border-radius:12px;background:#18263a;color:#fff;font-size:22px}
   .vf-profile-card{display:grid;grid-template-columns:72px minmax(0,1fr);gap:12px;align-items:center;padding:12px;border:1px solid rgba(96,165,250,.2);border-radius:17px;background:linear-gradient(145deg,rgba(37,99,235,.12),rgba(30,41,59,.72))}
   .vf-profile-photo{position:relative;width:72px;height:72px;border-radius:50%;overflow:hidden;border:2px solid rgba(96,165,250,.55);background:linear-gradient(145deg,#2563eb,#1d4ed8);display:grid;place-items:center;color:#fff;font-size:20px;font-weight:900}
-  .vf-profile-photo img,.vf-mobile-avatar img,.vf-drawer-account-avatar img{width:100%;height:100%;object-fit:cover;display:block}
+
+  body.vf-mobile .vf-mobile-profile-button{
+    width:44px!important;
+    height:44px!important;
+    min-width:44px!important;
+    min-height:44px!important;
+    padding:0!important;
+    border-radius:50%!important;
+    overflow:hidden!important;
+    isolation:isolate!important;
+  }
+  body.vf-mobile .vf-mobile-avatar{
+    display:block!important;
+    width:100%!important;
+    height:100%!important;
+    border-radius:50%!important;
+    overflow:hidden!important;
+    line-height:44px!important;
+  }
+  body.vf-mobile .vf-drawer-account-avatar{
+    border-radius:50%!important;
+    overflow:hidden!important;
+  }
+  .vf-profile-photo img,
+  body.vf-mobile .vf-mobile-avatar img,
+  body.vf-mobile .vf-drawer-account-avatar img{
+    width:100%!important;
+    height:100%!important;
+    min-width:100%!important;
+    min-height:100%!important;
+    display:block!important;
+    object-fit:cover!important;
+    object-position:center center!important;
+    border-radius:50%!important;
+  }
+
   .vf-profile-photo button{position:absolute;inset:auto 0 0;border:0;padding:5px 2px;background:rgba(2,6,23,.78);color:#fff;font-size:8px;font-weight:800}
   .vf-profile-name{font-size:15px;color:#fff;font-weight:850;line-height:1.15}.vf-profile-email{margin-top:4px;font-size:10px;color:#9fb0c6;overflow-wrap:anywhere}.vf-profile-role{display:inline-flex;margin-top:7px;padding:4px 7px;border-radius:999px;background:rgba(34,197,154,.1);color:#75dec0;font-size:8px;font-weight:800;text-transform:uppercase}
   .vf-profile-section{margin-top:12px;padding:12px;border:1px solid rgba(148,163,184,.14);border-radius:16px;background:rgba(15,23,42,.72)}
@@ -22,4 +57,9 @@
   .vf-profile-danger{border:1px solid rgba(248,113,113,.28);background:rgba(127,29,29,.18);color:#fca5a5}
   .vf-profile-status{display:none;margin-top:9px;padding:8px 9px;border-radius:10px;font-size:9px;line-height:1.3}.vf-profile-status.ok{display:block;background:rgba(34,197,94,.1);color:#86efac;border:1px solid rgba(34,197,94,.2)}.vf-profile-status.err{display:block;background:rgba(239,68,68,.1);color:#fca5a5;border:1px solid rgba(239,68,68,.2)}
   .vf-profile-file{display:none}
+}
+
+@media (max-width:380px){
+  body.vf-mobile .vf-mobile-profile-button{width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important}
+  body.vf-mobile .vf-mobile-avatar{line-height:42px!important}
 }
