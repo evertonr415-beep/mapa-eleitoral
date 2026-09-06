@@ -3,7 +3,7 @@
   if(window.__vfPoliticianPhotosV27)return;window.__vfPoliticianPhotosV27=true;
 
   var photos={},loaded=false,loading=false,pending={},queue=[],active=0,maxActive=4;
-  var CACHE_KEY='vf-politician-photo-cache-v27-4';
+  var CACHE_KEY='vf-politician-photo-cache-v27-5';
   var names={
     pref_cita:'Rafael Cita',pref_milani:'Jair Milani',
     '20220':'Décio Rosanelli','55155':'Levi do Handebol','11234':'Paulo Grassano','44044':'Toninho da Ambulância','70000':'João Graça','40133':'Márcio Nicke','20120':'Aroldo Pagan','11555':'Professor Marcelo','44567':'Alexandre Juliani Sorriso','55555':'Simone Sponton','55147':'Luisinho da Saúde','22777':'Marilsa Staub','44190':'Pardini','55120':'Cecéu','12500':'Meiry Farias','11500':'Marcos Antonio de Souza','11444':'Silvano dos Santos Alves','13100':'Márcio Diniz','55456':'Milton Xavier','10123':'Rodrigo de Deus','22622':'Rubens Franzin','22123':'Ricardo Botelho',
@@ -21,7 +21,7 @@
     if(loading)return;loading=true;
     loadCache();
     try{
-      var local=await fetch(location.origin+'/assets/politicians/photos.json?v=27.4',{cache:'no-store'});
+      var local=await fetch(location.origin+'/assets/politicians/photos.json?v=27.5',{cache:'no-store'});
       if(local.ok){var lm=await local.json();if(lm&&typeof lm==='object')Object.assign(photos,lm);}
     }catch(_){ }
     try{
@@ -29,6 +29,15 @@
       if(r.ok){var data=await r.json();if(data&&data.photos)Object.assign(photos,data.photos);window.__vfPoliticianPhotosV27Diagnostics=data&&data.diagnostics||[];}
     }catch(_){ }
     loaded=true;loading=false;window.__vfPoliticianPhotosV27Map=photos;saveCache();apply();
+  }
+
+  async function exactProfileLookup(key){
+    try{
+      var r=await fetch(location.origin+'/api/candidate-photo?key='+encodeURIComponent(key),{cache:'force-cache'});
+      if(!r.ok)return '';
+      var data=await r.json();
+      return data&&data.url?String(data.url):'';
+    }catch(_){return '';}
   }
 
   function buildQuery(key){var n=names[key];if(!n)return '';return yearFor(key)+' '+n+(isMunicipal(key)?' ARAPONGAS PR ':' PR ')+' TSE';}
@@ -57,13 +66,17 @@
     }catch(_){ }
     return '';
   }
+  async function resolvePhoto(key){
+    var exact=await exactProfileLookup(key);if(exact)return exact;
+    return commonsLookup(key);
+  }
   function ensurePhoto(key){
     key=String(key||'');if(!key||key==='ALL'||photos[key]||pending[key]||!names[key])return;
     pending[key]=true;queue.push(key);pump();
   }
   function pump(){
     while(active<maxActive&&queue.length){
-      (function(key){active++;commonsLookup(key).then(function(u){if(u){photos[key]=u;saveCache();window.__vfPoliticianPhotosV27Map=photos;}}).finally(function(){delete pending[key];active--;apply();pump();});})(queue.shift());
+      (function(key){active++;resolvePhoto(key).then(function(u){if(u){photos[key]=u;saveCache();window.__vfPoliticianPhotosV27Map=photos;}}).finally(function(){delete pending[key];active--;apply();pump();});})(queue.shift());
     }
   }
 
