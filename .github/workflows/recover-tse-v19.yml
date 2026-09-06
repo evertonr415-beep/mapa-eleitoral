@@ -23,42 +23,30 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Decode one official BU from each election
+      - name: Install decoder
+        run: python -m pip install --quiet asn1tools
+      - name: Reconstruct all votes from official TSE ballot-box BUs
+        run: python scripts/recover_tse_votes.py
+      - name: Validate generated report
         run: |
-          python -m pip install --quiet asn1tools
-          curl -L --fail -A 'Mozilla/5.0' -o /tmp/bu24.asn1 'https://raw.githubusercontent.com/doccaz/urnas-br/main/docv2/spec/bu.asn1'
-          curl -L --fail -A 'Mozilla/5.0' -o /tmp/bu22.asn1 'https://raw.githubusercontent.com/doccaz/urnas-br/main/doc/spec/bu.asn1'
           python - <<'PY'
-          import urllib.request,json,asn1tools,pprint
-          def get(url,binary=False):
-            r=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'})
-            with urllib.request.urlopen(r,timeout=60) as f:return f.read() if binary else json.load(f)
-          def decode(year,geral,pleito,spec):
-            uf='pr';mun='74276';zone='0061';sec='0001'
-            base=f'https://resultados.tse.jus.br/oficial/{geral}/arquivo-urna/{pleito}/dados/{uf}/{mun}/{zone}/{sec}'
-            aux=get(f'{base}/p000{pleito}-{uf}-m{mun}-z{zone}-s{sec}-aux.json')
-            h=aux['hashes'][0]; hh=h['hash']
-            if year==2024:
-              fn=[x['nm'] for x in h['arq'] if x.get('tp')=='bu'][0]
-            else:
-              fn=[x for x in h['nmarq'] if x.endswith('.bu')][0]
-            data=get(f'{base}/{hh}/{fn}',True)
-            conv=asn1tools.compile_files(spec,codec='ber')
-            env=conv.decode('EntidadeEnvelopeGenerico',bytearray(data)); enc=env['conteudo']; del env['conteudo']
-            bu=conv.decode('EntidadeBoletimUrna',enc)
-            print('\n=== YEAR',year,'ENV ==='); pprint.pp(env,width=180)
-            print('\n=== YEAR',year,'BU KEYS ===',bu.keys())
-            print('identificacaoSecao=',bu.get('identificacaoSecao'))
-            print('resultados count=',len(bu.get('resultadosVotacaoPorEleicao',[])))
-            for ei,e in enumerate(bu.get('resultadosVotacaoPorEleicao',[])):
-              print('ELEICAO',ei,'keys',e.keys(),'id',e.get('idEleicao'),'aptos',e.get('qtdEleitoresAptos'))
-              for ri,r in enumerate(e.get('resultadosVotacao',[])):
-                print(' RESULT',ri,'keys',r.keys())
-                for ci,c in enumerate(r.get('totaisVotosCargo',[])):
-                  print('  CARGO',ci,'keys',c.keys(),'cargo',c.get('codigoCargo'),'votos_count',len(c.get('votosVotaveis',[])))
-                  print('   sample',c.get('votosVotaveis',[])[:8])
-          decode(2024,'ele2024','452','/tmp/bu24.asn1')
-          decode(2022,'ele2022','406','/tmp/bu22.asn1')
+          import json
+          r=json.load(open('tse-full-data-v19-report.json',encoding='utf-8'))
+          assert r['sections_2024']==r['sections_2024_processed']
+          assert r['sections_2022']==r['sections_2022_processed']
+          assert r['tse_locals_2024']==29
+          assert all(v==29 for v in r['coverage'].values())
+          print('VALIDATED: all recovered candidates have 29/29 polling places')
+          print(json.dumps({'totals_2024':r['totals_2024'],'totals_2022':r['totals_2022']},ensure_ascii=False,indent=2))
           PY
-      - name: Stop after decode probe
-        run: echo 'Decode probe complete.'
+      - name: Commit reconstructed official data
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tse-full-data-v19.js tse-full-data-v19-report.json
+          if git diff --cached --quiet; then
+            echo 'No generated changes.'
+          else
+            git commit -m 'data v19: restore complete official TSE polling-place votes'
+            git push origin HEAD:recovery-tse-full-data-20260906
+          fi
