@@ -1,0 +1,411 @@
+{
+  "source": "Official TSE ballot-box BU files (resultados.tse.jus.br)",
+  "municipality_code": "74276",
+  "zone": "0061",
+  "sections_2024": 246,
+  "sections_2024_processed": 246,
+  "sections_2022": 0,
+  "sections_2022_processed": 0,
+  "tse_locals_2024": 29,
+  "tse_locals_2022": 0,
+  "location_mapping": [
+    {
+      "tse_local": "1368",
+      "app_id": "CLG-01",
+      "name": "COLÉGIO ESTADUAL UNIDADE POLO",
+      "method": "exact-15-candidate-vector",
+      "sections_app": 13,
+      "sections_tse": 13
+    },
+    {
+      "tse_local": "1236",
+      "app_id": "CLG-02",
+      "name": "ESCOLA MUNICIPAL PROFESSORA ALZIRA HORVATICH",
+      "method": "exact-15-candidate-vector",
+      "sections_app": 13,
+      "sections_tse": 13
+    },
+    {
+      "tse_local": "1430",
+      "app_id": "CLG-03",
+      "name": "ESCOLA MUNICIPAL ENZO BATISTA DALEFFE PEREIRA",
+      "method": "exact-15-candidate-vector",
+      "sections_app": 14,
+      "sections_tse": 14
+    },
+    {
+      "tse_local": "1341",
+      "app_id": "CLG-04",
+      "name": "COLEGIO ESTADUAL EMILIO DE MENEZES",
+      "method": "exact-15-candidate-vector",
+      "sections_app": 14,
+      "sections_tse": 14
+    },
+    {
+      "tse_local": "1350",
+      "app_id": "CLG-05",
+      "name": "ESCOLA MUNICIPAL PAPA JOÃO PAULO II",
+      "method": "exact-15-candidate-vector",
+      "sections_app": 11,
+      "sections_tse": 11
+    },
+    {
+      "tse_local": "1392",
+      "app_id": "CLG-06",
+      "name": "ESCOLA MUNICIPAL PADRE GERMANO MAYER",
+      "method": "exact-15-candidate-vector",
+      "sections_app": 12,
+      "sections_tse": 12
+    },
+    {
+      "tse_local": "1112",
+      "app_id": "CLG-07",
+      "name": "COLEGIO ESTADUAL PROFESSORA NADIR MENDES MONTANHA",
+      "method": "exact-15-candidate-vector",
+      "sections_app": 10,
+      "sections_tse": 10
+    },
+    {
+      "tse_local": "1201",
+      "app_id": "CLG-08",
+      "name": "CLUBE COMERCIAL DE ARAPONGAS",
+      "method": "exact-15-candidate-vector",
+      "sections_app": 10,
+      "sections_tse": 10
+    },
+    {
+      "tse_local": "1066",
+      "app_id": "CLG-09",
+      "name": "COLÉGIO ESTADUAL ANTÔNIO GARCEZ NOVAES",
+      "method": "exact-15-candidate-vector",
+      "sections_app": 11,
+      "sections_tse": 11
+    },
+    {
+      "tse_local": "1163",
+      "app_id": "CLG-10",
+      "name": "ESCOLA MUNICIPAL PRESIDENTE GETULIO VARGAS",
+      "method": "exact-15-candidate-vector",
+      "sections_app": 10,
+      "sections_tse": 10
+    },
+    {
+      "tse_local": "1449",
+      "app_id": "CLG-11",
+      "name": "COLÉGIO BOM JESUS MÃE DO DIVINO AMOR",
+      "method": "exact-15-candidate-vector",
+      "sections_app": 10,
+      "sections_tse": 10
+    },
+    {
+      "tse_local": "1376",
+      "app_id": "CLG-12",
+      "name": "COLEGIO ESTADUAL MARQUES DE CARAVELAS",
+      "method": "exact-15-candidate-vector",
+      "sections_app": 10,
+      "sections_tse": 10
+    },
+    {
+      "tse_local": "1023",
+      "app_id": "CLG-13",
+      "name": "COLEGIO ESTADUAL ANTONIO RACANELLO SAMPAIO",
+      "method": "exact-15-candidate-vector",
+      "sections_app": 9,
+      "sections_tse": 9
+    },
+    {
+      "tse_local": "1015",
+      "app_id": "CLG-14",
+      "name": "ESCOLA MUNICIPAL PROFESSORA ANTONICA GIROLDO FRANCIOSI",
+      "method": "exact-15-candidate-vector",
+      "sections_app": 9,
+      "sections_tse": 9
+    },
+    {
+      "tse_local": "1244",
+      "app_id": "CLG-15",
+      "name": "ESCOLA MUNICIPAL JOSE BERNARDO DOS SANTOS",
+      "method": "exact-15-candidate-vector",
+      "sections_app": 8,
+      "sections_tse": 8
+    },
+    {
+      "tse_local": "1325",
+      "app_id": "CLG-16",
+      "name": "COLEGIO ESTADUAL IVANILDE DE NORONHA",
+      "method": "exact-15-candidate-vector",
+      "sections_app": 8,
+      "sections_tse": 8
+    },
+    {
+      "tse_local": "1309",
+      "app_id": "CLG-17",
+      "name": "ESCOLA MUNICIPAL PROFESSORA NEREIDE DE SOUZA CAMARGO",
+      "method": "exact-15-candidate-vector",
+      "sections_app": 8,
+      "sections_tse": 8
+    },
+    {
+      "tse_local": "1210",
+      "app_id": "CLG-18",
+      "name": "COLEGIO ESTADUAL FRANCISCO FERREIRA BASTOS",
+      "method": "exact-15-candidate-vector",
+      "sections_app": 7,
+      "sections_tse": 7
+    },
+    {
+      "tse_local": "1279",
+      "app_id": "CLG-19",
+      "name": "ESCOLA MUNICIPAL PROFESSORA ALEYDAH C.S. OLIVEIRA",
+      "method": "exact-15-candidate-vector",
+      "sections_app": 7,
+      "sections_tse": 7
+    },
+    {
+      "tse_local": "1333",
+      "app_id": "CLG-20",
+      "name": "ESCOLA MUNICIPAL DOUTOR ANTÔNIO GRASSANO JUNIOR",
+      "method": "exact-15-candidate-vector",
+      "sections_app": 7,
+      "sections_tse": 7
+    },
+    {
+      "tse_local": "1228",
+      "app_id": "CLG-21",
+      "name": "ESCOLA ESTADUAL WALFREDO SILVEIRA CORREIA",
+      "method": "exact-15-candidate-vector",
+      "sections_app": 7,
+      "sections_tse": 7
+    },
+    {
+      "tse_local": "1406",
+      "app_id": "CLG-22",
+      "name": "ESCOLA MUNICIPAL DOUTORA MARIA HERCÍLIA HORÁCIO STAWINSKI",
+      "method": "exact-15-candidate-vector",
+      "sections_app": 6,
+      "sections_tse": 6
+    },
+    {
+      "tse_local": "1120",
+      "app_id": "CLG-23",
+      "name": "CENTRO PASTORAL DA IGREJA SANTO ANTONIO DE PADUA",
+      "method": "exact-15-candidate-vector",
+      "sections_app": 5,
+      "sections_tse": 5
+    },
+    {
+      "tse_local": "1082",
+      "app_id": "CLG-24",
+      "name": "ESCOLA MUNICIPAL HELOIZA MARIA VICTORIA PAUMYRA CUROTTO GIANCRISTOFARO",
+      "method": "exact-15-candidate-vector",
+      "sections_app": 6,
+      "sections_tse": 6
+    },
+    {
+      "tse_local": "1317",
+      "app_id": "CLG-25",
+      "name": "ESCOLA MUNICIPAL DESEMBARGADOR CLOTARIO PORTUGAL",
+      "method": "exact-15-candidate-vector",
+      "sections_app": 5,
+      "sections_tse": 5
+    },
+    {
+      "tse_local": "1414",
+      "app_id": "CLG-26",
+      "name": "ESCOLA MUNICIPAL PROFESSORA DIOMAR DE OLIVEIRA PEGORER",
+      "method": "exact-15-candidate-vector",
+      "sections_app": 5,
+      "sections_tse": 5
+    },
+    {
+      "tse_local": "1295",
+      "app_id": "CLG-27",
+      "name": "ESCOLA MUNICIPAL PROFESSOR JOSE DE CARVALHO",
+      "method": "exact-15-candidate-vector",
+      "sections_app": 5,
+      "sections_tse": 5
+    },
+    {
+      "tse_local": "1384",
+      "app_id": "CLG-28",
+      "name": "ESCOLA MUNICIPAL DE ARICANDUVA",
+      "method": "exact-15-candidate-vector",
+      "sections_app": 5,
+      "sections_tse": 5
+    },
+    {
+      "tse_local": "1422",
+      "app_id": "CLG-29",
+      "name": "COLÉGIO ESTADUAL IRONDI MANTOVANI PUGLIESE",
+      "method": "exact-15-candidate-vector",
+      "sections_app": 1,
+      "sections_tse": 1
+    }
+  ],
+  "coverage": {
+    "20220": 29,
+    "55155": 29,
+    "11234": 29,
+    "44044": 29,
+    "70000": 29,
+    "40133": 29,
+    "20120": 29,
+    "11555": 29,
+    "44567": 29,
+    "55555": 29,
+    "55147": 29,
+    "22777": 29,
+    "44190": 29,
+    "55120": 29,
+    "12500": 29,
+    "11500": 29,
+    "11444": 29,
+    "13100": 29,
+    "55456": 29,
+    "10123": 29,
+    "22622": 29,
+    "22123": 29,
+    "dep_fed_lupion": 29,
+    "dep_fed_filipe": 29,
+    "dep_fed_beto": 29,
+    "dep_fed_angelica": 29,
+    "dep_fed_deltan": 29,
+    "dep_fed_luisa": 29,
+    "dep_fed_fahur": 29,
+    "dep_fed_zeca": 29,
+    "dep_fed_aliel": 29,
+    "dep_fed_francischini": 29,
+    "dep_fed_sperafico": 29,
+    "dep_est_tiago": 29,
+    "dep_est_bazana": 29,
+    "dep_est_tercilio": 29,
+    "dep_est_curi": 29,
+    "dep_est_jacovos": 29,
+    "dep_est_cobra": 29,
+    "dep_est_pacheco": 29,
+    "dep_est_arilson": 29
+  },
+  "totals_2024": {
+    "20220": 2135,
+    "55155": 1720,
+    "11234": 1576,
+    "44044": 1212,
+    "70000": 1210,
+    "40133": 1102,
+    "20120": 1024,
+    "11555": 1010,
+    "44567": 943,
+    "55555": 913,
+    "55147": 877,
+    "22777": 858,
+    "44190": 853,
+    "55120": 849,
+    "12500": 832,
+    "11500": 772,
+    "11444": 761,
+    "13100": 739,
+    "55456": 731,
+    "10123": 723,
+    "22622": 700,
+    "22123": 673
+  },
+  "totals_2022": {},
+  "elected_integrity_check": {
+    "20220": {
+      "tse": 2135,
+      "previous_app": 2135,
+      "match": true
+    },
+    "55155": {
+      "tse": 1720,
+      "previous_app": 1720,
+      "match": true
+    },
+    "11234": {
+      "tse": 1576,
+      "previous_app": 1576,
+      "match": true
+    },
+    "44044": {
+      "tse": 1212,
+      "previous_app": 1212,
+      "match": true
+    },
+    "70000": {
+      "tse": 1210,
+      "previous_app": 1210,
+      "match": true
+    },
+    "40133": {
+      "tse": 1102,
+      "previous_app": 1102,
+      "match": true
+    },
+    "20120": {
+      "tse": 1024,
+      "previous_app": 1024,
+      "match": true
+    },
+    "11555": {
+      "tse": 1010,
+      "previous_app": 1010,
+      "match": true
+    },
+    "44567": {
+      "tse": 943,
+      "previous_app": 943,
+      "match": true
+    },
+    "55555": {
+      "tse": 913,
+      "previous_app": 913,
+      "match": true
+    },
+    "55147": {
+      "tse": 877,
+      "previous_app": 877,
+      "match": true
+    },
+    "22777": {
+      "tse": 858,
+      "previous_app": 858,
+      "match": true
+    },
+    "44190": {
+      "tse": 853,
+      "previous_app": 853,
+      "match": true
+    },
+    "55120": {
+      "tse": 849,
+      "previous_app": 849,
+      "match": true
+    },
+    "12500": {
+      "tse": 832,
+      "previous_app": 832,
+      "match": true
+    }
+  },
+  "candidate_numbers_2022": {
+    "dep_fed_lupion": 1111,
+    "dep_fed_filipe": 2201,
+    "dep_fed_beto": 5501,
+    "dep_fed_angelica": 9020,
+    "dep_fed_deltan": 1919,
+    "dep_fed_luisa": 5511,
+    "dep_fed_fahur": 5590,
+    "dep_fed_zeca": 1310,
+    "dep_fed_aliel": 4343,
+    "dep_fed_francischini": 4444,
+    "dep_fed_sperafico": 1122,
+    "dep_est_tiago": 55155,
+    "dep_est_bazana": 55600,
+    "dep_est_tercilio": 55043,
+    "dep_est_curi": 55128,
+    "dep_est_jacovos": 22038,
+    "dep_est_cobra": 55055,
+    "dep_est_pacheco": 10100,
+    "dep_est_arilson": 13000
+  }
+}
