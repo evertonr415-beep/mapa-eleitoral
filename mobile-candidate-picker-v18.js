@@ -9,12 +9,18 @@
   var backdrop=null;
   var sourceObserver=null;
   var notice=null;
+  var partialBanner=null;
+  var renderGuardInstalled=false;
 
   function isMobile(){return document.body.classList.contains('vf-mobile')||matchMedia('(max-width:900px)').matches;}
   function textForOption(opt){return String(opt&&opt.textContent||'').replace(/\s+/g,' ').trim();}
 
   function totalColleges(){
     try{return Array.isArray(ELEICAO_2024_DATA.locais)?ELEICAO_2024_DATA.locais.length:0;}catch(_){return 0;}
+  }
+
+  function candidateInfo(value){
+    try{return ELEICAO_2024_DATA&&ELEICAO_2024_DATA.candidates?ELEICAO_2024_DATA.candidates[String(value)]||null:null;}catch(_){return null;}
   }
 
   function isPlatformOnlyOption(opt){
@@ -28,40 +34,61 @@
     if(opt.disabled&&opt.value==='')return false;
     if(isPlatformOnlyOption(opt))return false;
     if(String(opt.value)==='ALL')return true;
-    try{
-      return !!(typeof ELEICAO_2024_DATA!=='undefined'&&ELEICAO_2024_DATA&&ELEICAO_2024_DATA.candidates&&ELEICAO_2024_DATA.candidates[String(opt.value)]);
-    }catch(_){return false;}
+    return !!candidateInfo(String(opt.value));
   }
 
   function coverageFor(value){
     value=String(value);
     var total=totalColleges();
-    if(value==='ALL')return {count:total,total:total,mode:'complete'};
+    if(value==='ALL')return {count:total,total:total,mode:'complete',sum:0};
     try{
       var locais=Array.isArray(ELEICAO_2024_DATA.locais)?ELEICAO_2024_DATA.locais:[];
-      var count=locais.reduce(function(n,loc){
-        return n+((loc&&loc.votes&&Object.prototype.hasOwnProperty.call(loc.votes,value))?1:0);
-      },0);
-      return {count:count,total:locais.length,mode:count===locais.length&&locais.length?'complete':count>0?'partial':'total'};
-    }catch(_){return {count:0,total:total,mode:'total'};}
+      var count=0,sum=0;
+      locais.forEach(function(loc){
+        if(loc&&loc.votes&&Object.prototype.hasOwnProperty.call(loc.votes,value)){
+          count++;
+          sum+=Number(loc.votes[value])||0;
+        }
+      });
+      return {count:count,total:locais.length,mode:count===locais.length&&locais.length?'complete':count>0?'partial':'total',sum:sum};
+    }catch(_){return {count:0,total:total,mode:'total',sum:0};}
   }
 
-  function canonicalOption(value){
+  function optionForValue(value){
     if(!sourceSelect)return null;
     value=String(value);
     var found=null;
     Array.from(sourceSelect.options||[]).some(function(opt){
-      if(String(opt.value)!==value||!isElectionOption(opt))return false;
-      if(value==='ALL'||coverageFor(value).mode==='complete'){found=opt;return true;}
+      if(String(opt.value)===value&&isElectionOption(opt)){found=opt;return true;}
       return false;
     });
     return found;
   }
 
+  function selectableOption(value){
+    var opt=optionForValue(value);
+    if(!opt)return null;
+    var mode=coverageFor(value).mode;
+    return mode==='complete'||mode==='partial'?opt:null;
+  }
+
   function sanitizeValue(value){
     value=String(value==null?'ALL':value);
     if(value==='ALL')return 'ALL';
-    return canonicalOption(value)?value:'ALL';
+    return selectableOption(value)?value:'ALL';
+  }
+
+  function officialTotal(value,opt){
+    if(String(value)==='ALL')return '';
+    var info=candidateInfo(value);
+    var hay=[info&&info.category||'',opt&&textForOption(opt)||''].join(' ');
+    var m=hay.match(/(\d{1,3}(?:\.\d{3})+|\d+)\s*(?:votos?|v\b)/i);
+    return m?m[1]:'';
+  }
+
+  function officialTotalLabel(value,opt){
+    var total=officialTotal(value,opt);
+    return total?total+' votos oficiais':'';
   }
 
   function ensureShell(){
@@ -76,7 +103,7 @@
     sheet.setAttribute('role','dialog');
     sheet.setAttribute('aria-modal','true');
     sheet.setAttribute('aria-label','Selecionar candidato');
-    sheet.innerHTML='<div class="vf-mobile-candidate-head"><div><strong>Selecionar candidato</strong><span>Todos os nomes da base eleitoral</span></div><button type="button" class="vf-mobile-candidate-close" aria-label="Fechar">×</button></div><div class="vf-mobile-candidate-legend"><span><i class="ok"></i>29/29: mapa completo</span><span><i class="warn"></i>Parcial</span><span><i class="info"></i>Só total</span></div><div class="vf-mobile-candidate-data-note" hidden></div><div class="vf-mobile-candidate-list" role="listbox"></div>';
+    sheet.innerHTML='<div class="vf-mobile-candidate-head"><div><strong>Selecionar candidato</strong><span>Todos os nomes da base eleitoral</span></div><button type="button" class="vf-mobile-candidate-close" aria-label="Fechar">×</button></div><div class="vf-mobile-candidate-legend"><span><i class="ok"></i>29/29: mapa completo</span><span><i class="warn"></i>Parcial: mapa disponível</span><span><i class="info"></i>Só total</span></div><div class="vf-mobile-candidate-data-note" hidden></div><div class="vf-mobile-candidate-list" role="listbox"></div>';
     list=sheet.querySelector('.vf-mobile-candidate-list');
     notice=sheet.querySelector('.vf-mobile-candidate-data-note');
     document.body.append(backdrop,sheet);
@@ -84,6 +111,41 @@
     backdrop.addEventListener('click',closePicker);
     sheet.querySelector('.vf-mobile-candidate-close').addEventListener('click',closePicker);
     document.addEventListener('keydown',function(ev){if(ev.key==='Escape')closePicker();});
+  }
+
+  function ensurePartialBanner(){
+    if(partialBanner&&partialBanner.isConnected)return partialBanner;
+    var mapView=document.getElementById('view-map-container');
+    if(!mapView)return null;
+    partialBanner=document.createElement('div');
+    partialBanner.className='vf-partial-map-banner';
+    partialBanner.hidden=true;
+    mapView.appendChild(partialBanner);
+    return partialBanner;
+  }
+
+  function hidePartialBanner(){
+    var b=ensurePartialBanner();
+    if(b)b.hidden=true;
+    document.body.classList.remove('vf-partial-map-active');
+  }
+
+  function showPartialBanner(value){
+    var info=coverageFor(value);
+    if(info.mode!=='partial'){hidePartialBanner();return;}
+    var opt=optionForValue(value);
+    var total=officialTotalLabel(value,opt)||'Total oficial cadastrado';
+    var b=ensurePartialBanner();
+    if(!b)return;
+    var cand=candidateInfo(value);
+    var name=cand&&cand.name?cand.name:textForOption(opt);
+    b.innerHTML='<div class="vf-partial-map-title"><span>Mapa parcial</span><strong>'+escapeHtml(name)+'</strong></div><div class="vf-partial-map-stats"><span><b>'+escapeHtml(total)+'</b><small>Total oficial</small></span><span><b>'+info.count+' de '+info.total+'</b><small>Colégios com detalhe</small></span><span><b>'+formatNumber(info.sum)+' votos</b><small>Soma exibida no mapa</small></span></div><div class="vf-partial-map-warning">Somente os colégios com dados disponíveis aparecem abaixo. A soma do mapa é parcial e não substitui o total oficial.</div>';
+    b.hidden=false;
+    document.body.classList.add('vf-partial-map-active');
+  }
+
+  function formatNumber(n){
+    try{return Number(n||0).toLocaleString('pt-BR');}catch(_){return String(n||0);}
   }
 
   function syncSourceRefs(){
@@ -107,6 +169,7 @@
       sourceSelect.dispatchEvent(new Event('change',{bubbles:true}));
     }
     if(collegeSelect&&collegeSelect.value!==safe)collegeSelect.value=safe;
+    if(coverageFor(safe).mode==='partial')showPartialBanner(safe);else hidePartialBanner();
   }
 
   function updateTriggers(){
@@ -116,7 +179,7 @@
       if(!sel)return;
       var safe=sanitizeValue(sel.value);
       if(sel.value!==safe)sel.value=safe;
-      var opt=canonicalOption(safe)||(sel.options&&sel.options[sel.selectedIndex]);
+      var opt=optionForValue(safe)||(sel.options&&sel.options[sel.selectedIndex]);
       var text=opt?textForOption(opt):'Visão Geral dos 29 Colégios';
       var span=btn.querySelector('.vf-mobile-candidate-trigger-text');
       if(span)span.textContent=text;
@@ -134,13 +197,10 @@
   function showDataNotice(opt,info){
     if(!notice)return;
     var text=textForOption(opt);
+    var total=officialTotalLabel(opt.value,opt);
     notice.hidden=false;
-    notice.className='vf-mobile-candidate-data-note '+(info.mode==='partial'?'is-partial':'is-total');
-    if(info.mode==='partial'){
-      notice.innerHTML='<strong>'+escapeHtml(text)+'</strong><span>O detalhamento por colégio existe em '+info.count+' de '+info.total+' locais. Para não apresentar zeros falsos nem uma soma incompleta como total, o mapa não é aplicado para este nome.</span>';
-    }else{
-      notice.innerHTML='<strong>'+escapeHtml(text)+'</strong><span>O total oficial está cadastrado, mas esta base não possui a distribuição por colégio. O nome continua disponível para consulta, sem gerar um mapa incorreto.</span>';
-    }
+    notice.className='vf-mobile-candidate-data-note is-total';
+    notice.innerHTML='<strong>'+escapeHtml(text)+'</strong><span>'+(total?'<b>'+escapeHtml(total)+'.</b> ':'')+'Esta base não possui distribuição por colégio para este nome. O total continua disponível para consulta, mas o sistema não cria um mapa com zeros artificiais.</span>';
     try{notice.scrollIntoView({block:'nearest',behavior:'smooth'});}catch(_){ }
   }
 
@@ -163,7 +223,7 @@
     b.type='button';
     b.className='vf-mobile-candidate-option vf-data-'+info.mode;
     b.setAttribute('role','option');
-    b.setAttribute('aria-selected',String(value===selectedValue&&info.mode==='complete'));
+    b.setAttribute('aria-selected',String(value===selectedValue&&(info.mode==='complete'||info.mode==='partial')));
     b.dataset.value=value;
     b.dataset.mode=info.mode;
 
@@ -174,10 +234,11 @@
     text.textContent=textForOption(opt);
     var meta=document.createElement('span');
     meta.className='vf-mobile-candidate-option-meta';
+    var totalLabel=officialTotalLabel(value,opt);
     if(value==='ALL')meta.textContent='Visão geral';
-    else if(info.mode==='complete')meta.textContent=info.total+'/'+info.total+' colégios';
-    else if(info.mode==='partial')meta.textContent=info.count+'/'+info.total+' colégios';
-    else meta.textContent='Somente total oficial';
+    else if(info.mode==='complete')meta.textContent=(totalLabel?totalLabel+' • ':'')+info.total+'/'+info.total+' colégios';
+    else if(info.mode==='partial')meta.textContent=(totalLabel?totalLabel+' • ':'')+info.count+'/'+info.total+' colégios detalhados';
+    else meta.textContent=(totalLabel?totalLabel+' • ':'')+'sem detalhamento por colégio';
     main.append(text,meta);
 
     var badge=document.createElement('span');
@@ -187,7 +248,7 @@
 
     b.addEventListener('click',function(){
       clearNotice();
-      if(info.mode!=='complete'){
+      if(info.mode==='total'){
         showDataNotice(opt,info);
         return;
       }
@@ -197,6 +258,7 @@
       if(sourceSelect&&sourceSelect!==currentTarget)sourceSelect.value=value;
       if(collegeSelect&&collegeSelect!==currentTarget)collegeSelect.value=value;
       updateTriggers();
+      if(info.mode==='partial')showPartialBanner(value);else hidePartialBanner();
       closePicker();
     });
     list.appendChild(b);
@@ -263,7 +325,35 @@
         else if(select===collegeSelect)sourceSelect.value=safe;
       }
       updateTriggers();
+      if(coverageFor(safe).mode==='partial')showPartialBanner(safe);else hidePartialBanner();
     });
+  }
+
+  function withPartialLocales(original,ctx,args){
+    var value='ALL';
+    try{value=String(state&&state.selectedCandidate||'ALL');}catch(_){value='ALL';}
+    var info=coverageFor(value);
+    if(info.mode!=='partial')return original.apply(ctx,args);
+    var full;
+    try{
+      full=ELEICAO_2024_DATA.locais;
+      ELEICAO_2024_DATA.locais=full.filter(function(loc){return !!(loc&&loc.votes&&Object.prototype.hasOwnProperty.call(loc.votes,value));});
+      return original.apply(ctx,args);
+    }finally{
+      if(full)ELEICAO_2024_DATA.locais=full;
+    }
+  }
+
+  function installPartialRenderGuard(){
+    if(renderGuardInstalled)return;
+    if(typeof window.renderMapColegios!=='function'){setTimeout(installPartialRenderGuard,120);return;}
+    renderGuardInstalled=true;
+    var originalMap=window.renderMapColegios;
+    window.renderMapColegios=function(){return withPartialLocales(originalMap,this,arguments);};
+    if(typeof window.renderTableColegios==='function'){
+      var originalTable=window.renderTableColegios;
+      window.renderTableColegios=function(){return withPartialLocales(originalTable,this,arguments);};
+    }
   }
 
   function observeOptions(){
@@ -282,8 +372,10 @@
 
   function install(){
     if(!isMobile())return;
+    installPartialRenderGuard();
     if(!syncSourceRefs()){setTimeout(install,100);return;}
     ensureShell();
+    ensurePartialBanner();
     normalizeCurrentSelection();
     installTrigger(sourceSelect);
     if(collegeSelect)installTrigger(collegeSelect);
