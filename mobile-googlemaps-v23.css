@@ -1,0 +1,28 @@
+@media (max-width:900px){
+  .leaflet-popup-content a.btn-primary.vf-google-maps-link,
+  .leaflet-popup-content a.vf-google-maps-link{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:6px!important;
+    min-height:34px!important;
+    border:1px solid rgba(147,197,253,.42)!important;
+    border-radius:9px!important;
+    background:linear-gradient(135deg,#2563eb,#1d4ed8)!important;
+    color:#fff!important;
+    -webkit-text-fill-color:#fff!important;
+    text-decoration:none!important;
+    text-shadow:none!important;
+    font-weight:850!important;
+    letter-spacing:0!important;
+    box-shadow:0 6px 14px rgba(37,99,235,.22)!important;
+    opacity:1!important;
+  }
+  .leaflet-popup-content a.vf-google-maps-link:visited,
+  .leaflet-popup-content a.vf-google-maps-link:hover,
+  .leaflet-popup-content a.vf-google-maps-link:active,
+  .leaflet-popup-content a.vf-google-maps-link:focus{
+    color:#fff!important;
+    -webkit-text-fill-color:#fff!important;
+  }
+}
