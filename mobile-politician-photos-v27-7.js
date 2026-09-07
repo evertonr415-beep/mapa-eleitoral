@@ -18,6 +18,10 @@
   function cdnUrl(key){var p=pathFor(key);return p?CDN+p:'';}
   function rawUrl(key){var p=pathFor(key);return p?RAW+p:'';}
   function bgFor(key){var a=cdnUrl(key),b=rawUrl(key);return a?'url("'+a.replace(/"/g,'%22')+'"),url("'+b.replace(/"/g,'%22')+'")':'';}
+  function norm(s){
+    try{return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,' ').trim();}
+    catch(_){return String(s||'').toUpperCase().replace(/[^A-Z0-9]+/g,' ').trim();}
+  }
 
   function clearAvatar(el){
     if(!el)return;
@@ -56,7 +60,41 @@
     });
   }
 
-  function sync(){syncMain();syncDistrict();decoratePicker();}
+  function keyForDistrictOption(btn){
+    if(!btn)return '';
+    var strong=btn.querySelector('strong'),label=norm(strong&&strong.textContent||'');
+    if(!label||label==='VISAO GERAL TERRITORIAL')return 'ALL';
+    var found='';
+    try{
+      Object.keys(paths).some(function(key){
+        var c=window.ELEICAO_2024_DATA&&ELEICAO_2024_DATA.candidates&&ELEICAO_2024_DATA.candidates[key];
+        if(c&&norm(c.name)===label){found=key;return true;}
+        return false;
+      });
+    }catch(_){ }
+    return found;
+  }
+
+  function decorateDistrictPicker(){
+    document.querySelectorAll('.vf24-option').forEach(function(btn){
+      var key=keyForDistrictOption(btn),old=btn.querySelector('.vf-photo-v278-district');
+      if(!key||key==='ALL'||!pathFor(key)){
+        if(old)old.remove();
+        btn.classList.remove('vf-photo-v278-district-option');
+        return;
+      }
+      if(!old){
+        old=document.createElement('span');
+        old.className='vf-photo-v278-district';
+        old.setAttribute('aria-hidden','true');
+        btn.insertBefore(old,btn.firstChild);
+      }
+      old.style.backgroundImage=bgFor(key);
+      btn.classList.add('vf-photo-v278-district-option');
+    });
+  }
+
+  function sync(){syncMain();syncDistrict();decoratePicker();decorateDistrictPicker();}
   window.__vfPoliticianPhotosV277Map={};Object.keys(paths).forEach(function(k){window.__vfPoliticianPhotosV277Map[k]=cdnUrl(k);});
 
   document.addEventListener('click',function(ev){var t=ev.target&&ev.target.closest?ev.target.closest('.vf-mobile-candidate-trigger,.vf-mobile-candidate-option,.vf24-candidate-trigger,.vf24-option'):null;if(t){setTimeout(sync,0);setTimeout(sync,80);setTimeout(sync,220);}},true);
