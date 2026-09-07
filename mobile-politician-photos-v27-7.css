@@ -2,12 +2,20 @@
 @media (max-width:900px){
   .vf-college-candidate-avatar.vf-photo-v277,
   .vf24-candidate-avatar.vf-photo-v277{
-    background-size:cover;
-    background-position:center 16%;
-    background-repeat:no-repeat;
+    padding:0!important;
+    overflow:hidden!important;
     color:transparent;
     text-shadow:none;
-    overflow:hidden;
+  }
+
+  .vf-college-candidate-avatar.vf-photo-v277 > img.vf-photo-v277-img,
+  .vf24-candidate-avatar.vf-photo-v277 > img.vf-photo-v277-img{
+    width:100%!important;
+    height:100%!important;
+    display:block!important;
+    object-fit:cover!important;
+    object-position:center 16%!important;
+    border-radius:inherit!important;
   }
 
   .vf-mobile-candidate-option .vf-photo-v277-list{
