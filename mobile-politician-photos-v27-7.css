@@ -42,4 +42,28 @@
     outline:2px solid #3b82f6;
     outline-offset:1px;
   }
+
+  .vf24-option.vf-photo-v278-district-option{
+    justify-content:flex-start;
+  }
+  .vf24-option.vf-photo-v278-district-option > div{
+    flex:1;
+    min-width:0;
+  }
+  .vf24-option .vf-photo-v278-district{
+    flex:0 0 36px;
+    width:36px;
+    height:36px;
+    border-radius:10px;
+    background-size:cover;
+    background-position:center 16%;
+    background-repeat:no-repeat;
+    border:1px solid rgba(148,163,184,.30);
+    box-shadow:0 2px 9px rgba(0,0,0,.22);
+    pointer-events:none;
+  }
+  .vf24-option.selected .vf-photo-v278-district{
+    outline:2px solid #3b82f6;
+    outline-offset:1px;
+  }
 }
