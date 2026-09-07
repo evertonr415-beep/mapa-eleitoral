@@ -1,0 +1,37 @@
+/* v27.7 clean: politician photos without changing stable filter geometry */
+@media (max-width:900px){
+  .vf-college-candidate-avatar.vf-photo-v277,
+  .vf24-candidate-avatar.vf-photo-v277{
+    background-size:cover;
+    background-position:center 16%;
+    background-repeat:no-repeat;
+    color:transparent;
+    text-shadow:none;
+    overflow:hidden;
+  }
+
+  .vf-mobile-candidate-option .vf-photo-v277-list{
+    position:absolute;
+    left:8px;
+    top:50%;
+    transform:translateY(-50%);
+    width:31px;
+    height:31px;
+    border-radius:9px;
+    background-size:cover;
+    background-position:center 16%;
+    background-repeat:no-repeat;
+    border:1px solid rgba(148,163,184,.30);
+    box-shadow:0 2px 9px rgba(0,0,0,.22);
+    pointer-events:none;
+  }
+
+  .vf-mobile-candidate-option.vf-photo-v277-option[aria-selected="true"]:before{
+    display:none;
+  }
+
+  .vf-mobile-candidate-option.vf-photo-v277-option[aria-selected="true"] .vf-photo-v277-list{
+    outline:2px solid #3b82f6;
+    outline-offset:1px;
+  }
+}
