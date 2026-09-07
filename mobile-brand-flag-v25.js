@@ -7,8 +7,16 @@
     'https://raw.githubusercontent.com/evertonr415-beep/mapa-eleitoral/957b59bc308d5696e1b732feca7a36003c8ce983/assets/bandeira_arapongas.png'
   ];
 
+  function clearPoliticianPhoto(el){
+    if(!el)return;
+    el.classList.remove('vf-photo-v277');
+    el.style.removeProperty('background-image');
+    var p=el.querySelector('img.vf-photo-v277-img');if(p)p.remove();
+  }
+
   function mountFlag(el){
     if(!el)return;
+    clearPoliticianPhoto(el);
     el.classList.add('vf-brand-flag-avatar');
     var existing=el.querySelector('img[data-vf-brand-flag="1"]');
     if(existing)return;
@@ -39,7 +47,8 @@
 
   function restoreCandidate(el,key){
     el.classList.remove('vf-brand-flag-avatar');
-    if(el.querySelector('img[data-vf-brand-flag="1"]'))el.innerHTML='';
+    var brand=el.querySelector('img[data-vf-brand-flag="1"]');if(brand)brand.remove();
+    if(el.querySelector('img.vf-photo-v277-img'))return;
     try{
       var c=ELEICAO_2024_DATA&&ELEICAO_2024_DATA.candidates&&ELEICAO_2024_DATA.candidates[key];
       if(c)el.textContent=initials(c.name);
@@ -71,10 +80,10 @@
     if(window.__vfPoliticianPhotosV277Boot)return;window.__vfPoliticianPhotosV277Boot=true;
     var css=document.createElement('link');
     css.rel='stylesheet';
-    css.href=location.origin+'/mobile-politician-photos-v27-7.css?v=27.7';
+    css.href=location.origin+'/mobile-politician-photos-v27-7.css?v=27.7.2';
     document.head.appendChild(css);
     var js=document.createElement('script');
-    js.src=location.origin+'/mobile-politician-photos-v27-7.js?v=27.7';
+    js.src=location.origin+'/mobile-politician-photos-v27-7.js?v=27.7.2';
     js.defer=true;
     document.head.appendChild(js);
   }
