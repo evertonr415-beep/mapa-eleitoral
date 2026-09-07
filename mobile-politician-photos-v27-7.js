@@ -67,7 +67,7 @@
     var found='';
     try{
       Object.keys(paths).some(function(key){
-        var c=window.ELEICAO_2024_DATA&&ELEICAO_2024_DATA.candidates&&ELEICAO_2024_DATA.candidates[key];
+        var c=(typeof ELEICAO_2024_DATA!=='undefined'&&ELEICAO_2024_DATA.candidates)?ELEICAO_2024_DATA.candidates[key]:null;
         if(c&&norm(c.name)===label){found=key;return true;}
         return false;
       });
