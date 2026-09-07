@@ -2,6 +2,16 @@
   'use strict';
   if(window.__vfMobileLeadershipV28)return;window.__vfMobileLeadershipV28=true;
 
+  /* v29 mobile WhatsApp hub: loaded only in this preview branch. */
+  try{
+    if(!document.querySelector('link[data-vf-wa29="1"]')){
+      var waCss=document.createElement('link');waCss.rel='stylesheet';waCss.href=location.origin+'/mobile-whatsapp-hub-v29.css?v=29';waCss.dataset.vfWa29='1';document.head.appendChild(waCss);
+    }
+    if(!document.querySelector('script[data-vf-wa29="1"]')){
+      var waJs=document.createElement('script');waJs.src=location.origin+'/mobile-whatsapp-hub-v29.js?v=29';waJs.defer=true;waJs.dataset.vfWa29='1';document.head.appendChild(waJs);
+    }
+  }catch(_){ }
+
   var view=null,shell=null,searchInput=null,categorySelect=null,lastSignature='';
   function mobile(){return document.body.classList.contains('vf-mobile')||matchMedia('(max-width:900px)').matches;}
   function esc(s){return String(s==null?'':s).replace(/[&<>\"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]||c;});}
@@ -68,7 +78,11 @@
         '<div class="vf28-leader-info"><div class="vf28-info"><small>Bairro</small><b>'+esc(l.bairro||'Não informado')+'</b></div><div class="vf28-info meta"><small>Meta</small><b>+'+fmt(l.metaVotos||0)+' votos</b></div><div class="vf28-info"><small>Colégio</small><b>'+esc(l.colegioNome||'Não vinculado')+'</b></div><div class="vf28-info geo"><small>Localização</small><b>'+(hasGeo?'● Geolocalizada':'○ Sem localização')+'</b></div></div>'+ 
         '<div class="vf28-leader-actions"><button type="button" class="vf28-map"'+(hasGeo?'':' disabled')+'>🎯 Ver no mapa</button><button type="button" class="vf28-whatsapp">💬 WhatsApp</button></div>';
       var mapBtn=card.querySelector('.vf28-map');if(hasGeo)mapBtn.addEventListener('click',function(){try{focusLiderancaInMap(l.id);}catch(_){ }});
-      card.querySelector('.vf28-whatsapp').addEventListener('click',function(){try{openWhatsAppSenderModal(l.id);}catch(_){ }});
+      card.querySelector('.vf28-whatsapp').addEventListener('click',function(){
+        try{
+          if(typeof window.openWhatsAppSenderModal==='function')window.openWhatsAppSenderModal(l.id);
+        }catch(_){ }
+      });
       box.appendChild(card);
     });
   }
