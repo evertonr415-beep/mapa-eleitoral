@@ -1,0 +1,69 @@
+{
+  "failed": {},
+  "found": {
+    "10123": {
+      "bytes": 3394,
+      "file": "/assets/politicians/10123.webp",
+      "image": "https://cdn.tnonline.com.br/img/Artigo-Destaque/900000/158x220/RODRIGO-DE-DEUS---Candidato-a-vereador-00902490-0-202408080953-3.webp?fallback=https%3A%2F%2Fcdn.tnonline.com.br%2Fimg%2FArtigo-Destaque%2F900000%2FRODRIGO-DE-DEUS---Candidato-a-vereador-00902490-0-202408080953.jpg%3Fxid%3D1314842&xid=1314842",
+      "name": "Rodrigo de Deus",
+      "number": "10123",
+      "page": "https://tnonline.uol.com.br/eleicoes/2024/vereador/rodrigo-de-deus---candidato-a-vereador-902490"
+    },
+    "11500": {
+      "bytes": 27347,
+      "file": "/assets/politicians/11500.jpg",
+      "image": "https://f.i.uol.com.br/folha/eleicoes/2024/pr/arapongas/13_1247836.jpg?20250102153041",
+      "name": "Marcos da Ass. Algo Novo",
+      "number": "11500",
+      "page": "https://www1.folha.uol.com.br/poder/eleicoes/candidatos/2024/pr/vereador/marcos-da-ass-algo-novo-160001933122.shtml"
+    },
+    "22123": {
+      "bytes": 2736,
+      "file": "/assets/politicians/22123.webp",
+      "image": "https://cdn.tnonline.com.br/img/Artigo-Destaque/900000/158x220/RICARDO-EDMOTTA---Candidato-a-vereador-00904697-0-202408141112-3.webp?fallback=https%3A%2F%2Fcdn.tnonline.com.br%2Fimg%2FArtigo-Destaque%2F900000%2FRICARDO-EDMOTTA---Candidato-a-vereador-00904697-0-202408141112.jpg%3Fxid%3D1319568&xid=1319568",
+      "name": "Ricardo Edmotta",
+      "number": "22123",
+      "page": "https://tnonline.uol.com.br/eleicoes/2024/vereador/ricardo-edmotta---candidato-a-vereador-904697"
+    },
+    "22622": {
+      "bytes": 3640,
+      "file": "/assets/politicians/22622.webp",
+      "image": "https://cdn.tnonline.com.br/img/Artigo-Destaque/900000/158x220/RUBAO---Candidato-a-vereador-00904716-0-202408141150-3.webp?fallback=https%3A%2F%2Fcdn.tnonline.com.br%2Fimg%2FArtigo-Destaque%2F900000%2FRUBAO---Candidato-a-vereador-00904716-0-202408141150.jpg%3Fxid%3D1319608&xid=1319608",
+      "name": "Rubão",
+      "number": "22622",
+      "page": "https://tnonline.uol.com.br/eleicoes/2024/vereador/rubao---candidato-a-vereador-904716"
+    },
+    "55456": {
+      "bytes": 3842,
+      "file": "/assets/politicians/55456.webp",
+      "image": "https://cdn.tnonline.com.br/img/Artigo-Destaque/900000/158x220/TOXINHA---Candidato-a-vereador-00902537-0-202408081121-3.webp?fallback=https%3A%2F%2Fcdn.tnonline.com.br%2Fimg%2FArtigo-Destaque%2F900000%2FTOXINHA---Candidato-a-vereador-00902537-0-202408081121.jpg%3Fxid%3D1314992&xid=1314992",
+      "name": "Toxinha",
+      "number": "55456",
+      "page": "https://tnonline.uol.com.br/eleicoes/2024/vereador/toxinha---candidato-a-vereador-902537"
+    },
+    "70000": {
+      "bytes": 2014,
+      "file": "/assets/politicians/70000.webp",
+      "image": "https://cdn.tnonline.com.br/img/Artigo-Destaque/900000/158x220/JOAO-GRACA---Candidato-a-vereador-00904609-0-202408140855-3.webp?fallback=https%3A%2F%2Fcdn.tnonline.com.br%2Fimg%2FArtigo-Destaque%2F900000%2FJOAO-GRACA---Candidato-a-vereador-00904609-0-202408140855.jpg%3Fxid%3D1319284&xid=1319284",
+      "name": "João Graça",
+      "number": "70000",
+      "page": "https://tnonline.uol.com.br/eleicoes/2024/vereador/joao-graca---candidato-a-vereador-904609"
+    },
+    "dep_fed_angelica": {
+      "bytes": 4470,
+      "file": "/assets/politicians/dep_fed_angelica.webp",
+      "image": "https://cdn.tnonline.com.br/img/Artigo-Destaque/670000/158x220/ANGELICA-ENFERMEIRA-candidata-a-Deputada-Federal-00672695-0-202208151026-3.webp?fallback=https%3A%2F%2Fcdn.tnonline.com.br%2Fimg%2FArtigo-Destaque%2F670000%2FANGELICA-ENFERMEIRA-candidata-a-Deputada-Federal-00672695-0-202208151026.jpg%3Fxid%3D758320&xid=758320",
+      "name": "Angelica Enfermeira",
+      "number": "9020",
+      "page": "https://tnonline.uol.com.br/eleicoes/2022/deputado-federal/angelica-enfermeira-candidata-a-deputada-federal-672695"
+    },
+    "pref_milani": {
+      "bytes": 28176,
+      "file": "/assets/politicians/pref_milani.jpg",
+      "image": "https://f.i.uol.com.br/folha/eleicoes/2024/pr/arapongas/11_924347.jpg?20250102153041",
+      "name": "Jair Milani",
+      "number": "22",
+      "page": "https://www1.folha.uol.com.br/poder/eleicoes/candidatos/2024/pr/prefeito/jair-milani-160001929033.shtml"
+    }
+  }
+}

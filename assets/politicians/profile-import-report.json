@@ -1,0 +1,334 @@
+{
+  "failed": {
+    "10123": {
+      "error": "image_too_small_or_generic",
+      "name": "Rodrigo de Deus",
+      "number": "10123",
+      "page": "https://tnonline.uol.com.br/eleicoes/2024/vereador/rodrigo-de-deus---candidato-a-vereador-902490"
+    },
+    "11500": {
+      "error": "image_too_small_or_generic",
+      "name": "Marcos da Ass. Algo Novo",
+      "number": "11500",
+      "page": "https://tnonline.uol.com.br/eleicoes/2024/vereador/marcos-da-ass-algo-novo---candidato-a-vereador-901979"
+    },
+    "22123": {
+      "error": "image_too_small_or_generic",
+      "name": "Ricardo Edmotta",
+      "number": "22123",
+      "page": "https://tnonline.uol.com.br/eleicoes/2024/vereador/ricardo-edmotta---candidato-a-vereador-904697"
+    },
+    "22622": {
+      "error": "image_too_small_or_generic",
+      "name": "Rubão",
+      "number": "22622",
+      "page": "https://tnonline.uol.com.br/eleicoes/2024/vereador/rubao---candidato-a-vereador-904716"
+    },
+    "55456": {
+      "error": "image_too_small_or_generic",
+      "name": "Toxinha",
+      "number": "55456",
+      "page": "https://tnonline.uol.com.br/eleicoes/2024/vereador/toxinha---candidato-a-vereador-902537"
+    },
+    "70000": {
+      "error": "identity_validation_failed",
+      "name": "João Graça",
+      "number": "70000",
+      "page": "https://tnonline.uol.com.br/eleicoes/2024/vereador/joao-graca---candidato-a-vereador-902509"
+    },
+    "dep_fed_angelica": {
+      "error": "image_too_small_or_generic",
+      "name": "Angelica Enfermeira",
+      "number": "9020",
+      "page": "https://tnonline.uol.com.br/eleicoes/2022/deputado-federal/angelica-enfermeira-candidata-a-deputada-federal-672695"
+    },
+    "pref_milani": {
+      "error": "HTTP Error 404: Not Found",
+      "name": "Jair Milani",
+      "number": "22",
+      "page": "https://tnonline.uol.com.br/eleicoes/2024/prefeito/jair-milani---candidato-a-prefeito-901806"
+    }
+  },
+  "found": {
+    "11234": {
+      "bytes": 24385,
+      "file": "/assets/politicians/11234.jpg",
+      "image": "https://www.tribunapr.com.br/hermes-media/eleicoes/2024/candidatos/pr/160001933134.jpg",
+      "name": "Paulo Grassano",
+      "number": "11234",
+      "page": "https://www.tribunapr.com.br/eleicoes/2024/candidatos/pr/arapongas/vereador/paulo-grassano-pp-11234/"
+    },
+    "11444": {
+      "bytes": 25515,
+      "file": "/assets/politicians/11444.jpg",
+      "image": "https://f.i.uol.com.br/folha/eleicoes/2024/pr/arapongas/13_939929.jpg?20250102153041",
+      "name": "Silvano Santos",
+      "number": "11444",
+      "page": "https://www1.folha.uol.com.br/poder/eleicoes/candidatos/2024/pr/vereador/silvano-santos-160001933127.shtml"
+    },
+    "11555": {
+      "bytes": 30071,
+      "file": "/assets/politicians/11555.jpg",
+      "image": "https://www.tribunapr.com.br/hermes-media/eleicoes/2024/candidatos/pr/160001933120.jpg",
+      "name": "Professor Marcelo",
+      "number": "11555",
+      "page": "https://www.tribunapr.com.br/eleicoes/2024/candidatos/pr/arapongas/vereador/professor-marcelo-pp-11555/"
+    },
+    "12500": {
+      "bytes": 26373,
+      "file": "/assets/politicians/12500.jpg",
+      "image": "https://www.tribunapr.com.br/hermes-media/eleicoes/2024/candidatos/pr/160001932293.jpg",
+      "name": "Meiry Farias Proteção Animal",
+      "number": "12500",
+      "page": "https://www.tribunapr.com.br/eleicoes/2024/candidatos/pr/arapongas/vereador/meiry-farias-protecao-animal-pdt-12500/"
+    },
+    "13100": {
+      "bytes": 22375,
+      "file": "/assets/politicians/13100.jpg",
+      "image": "https://f.i.uol.com.br/folha/eleicoes/2024/pr/arapongas/13_1254371.jpg?20250102153041",
+      "name": "Professor Márcio Diniz",
+      "number": "13100",
+      "page": "https://www1.folha.uol.com.br/poder/eleicoes/candidatos/2024/pr/vereador/professor-marcio-diniz-160002019911.shtml"
+    },
+    "20120": {
+      "bytes": 28932,
+      "file": "/assets/politicians/20120.jpg",
+      "image": "https://www.tribunapr.com.br/hermes-media/eleicoes/2024/candidatos/pr/160002064433.jpg",
+      "name": "Aroldo Pagan",
+      "number": "20120",
+      "page": "https://www.tribunapr.com.br/eleicoes/2024/candidatos/pr/arapongas/vereador/aroldo-pagan-pode-20120/"
+    },
+    "20220": {
+      "bytes": 20808,
+      "file": "/assets/politicians/20220.jpg",
+      "image": "https://www.tribunapr.com.br/hermes-media/eleicoes/2024/candidatos/pr/160002064435.jpg",
+      "name": "Décio Rosanelli",
+      "number": "20220",
+      "page": "https://www.tribunapr.com.br/eleicoes/2024/candidatos/pr/arapongas/vereador/decio-rosanelli-pode-20220/"
+    },
+    "22777": {
+      "bytes": 26527,
+      "file": "/assets/politicians/22777.jpg",
+      "image": "https://www.tribunapr.com.br/hermes-media/eleicoes/2024/candidatos/pr/160002067354.jpg",
+      "name": "Diretora Marilsa Staub",
+      "number": "22777",
+      "page": "https://www.tribunapr.com.br/eleicoes/2024/candidatos/pr/arapongas/vereador/diretora-marilsa-staub-pl-22777/"
+    },
+    "40133": {
+      "bytes": 28651,
+      "file": "/assets/politicians/40133.jpg",
+      "image": "https://www.tribunapr.com.br/hermes-media/eleicoes/2024/candidatos/pr/160001905206.jpg",
+      "name": "Márcio Nicke",
+      "number": "40133",
+      "page": "https://www.tribunapr.com.br/eleicoes/2024/candidatos/pr/arapongas/vereador/marcio-nicke-psb-40133/"
+    },
+    "44044": {
+      "bytes": 28937,
+      "file": "/assets/politicians/44044.jpg",
+      "image": "https://www.tribunapr.com.br/hermes-media/eleicoes/2024/candidatos/pr/160001936644.jpg",
+      "name": "Toninho da Ambulância",
+      "number": "44044",
+      "page": "https://www.tribunapr.com.br/eleicoes/2024/candidatos/pr/arapongas/vereador/toninho-da-ambulancia-uniao-44044/"
+    },
+    "44190": {
+      "bytes": 26366,
+      "file": "/assets/politicians/44190.jpg",
+      "image": "https://www.tribunapr.com.br/hermes-media/eleicoes/2024/candidatos/pr/160001936643.jpg",
+      "name": "Pardini",
+      "number": "44190",
+      "page": "https://www.tribunapr.com.br/eleicoes/2024/candidatos/pr/arapongas/vereador/pardini-uniao-44190/"
+    },
+    "44567": {
+      "bytes": 25140,
+      "file": "/assets/politicians/44567.jpg",
+      "image": "https://www.tribunapr.com.br/hermes-media/eleicoes/2024/candidatos/pr/160001936638.jpg",
+      "name": "Alexandre Juliani Sorriso",
+      "number": "44567",
+      "page": "https://www.tribunapr.com.br/eleicoes/2024/candidatos/pr/arapongas/vereador/alexandre-juliani-sorriso-uniao-44567/"
+    },
+    "55120": {
+      "bytes": 37091,
+      "file": "/assets/politicians/55120.jpg",
+      "image": "https://www.tribunapr.com.br/hermes-media/eleicoes/2024/candidatos/pr/160001909761.jpg",
+      "name": "Cecéu",
+      "number": "55120",
+      "page": "https://www.tribunapr.com.br/eleicoes/2024/candidatos/pr/arapongas/vereador/ceceu-psd-55120/"
+    },
+    "55147": {
+      "bytes": 31855,
+      "file": "/assets/politicians/55147.jpg",
+      "image": "https://www.tribunapr.com.br/hermes-media/eleicoes/2024/candidatos/pr/160001909754.jpg",
+      "name": "Luisinho da Saúde",
+      "number": "55147",
+      "page": "https://www.tribunapr.com.br/eleicoes/2024/candidatos/pr/arapongas/vereador/luisinho-da-saude-psd-55147/"
+    },
+    "55155": {
+      "bytes": 19653,
+      "file": "/assets/politicians/55155.jpg",
+      "image": "https://www.tribunapr.com.br/hermes-media/eleicoes/2024/candidatos/pr/160001909753.jpg",
+      "name": "Levi do Handebol",
+      "number": "55155",
+      "page": "https://www.tribunapr.com.br/eleicoes/2024/candidatos/pr/arapongas/vereador/levi-do-handebol-psd-55155/"
+    },
+    "55555": {
+      "bytes": 6160,
+      "file": "/assets/politicians/55555.jpg",
+      "image": "https://www.tribunapr.com.br/hermes-media/eleicoes/2024/candidatos/pr/160001909757.jpg",
+      "name": "Simone Sponton Mãe de Autista",
+      "number": "55555",
+      "page": "https://www.tribunapr.com.br/eleicoes/2024/candidatos/pr/arapongas/vereador/simone-sponton-mae-de-autista-psd-55555/"
+    },
+    "dep_est_arilson": {
+      "bytes": 26085,
+      "file": "/assets/politicians/dep_est_arilson.jpg",
+      "image": "https://f.i.uol.com.br/folha/eleicoes/2022/pr/parana/7_100229.jpg?20231219162944",
+      "name": "Arilson Chiorato",
+      "number": "13000",
+      "page": "https://www1.folha.uol.com.br/poder/eleicoes/candidatos/2022/pr/deputado-estadual/arilson-chiorato-160001615010.shtml"
+    },
+    "dep_est_bazana": {
+      "bytes": 35148,
+      "file": "/assets/politicians/dep_est_bazana.jpg",
+      "image": "https://f.i.uol.com.br/folha/eleicoes/2022/pr/parana/7_86775.jpg?20231219162944",
+      "name": "Pedro Paulo Bazana",
+      "number": "55600",
+      "page": "https://www1.folha.uol.com.br/poder/eleicoes/candidatos/2022/pr/deputado-estadual/pedro-paulo-bazana-160001623132.shtml"
+    },
+    "dep_est_cobra": {
+      "bytes": 24098,
+      "file": "/assets/politicians/dep_est_cobra.jpg",
+      "image": "https://f.i.uol.com.br/folha/eleicoes/2022/pr/parana/7_107743.jpg?20231219162944",
+      "name": "Cobra Repórter",
+      "number": "55055",
+      "page": "https://www1.folha.uol.com.br/poder/eleicoes/candidatos/2022/pr/deputado-estadual/cobra-reporter-160001623099.shtml"
+    },
+    "dep_est_curi": {
+      "bytes": 31875,
+      "file": "/assets/politicians/dep_est_curi.jpg",
+      "image": "https://f.i.uol.com.br/folha/eleicoes/2022/pr/parana/7_85272.jpg?20231219162944",
+      "name": "Alexandre Curi",
+      "number": "55128",
+      "page": "https://www1.folha.uol.com.br/poder/eleicoes/candidatos/2022/pr/deputado-estadual/alexandre-curi-160001623100.shtml"
+    },
+    "dep_est_jacovos": {
+      "bytes": 18023,
+      "file": "/assets/politicians/dep_est_jacovos.jpg",
+      "image": "https://f.i.uol.com.br/folha/eleicoes/2022/pr/parana/7_626640.jpg?20231219162944",
+      "name": "Delegado Jacovos",
+      "number": "22038",
+      "page": "https://www1.folha.uol.com.br/poder/eleicoes/candidatos/2022/pr/deputado-estadual/delegado-jacovos-160001654963.shtml"
+    },
+    "dep_est_pacheco": {
+      "bytes": 38256,
+      "file": "/assets/politicians/dep_est_pacheco.jpg",
+      "image": "https://f.i.uol.com.br/folha/eleicoes/2022/pr/parana/7_72703.jpg?20231219162944",
+      "name": "Marcio Pacheco",
+      "number": "10100",
+      "page": "https://www1.folha.uol.com.br/poder/eleicoes/candidatos/2022/pr/deputado-estadual/marcio-pacheco-160001716110.shtml"
+    },
+    "dep_est_tercilio": {
+      "bytes": 34810,
+      "file": "/assets/politicians/dep_est_tercilio.jpg",
+      "image": "https://f.i.uol.com.br/folha/eleicoes/2022/pr/parana/7_91493.jpg?20231219162944",
+      "name": "Tercilio Turini",
+      "number": "55043",
+      "page": "https://www1.folha.uol.com.br/poder/eleicoes/candidatos/2022/pr/deputado-estadual/tercilio-turini-160001623105.shtml"
+    },
+    "dep_est_tiago": {
+      "bytes": 38121,
+      "file": "/assets/politicians/dep_est_tiago.jpg",
+      "image": "https://f.i.uol.com.br/folha/eleicoes/2022/pr/parana/7_75693.jpg?20231219162944",
+      "name": "Tiago Amaral",
+      "number": "55155",
+      "page": "https://www1.folha.uol.com.br/poder/eleicoes/candidatos/2022/pr/deputado-estadual/tiago-amaral-160001623115.shtml"
+    },
+    "dep_fed_aliel": {
+      "bytes": 26207,
+      "file": "/assets/politicians/dep_fed_aliel.jpg",
+      "image": "https://f.i.uol.com.br/folha/eleicoes/2022/pr/parana/6_72101.jpg?20231219162944",
+      "name": "Aliel Machado",
+      "number": "4343",
+      "page": "https://www1.folha.uol.com.br/poder/eleicoes/candidatos/2022/pr/deputado-federal/aliel-machado-160001614510.shtml"
+    },
+    "dep_fed_beto": {
+      "bytes": 20157,
+      "file": "/assets/politicians/dep_fed_beto.jpg",
+      "image": "https://f.i.uol.com.br/folha/eleicoes/2022/pr/parana/6_1018634.jpg?20231219162944",
+      "name": "Beto Preto",
+      "number": "5501",
+      "page": "https://www1.folha.uol.com.br/poder/eleicoes/candidatos/2022/pr/deputado-federal/beto-preto-160001622285.shtml"
+    },
+    "dep_fed_deltan": {
+      "bytes": 25986,
+      "file": "/assets/politicians/dep_fed_deltan.jpg",
+      "image": "https://f.i.uol.com.br/folha/eleicoes/2022/pr/parana/6_1023763.jpg?20231219162944",
+      "name": "Deltan Dallagnol",
+      "number": "1919",
+      "page": "https://www1.folha.uol.com.br/poder/eleicoes/candidatos/2022/pr/deputado-federal/deltan-dallagnol-160001654827.shtml"
+    },
+    "dep_fed_fahur": {
+      "bytes": 25635,
+      "file": "/assets/politicians/dep_fed_fahur.jpg",
+      "image": "https://f.i.uol.com.br/folha/eleicoes/2022/pr/parana/6_81906.jpg?20231219162944",
+      "name": "Sargento Fahur",
+      "number": "5590",
+      "page": "https://www1.folha.uol.com.br/poder/eleicoes/candidatos/2022/pr/deputado-federal/sargento-fahur-160001622298.shtml"
+    },
+    "dep_fed_filipe": {
+      "bytes": 5708,
+      "file": "/assets/politicians/dep_fed_filipe.jpg",
+      "image": "https://f.i.uol.com.br/folha/eleicoes/2022/pr/parana/6_631605.jpg?20231219162944",
+      "name": "Filipe Barros",
+      "number": "2201",
+      "page": "https://www1.folha.uol.com.br/poder/eleicoes/candidatos/2022/pr/deputado-federal/filipe-barros-160001622028.shtml"
+    },
+    "dep_fed_francischini": {
+      "bytes": 25485,
+      "file": "/assets/politicians/dep_fed_francischini.jpg",
+      "image": "https://f.i.uol.com.br/folha/eleicoes/2022/pr/parana/6_108012.jpg?20231219162944",
+      "name": "Felipe Francischini",
+      "number": "4444",
+      "page": "https://www1.folha.uol.com.br/poder/eleicoes/candidatos/2022/pr/deputado-federal/felipe-francischini-160001654655.shtml"
+    },
+    "dep_fed_luisa": {
+      "bytes": 40658,
+      "file": "/assets/politicians/dep_fed_luisa.jpg",
+      "image": "https://f.i.uol.com.br/folha/eleicoes/2022/pr/parana/6_621862.jpg?20231219162944",
+      "name": "Luísa Canziani",
+      "number": "5511",
+      "page": "https://www1.folha.uol.com.br/poder/eleicoes/candidatos/2022/pr/deputado-federal/luisa-canziani-160001622297.shtml"
+    },
+    "dep_fed_lupion": {
+      "bytes": 35204,
+      "file": "/assets/politicians/dep_fed_lupion.jpg",
+      "image": "https://f.i.uol.com.br/folha/eleicoes/2022/pr/parana/6_90357.jpg?20231219162944",
+      "name": "Pedro Lupion",
+      "number": "1111",
+      "page": "https://www1.folha.uol.com.br/poder/eleicoes/candidatos/2022/pr/deputado-federal/pedro-lupion-160001603295.shtml"
+    },
+    "dep_fed_sperafico": {
+      "bytes": 16367,
+      "file": "/assets/politicians/dep_fed_sperafico.jpg",
+      "image": "https://f.i.uol.com.br/folha/eleicoes/2022/pr/parana/6_93665.jpg?20231219162944",
+      "name": "Dilceu Sperafico",
+      "number": "1122",
+      "page": "https://www1.folha.uol.com.br/poder/eleicoes/candidatos/2022/pr/deputado-federal/dilceu-sperafico-160001603297.shtml"
+    },
+    "dep_fed_zeca": {
+      "bytes": 23927,
+      "file": "/assets/politicians/dep_fed_zeca.jpg",
+      "image": "https://f.i.uol.com.br/folha/eleicoes/2022/pr/parana/6_96418.jpg?20231219162944",
+      "name": "Zeca Dirceu",
+      "number": "1310",
+      "page": "https://www1.folha.uol.com.br/poder/eleicoes/candidatos/2022/pr/deputado-federal/zeca-dirceu-160001614527.shtml"
+    },
+    "pref_cita": {
+      "bytes": 38789,
+      "file": "/assets/politicians/pref_cita.jpg",
+      "image": "https://www.tribunapr.com.br/hermes-media/eleicoes/2024/candidatos/pr/160002071893.jpg",
+      "name": "Rafael Cita",
+      "number": "55",
+      "page": "https://www.tribunapr.com.br/eleicoes/2024/candidatos/pr/arapongas/prefeito/rafael-cita-psd-55/"
+    }
+  }
+}
