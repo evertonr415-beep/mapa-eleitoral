@@ -1,7 +1,7 @@
 (function(){
   'use strict';
-  if(window.__vfDesktopMobileForceV312)return;
-  window.__vfDesktopMobileForceV312=true;
+  if(window.__vfDesktopMobileForceV313)return;
+  window.__vfDesktopMobileForceV313=true;
 
   function rewriteMobileMedia(css){
     return String(css||'')
@@ -38,13 +38,15 @@
     @media (min-width:901px){\
       html,body{width:100%!important;height:100%!important;margin:0!important;background:#080d17!important;overflow:hidden!important}\
       body.vf-desktop-mobile-mirror{background:#080d17!important}\
-      body.vf-desktop-mobile-mirror #app-root{width:min(1180px,100vw)!important;max-width:1180px!important;height:100vh!important;margin:0 auto!important;position:relative!important;overflow:hidden!important;background:#080d17!important;box-shadow:0 0 70px rgba(0,0,0,.38)!important}\
-      body.vf-desktop-mobile-mirror .vf-mobile-drawer{width:min(420px,42vw)!important;max-width:420px!important}\
+      body.vf-desktop-mobile-mirror #app-root{width:100vw!important;max-width:none!important;height:100vh!important;margin:0!important;position:relative!important;overflow:hidden!important;background:#080d17!important;box-shadow:none!important}\
+      body.vf-desktop-mobile-mirror .workspace-main{width:100%!important;max-width:none!important;min-height:0!important}\
+      body.vf-desktop-mobile-mirror .vf-mobile-header,body.vf-desktop-mobile-mirror .vf-mobile-topbar{width:100%!important;max-width:none!important}\
+      body.vf-desktop-mobile-mirror .vf-mobile-drawer{width:min(430px,34vw)!important;max-width:430px!important}\
       body.vf-desktop-mobile-mirror .vf-drawer-backdrop{left:0!important}\
-      body.vf-desktop-mobile-mirror .workspace-main{min-height:0!important}\
-      body.vf-desktop-mobile-mirror #vf-admin-home{max-width:1100px!important;margin:0 auto!important}\
-      body.vf-desktop-mobile-mirror .vf-admin-sheet{width:min(720px,calc(100vw - 48px))!important;max-width:720px!important;margin:0 auto!important;border-radius:20px 20px 0 0!important}\
-      body.vf-desktop-mobile-mirror .vf29-wa-sheet{width:min(680px,calc(100vw - 48px))!important;max-width:680px!important;margin:0 auto!important}\
+      body.vf-desktop-mobile-mirror #vf-admin-home{width:100%!important;max-width:none!important;margin:0!important;padding-left:clamp(28px,4vw,72px)!important;padding-right:clamp(28px,4vw,72px)!important}\
+      body.vf-desktop-mobile-mirror #vf-admin-home .vf-admin-content,body.vf-desktop-mobile-mirror #vf-admin-home .vf-admin-inner{width:100%!important;max-width:none!important}\
+      body.vf-desktop-mobile-mirror .vf-admin-sheet{width:min(820px,calc(100vw - 72px))!important;max-width:820px!important;margin:0 auto!important;border-radius:20px 20px 0 0!important}\
+      body.vf-desktop-mobile-mirror .vf29-wa-sheet{width:min(760px,calc(100vw - 72px))!important;max-width:760px!important;margin:0 auto!important}\
     }';
   document.head.appendChild(baseStyle);
 
