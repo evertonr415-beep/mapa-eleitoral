@@ -1,7 +1,7 @@
 (function(){
   'use strict';
-  if(window.__vfDesktopMobileForceV314)return;
-  window.__vfDesktopMobileForceV314=true;
+  if(window.__vfDesktopMobileForceV315)return;
+  window.__vfDesktopMobileForceV315=true;
 
   function rewriteMobileMedia(css){
     return String(css||'')
@@ -39,7 +39,7 @@
       html,body{width:100%!important;height:100%!important;margin:0!important;background:#080d17!important;overflow:hidden!important}\
       body.vf-desktop-mobile-mirror{background:#080d17!important}\
       body.vf-desktop-mobile-mirror #app-root{width:100vw!important;max-width:none!important;height:100vh!important;margin:0!important;position:relative!important;overflow:hidden!important;background:#080d17!important;box-shadow:none!important}\
-      body.vf-desktop-mobile-mirror .workspace-main{width:100%!important;max-width:none!important;min-height:0!important}\
+      body.vf-desktop-mobile-mirror .workspace-main{width:100%!important;max-width:none!important;height:calc(100vh - 76px)!important;max-height:calc(100vh - 76px)!important;min-height:0!important;overflow:hidden!important}\
       body.vf-desktop-mobile-mirror .vf-mobile-header,body.vf-desktop-mobile-mirror .vf-mobile-topbar{width:100%!important;max-width:none!important;min-height:76px!important;padding-left:28px!important;padding-right:28px!important}\
       body.vf-desktop-mobile-mirror .vf-mobile-header button,body.vf-desktop-mobile-mirror .vf-mobile-topbar button{min-width:46px!important;min-height:46px!important}\
       body.vf-desktop-mobile-mirror .vf-mobile-drawer{width:min(470px,36vw)!important;max-width:470px!important}\
@@ -47,7 +47,7 @@
       body.vf-desktop-mobile-mirror .vf-mobile-drawer .vf-drawer-label{font-size:12px!important}\
       body.vf-desktop-mobile-mirror .vf-mobile-drawer .vf-drawer-navigation button,body.vf-desktop-mobile-mirror .vf-mobile-drawer .vf-admin-nav-grid button{min-height:50px!important;font-size:14px!important;padding-left:15px!important;padding-right:15px!important}\
       body.vf-desktop-mobile-mirror .vf-mobile-drawer .vf-drawer-navigation button svg,body.vf-desktop-mobile-mirror .vf-mobile-drawer .vf-admin-nav-grid button svg{width:20px!important;height:20px!important}\
-      body.vf-desktop-mobile-mirror #vf-admin-home{width:100%!important;max-width:none!important;margin:0!important;padding:24px clamp(38px,5vw,86px) 40px!important}\
+      body.vf-desktop-mobile-mirror #vf-admin-home{width:100%!important;max-width:none!important;height:100%!important;max-height:100%!important;margin:0!important;padding:24px clamp(38px,5vw,86px) 80px!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;scrollbar-gutter:stable!important}\
       body.vf-desktop-mobile-mirror #vf-admin-home .vf-admin-content,body.vf-desktop-mobile-mirror #vf-admin-home .vf-admin-inner{width:100%!important;max-width:none!important}\
       body.vf-desktop-mobile-mirror .vf-admin-overview-head{gap:18px!important;margin-bottom:18px!important}\
       body.vf-desktop-mobile-mirror .vf-admin-kicker{font-size:12px!important}\
@@ -72,7 +72,8 @@
       body.vf-desktop-mobile-mirror .vf-admin-mini-row strong{font-size:14px!important}\
       body.vf-desktop-mobile-mirror .vf-admin-mini-row span{margin-top:4px!important;font-size:12px!important;line-height:1.45!important}\
       body.vf-desktop-mobile-mirror .vf-admin-empty{padding:14px 4px!important;font-size:13px!important}\
-      body.vf-desktop-mobile-mirror .vf-admin-sheet{width:min(900px,calc(100vw - 96px))!important;max-width:900px!important;margin:0 auto!important;border-radius:22px 22px 0 0!important;padding:22px!important}\
+      body.vf-desktop-mobile-mirror .vf-admin-sheet-overlay{align-items:center!important;justify-content:center!important;padding:32px!important;overflow:hidden!important}\
+      body.vf-desktop-mobile-mirror .vf-admin-sheet{width:min(900px,calc(100vw - 96px))!important;max-width:900px!important;max-height:calc(100vh - 64px)!important;margin:0!important;border:1px solid #2b415f!important;border-radius:22px!important;padding:22px!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;scrollbar-gutter:stable!important}\
       body.vf-desktop-mobile-mirror .vf-admin-sheet-head h3{font-size:20px!important}\
       body.vf-desktop-mobile-mirror .vf-admin-sheet-close{width:42px!important;height:42px!important;font-size:22px!important}\
       body.vf-desktop-mobile-mirror .vf-admin-field{margin-top:14px!important}\
@@ -84,7 +85,8 @@
       body.vf-desktop-mobile-mirror .vf-admin-user-row span,body.vf-desktop-mobile-mirror .vf-admin-request-row span{font-size:11px!important}\
       body.vf-desktop-mobile-mirror .vf-admin-row-btn{padding:9px 11px!important;font-size:11px!important}\
       body.vf-desktop-mobile-mirror .vf-admin-toolbar-btn{height:46px!important;font-size:13px!important}\
-      body.vf-desktop-mobile-mirror .vf29-wa-sheet{width:min(820px,calc(100vw - 96px))!important;max-width:820px!important;margin:0 auto!important}\
+      body.vf-desktop-mobile-mirror .vf29-wa-overlay{align-items:center!important;justify-content:center!important;padding:32px!important;overflow:hidden!important}\
+      body.vf-desktop-mobile-mirror .vf29-wa-sheet{width:min(820px,calc(100vw - 96px))!important;max-width:820px!important;max-height:calc(100vh - 64px)!important;margin:0!important;border-radius:22px!important;overflow-y:auto!important;overflow-x:hidden!important}\
       body.vf-desktop-mobile-mirror .vf29-wa-head h2{font-size:22px!important}\
       body.vf-desktop-mobile-mirror .vf29-wa-head p{font-size:13px!important}\
       body.vf-desktop-mobile-mirror .vf29-wa-card{padding:18px!important}\
