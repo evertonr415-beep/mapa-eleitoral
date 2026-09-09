@@ -31,7 +31,7 @@
     overlay=document.createElement('div');overlay.className='vf32-audit-overlay';overlay.setAttribute('aria-hidden','true');
     overlay.innerHTML='<section class="vf32-audit-sheet" role="dialog" aria-modal="true" aria-label="Auditoria do sistema">'
       +'<header class="vf32-audit-head"><div><div class="vf32-audit-kicker">Segurança e rastreabilidade</div><h2>Auditoria do sistema</h2><p>'+(role==='master'?'Master visualiza todas as movimentações registradas.':'Histórico administrativo permitido para este perfil.')+'</p></div><button type="button" class="vf32-audit-close" aria-label="Fechar">×</button></header>'
-      +'<div class="vf32-audit-stats"><article><span>Total registrado</span><strong data-vf32-total>—</strong></article><article><span>Hoje</span><strong data-vf32-today>—</strong></article><article><span>Usuários no histórico</span><strong data-vf32-people>—</strong></article><article><span>Última atividade</span><strong class="small" data-vf32-last>—</strong></article></div>'
+      +'<div class="vf32-audit-stats"><article><span>Total registrado</span><strong data-vf32-total>—</strong></article><article><span>Hoje</span><strong data-vf32-today>—</strong></article><article><span>Usuários com atividade</span><strong data-vf32-people>—</strong></article><article><span>Última atividade</span><strong class="small" data-vf32-last>—</strong></article></div>'
       +'<div class="vf32-audit-tools"><label><span>Tipo</span><select data-vf32-type><option value="all">Todos</option><option value="login">Acesso</option><option value="usuario">Usuário</option><option value="senha">Senha</option><option value="lideranca">Liderança</option><option value="sistema">Sistema</option><option value="whatsapp">WhatsApp</option></select></label><label><span>Usuário</span><select data-vf32-user><option value="all">Todos os usuários</option></select></label><label><span>Período</span><select data-vf32-period><option value="all">Todo o histórico</option><option value="1">Hoje</option><option value="7">Últimos 7 dias</option><option value="30">Últimos 30 dias</option></select></label><label class="vf32-audit-search"><span>Buscar</span><input type="search" data-vf32-search placeholder="Ação, nome ou detalhe"></label><button type="button" class="vf32-audit-refresh">↻ Atualizar</button></div>'
       +'<div class="vf32-audit-meta"><span data-vf32-result>Carregando...</span><span class="vf32-audit-scope">'+(role==='master'?'MASTER • VISÃO GLOBAL':'ADMINISTRADOR')+'</span></div>'
       +'<div class="vf32-audit-list"><div class="vf32-audit-empty">Carregando histórico...</div></div>'
@@ -55,9 +55,10 @@
   function populateUsers(){
     var sel=overlay.querySelector('[data-vf32-user]'),current=sel.value||'all',used={};
     allLogs.forEach(function(a){[a.user_id,a.actor_user_id,a.target_user_id].filter(Boolean).forEach(function(id){used[String(id)]=1;});});
-    var arr=Object.keys(used).map(function(id){return {id:id,name:person(id),role:personRole(id)};}).sort(function(a,b){return a.name.localeCompare(b.name,'pt-BR');});
-    sel.innerHTML='<option value="all">Todos os usuários</option>'+arr.map(function(x){return '<option value="'+esc(x.id)+'">'+esc(x.name)+(x.role?' • '+esc(x.role):'')+'</option>';}).join('');
-    if(Array.from(sel.options).some(function(o){return o.value===current;}))sel.value=current;
+    var ids=role==='master'?Object.keys(profiles):Object.keys(used);
+    var arr=ids.map(function(id){return {id:id,name:person(id),role:personRole(id),hasActivity:!!used[id]};}).sort(function(a,b){return a.name.localeCompare(b.name,'pt-BR');});
+    sel.innerHTML='<option value="all">Todos os usuários</option>'+arr.map(function(x){return '<option value="'+esc(x.id)+'">'+esc(x.name)+(x.role?' • '+esc(x.role):'')+(role==='master'&&!x.hasActivity?' • sem atividade':'')+'</option>';}).join('');
+    if(Array.from(sel.options).some(function(o){return o.value===current;}))sel.value=current;else sel.value='all';
   }
 
   function filtered(){
