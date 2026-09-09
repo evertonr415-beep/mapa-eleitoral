@@ -12,6 +12,14 @@
   function esc(v){return String(v==null?'':v).replace(/[&<>\"]/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[ch]||ch;});}
   function roleLabel(r){r=String(r||'usuario');return r==='master'?'Master':r==='adm'?'Administrador':r==='vereador'?'Vereador':r;}
   function profileName(){return (profile&&profile.nome)||(current&&current.user_metadata&&current.user_metadata.nome)||(current&&current.email)||'Usuário';}
+  function deviceLabel(){var ua=navigator.userAgent||'';if(/iPhone|iPad|iPod/i.test(ua))return 'iPhone / iPad';if(/Android/i.test(ua))return 'Android';if(/Mobile/i.test(ua))return 'Celular';return 'Computador';}
+  async function audit(type,action,details){try{var s=await client();var u=(await s.auth.getUser()).data.user;if(!u)return;await s.from('audit_logs').insert({user_id:u.id,tipo:type||'sistema',acao:action||'Atividade',detalhes:details||null,dispositivo:deviceLabel()});}catch(_){}}
+  function loadAuditLayer(){
+    try{
+      if(!document.querySelector('link[data-vf-audit32="1"]')){var css=document.createElement('link');css.rel='stylesheet';css.href=location.origin+'/audit-center-v32.css?v=32.1';css.dataset.vfAudit32='1';document.head.appendChild(css);}
+      if(!document.querySelector('script[data-vf-audit32="1"]')){var js=document.createElement('script');js.src=location.origin+'/audit-center-v32.js?v=32.1';js.defer=true;js.dataset.vfAudit32='1';document.head.appendChild(js);}
+    }catch(_){ }
+  }
 
   function ensure(){
     if(sheet)return;
@@ -107,7 +115,7 @@
       status('.vf-profile-photo-status','Salvando foto...',true);
       var data=await resize(file);var s=await client();
       var res=await s.from('perfis_usuarios').update({avatar_url:data,atualizado_em:new Date().toISOString()}).eq('id',current.id).select('avatar_url').single();
-      if(res.error)throw res.error;profile.avatar_url=res.data.avatar_url;applyAvatar(profile.avatar_url,profile.nome||current.email);ensureAvatarPersistence();status('.vf-profile-photo-status','Foto atualizada.',true);
+      if(res.error)throw res.error;profile.avatar_url=res.data.avatar_url;applyAvatar(profile.avatar_url,profile.nome||current.email);ensureAvatarPersistence();status('.vf-profile-photo-status','Foto atualizada.',true);audit('usuario','Foto de perfil atualizada','Alteração realizada em Minha conta');
     }catch(e){status('.vf-profile-photo-status',e.message||'Não foi possível salvar a foto.',false);}
     ev.target.value='';
   }
@@ -116,9 +124,9 @@
     clearStatus('.vf-profile-pass-status');
     if(p1.length<8){status('.vf-profile-pass-status','Use pelo menos 8 caracteres.',false);return;}
     if(p1!==p2){status('.vf-profile-pass-status','As senhas não conferem.',false);return;}
-    try{var s=await client();var r=await s.auth.updateUser({password:p1});if(r.error)throw r.error;sheet.querySelector('.vf-profile-pass1').value='';sheet.querySelector('.vf-profile-pass2').value='';status('.vf-profile-pass-status','Senha atualizada com sucesso.',true);}catch(e){status('.vf-profile-pass-status',e.message||'Não foi possível atualizar a senha.',false);}
+    try{var s=await client();var r=await s.auth.updateUser({password:p1});if(r.error)throw r.error;await audit('senha','Senha alterada','Senha atualizada pelo próprio usuário em Minha conta');sheet.querySelector('.vf-profile-pass1').value='';sheet.querySelector('.vf-profile-pass2').value='';status('.vf-profile-pass-status','Senha atualizada com sucesso.',true);}catch(e){status('.vf-profile-pass-status',e.message||'Não foi possível atualizar a senha.',false);}
   }
-  async function logout(){var target=location.origin+'/?login=1';try{var s=await client();await s.auth.signOut();location.replace(target);}catch(_){location.replace(target);}}
+  async function logout(){var target=location.origin+'/?login=1';try{var s=await client();await audit('login','Logout realizado','Sessão encerrada pelo usuário');await s.auth.signOut();location.replace(target);}catch(_){location.replace(target);}}
 
   function bind(){
     if(!isMobile())return;ensure();
@@ -128,6 +136,7 @@
     ensureAvatarPersistence();
     setTimeout(load,80);
   }
+  loadAuditLayer();
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(bind,700)},{once:true});else setTimeout(bind,700);
   setTimeout(bind,1300);setTimeout(bind,2200);
 })();
