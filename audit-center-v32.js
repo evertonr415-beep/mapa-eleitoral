@@ -43,6 +43,15 @@
     overlay.querySelectorAll('select,input').forEach(function(x){x.addEventListener(x.tagName==='INPUT'?'input':'change',render);});
   }
 
+  function resetMasterFilters(){
+    if(role!=='master'||!overlay)return;
+    var type=overlay.querySelector('[data-vf32-type]'),usr=overlay.querySelector('[data-vf32-user]'),period=overlay.querySelector('[data-vf32-period]'),search=overlay.querySelector('[data-vf32-search]');
+    if(type)type.value='all';
+    if(usr)usr.value='all';
+    if(period)period.value='all';
+    if(search)search.value='';
+  }
+
   function populateUsers(){
     var sel=overlay.querySelector('[data-vf32-user]'),current=sel.value||'all',used={};
     allLogs.forEach(function(a){[a.user_id,a.actor_user_id,a.target_user_id].filter(Boolean).forEach(function(id){used[String(id)]=1;});});
@@ -66,22 +75,27 @@
     });
   }
 
+  function scopeTotal(){
+    if(role==='master')return remoteCount||allLogs.length;
+    return allLogs.filter(function(a){return !involvesMaster(a);}).length;
+  }
+
   function renderHomeRecent(){
     var home=document.getElementById('vfAdmRecentAudit');if(!home)return;
     var rows=allLogs.filter(function(a){return role!=='adm'||!involvesMaster(a);}).slice(0,3);
     home.innerHTML=rows.length?rows.map(function(a){return '<div class="vf-admin-mini-row"><strong>'+esc(a.acao||typeLabel(a.tipo))+'</strong><span>'+esc(actorText(a))+' • '+esc(when(a.criado_em))+(a.detalhes?' • '+esc(a.detalhes):'')+'</span></div>';}).join(''):'<div class="vf-admin-empty">Nenhuma atividade disponível.</div>';
-    var n=document.getElementById('vfAdmAudit');if(n)n.textContent=String(remoteCount||allLogs.length);
+    var n=document.getElementById('vfAdmAudit');if(n)n.textContent=String(role==='master'?(remoteCount||allLogs.length):scopeTotal());
   }
 
   function render(){
     if(!overlay)return;
-    var rows=filtered(),list=overlay.querySelector('.vf32-audit-list');
-    overlay.querySelector('[data-vf32-total]').textContent=String(remoteCount||allLogs.length);
+    var rows=filtered(),list=overlay.querySelector('.vf32-audit-list'),total=scopeTotal();
+    overlay.querySelector('[data-vf32-total]').textContent=String(total);
     overlay.querySelector('[data-vf32-today]').textContent=String(allLogs.filter(function(a){return new Date(a.criado_em).getTime()>=todayStart()&&(role!=='adm'||!involvesMaster(a));}).length);
     var people={};allLogs.forEach(function(a){var id=a.actor_user_id||a.user_id;if(id&&(role!=='adm'||personRole(id)!=='master'))people[id]=1;});
     overlay.querySelector('[data-vf32-people]').textContent=String(Object.keys(people).length);
     overlay.querySelector('[data-vf32-last]').textContent=allLogs.length?when(allLogs[0].criado_em):'—';
-    overlay.querySelector('[data-vf32-result]').textContent=rows.length+' atividade'+(rows.length===1?'':'s')+' exibida'+(rows.length===1?'':'s');
+    overlay.querySelector('[data-vf32-result]').textContent=rows.length+' de '+total+' atividade'+(total===1?'':'s')+' exibida'+(rows.length===1?'':'s');
     if(!rows.length){list.innerHTML='<div class="vf32-audit-empty">Nenhuma atividade encontrada com esses filtros.</div>';return;}
     list.innerHTML=rows.map(function(a){
       var actor=a.actor_user_id||a.user_id,target=a.target_user_id||(a.actor_user_id&&a.user_id!==a.actor_user_id?a.user_id:null),who=actorText(a),detail=a.detalhes||'',device=a.dispositivo||'Dispositivo não informado';
@@ -110,9 +124,11 @@
     build();
     document.querySelectorAll('.vf-admin-sheet-overlay.show').forEach(function(x){x.classList.remove('show');});
     document.body.classList.remove('vf-drawer-open');
+    resetMasterFilters();
     overlay.classList.add('show');overlay.setAttribute('aria-hidden','false');
     document.querySelectorAll('[data-vf-admin-nav="audit"]').forEach(function(b){b.classList.add('active');});
     await load();
+    if(role==='master'){resetMasterFilters();render();}
   }
   function close(){if(!overlay)return;overlay.classList.remove('show');overlay.setAttribute('aria-hidden','true');}
 
