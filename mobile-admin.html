@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080d17">
+<title>Painel Administrativo · VotoForte</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#080d17;color:#e5edf8;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}button,input,select{font:inherit}.app{max-width:760px;margin:0 auto;padding:18px 16px 34px}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.brand{display:flex;gap:12px;align-items:center}.logo{width:48px;height:48px;border-radius:14px;background:#14233a;border:1px solid #294363;padding:5px}.logo img{width:100%;height:100%;object-fit:contain;border-radius:8px}.title h1{font-size:20px;margin:0}.title p{margin:3px 0 0;color:#8ca0bc;font-size:12px}.profile{border:1px solid #2b415f;background:#111d30;color:#bcd3f5;border-radius:12px;padding:8px 10px;font-size:11px;font-weight:800}.hero{margin-top:18px;background:linear-gradient(145deg,#142946,#0d1c31);border:1px solid #294a73;border-radius:20px;padding:18px;box-shadow:0 15px 45px rgba(0,0,0,.22)}.hero .eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#f1c43d;font-weight:900}.hero h2{font-size:22px;margin:6px 0 5px}.hero p{margin:0;color:#9bb0cb;font-size:12px;line-height:1.45}.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.stat{background:#0d1728;border:1px solid #223753;border-radius:15px;padding:13px}.stat span{display:block;color:#8599b4;font-size:10px;font-weight:800;text-transform:uppercase}.stat strong{display:block;font-size:20px;margin-top:4px}.stat.warn strong{color:#fbbf24}.stat.ok strong{color:#5ee2a0}.section{margin-top:18px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}.section-head h3{font-size:15px;margin:0}.section-head span{font-size:10px;color:#7489a6}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tile{min-height:92px;text-align:left;border:1px solid #2b415f;background:linear-gradient(160deg,#13233a,#0d1829);color:#eef5ff;border-radius:16px;padding:14px}.tile .ico{font-size:21px}.tile strong{display:block;margin-top:8px;font-size:13px}.tile small{display:block;color:#8398b5;font-size:10px;line-height:1.35;margin-top:3px}.tile.primary{border-color:#315f98;background:linear-gradient(150deg,#153662,#10284a)}.tile.alert{border-color:rgba(245,158,11,.42);background:linear-gradient(150deg,#2b2413,#171a21)}.badge{display:inline-flex;min-width:20px;height:20px;padding:0 6px;align-items:center;justify-content:center;border-radius:999px;background:#f59e0b;color:#15100a;font-size:10px;font-weight:900;margin-left:6px}.card{background:#0d1728;border:1px solid #223753;border-radius:16px;padding:14px}.req{padding:11px 0;border-top:1px solid #1e2d43}.req:first-child{border-top:0;padding-top:0}.req strong{font-size:12px}.req span{display:block;color:#7f93ad;font-size:10px;margin-top:3px}.req button{margin-top:8px;border:1px solid #315b8f;background:#163154;color:#cde1ff;border-radius:9px;padding:7px 10px;font-size:10px;font-weight:800}.empty{color:#70839e;font-size:11px;text-align:center;padding:8px}.activity{padding:9px 0;border-top:1px solid #1e2d43}.activity:first-child{border-top:0}.activity strong{display:block;font-size:11px}.activity span{display:block;color:#788da9;font-size:9.5px;margin-top:2px}.footer-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}.footer-actions button{border-radius:12px;padding:11px;border:1px solid #2b415f;background:#101d30;color:#bbcee9;font-weight:800;font-size:11px}.footer-actions .danger{border-color:#563044;color:#f3a8b9;background:#21131c}.overlay{position:fixed;inset:0;background:rgba(3,8,16,.72);display:none;align-items:flex-end;z-index:50}.overlay.show{display:flex}.sheet{width:100%;max-height:88vh;overflow:auto;background:#0d1728;border:1px solid #2b415f;border-bottom:0;border-radius:22px 22px 0 0;padding:16px 16px calc(22px + env(safe-area-inset-bottom))}.sheet-head{display:flex;justify-content:space-between;align-items:center}.sheet-head h3{margin:0;font-size:16px}.close{width:38px;height:38px;border:1px solid #2d4565;background:#14233a;color:#cbd9ec;border-radius:11px;font-size:18px}.field{margin-top:12px}.field label{display:block;color:#91a5c0;font-size:10px;font-weight:800;margin-bottom:5px}.field input,.field select{width:100%;height:46px;border:1px solid #2b415f;background:#091321;color:#fff;border-radius:11px;padding:0 12px;font-size:15px}.save{width:100%;height:47px;border:0;border-radius:12px;background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;font-weight:900;margin-top:15px}.status{font-size:10px;min-height:16px;margin-top:8px;color:#fda4af}.status.ok{color:#6ee7b7}@media(max-width:390px){.app{padding-left:12px;padding-right:12px}.hero{padding:15px}.tile{padding:12px}}
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="top">
+    <div class="brand"><div class="logo"><img src="./assets/bandeira_arapongas.png" alt=""></div><div class="title"><h1>Painel Administrativo</h1><p>VotoForte Arapongas</p></div></div>
+    <button id="profileBtn" class="profile">ADM</button>
+  </header>
+
+  <section class="hero"><div class="eyebrow">Gestão do sistema</div><h2 id="hello">Olá, Administrador</h2><p>Acompanhe usuários, solicitações de acesso e utilize as ferramentas operacionais do VotoForte pelo celular.</p>
+    <div class="stats">
+      <div class="stat"><span>Usuários</span><strong id="statUsers">—</strong></div>
+      <div class="stat warn"><span>Senhas pendentes</span><strong id="statRequests">—</strong></div>
+      <div class="stat ok"><span>Lideranças</span><strong id="statLeaders">—</strong></div>
+      <div class="stat"><span>Atividades</span><strong id="statAudit">—</strong></div>
+    </div>
+  </section>
+
+  <section class="section"><div class="section-head"><h3>Administração</h3><span>Acesso exclusivo ADM/Master</span></div><div class="grid">
+    <button class="tile primary" id="newUser"><div class="ico">👤➕</div><strong>Novo usuário</strong><small>Criar conta, liberar acesso e definir senha temporária.</small></button>
+    <button class="tile alert" id="passwordRequests"><div class="ico">🔑</div><strong>Solicitações <span id="reqBadge" class="badge">0</span></strong><small>Redefinir senha de quem pediu ajuda no login.</small></button>
+    <button class="tile" onclick="location.href='./admin-users.html'"><div class="ico">👥</div><strong>Gerenciar usuários</strong><small>Visualizar contas e redefinir acessos.</small></button>
+    <button class="tile" id="auditBtn"><div class="ico">📋</div><strong>Auditoria</strong><small>Últimas movimentações registradas no sistema.</small></button>
+  </div></section>
+
+  <section class="section"><div class="section-head"><h3>Operação eleitoral</h3><span>Ferramentas do sistema</span></div><div class="grid">
+    <button class="tile" data-view="map"><div class="ico">🗺️</div><strong>Mapa eleitoral</strong><small>Abrir a visão geral e pontos no mapa.</small></button>
+    <button class="tile" data-view="liderancas"><div class="ico">🤝</div><strong>Lideranças</strong><small>Acompanhar e gerenciar lideranças cadastradas.</small></button>
+    <button class="tile" data-view="colegios"><div class="ico">🏫</div><strong>Colégios eleitorais</strong><small>Consultar colégios e informações eleitorais.</small></button>
+    <button class="tile" data-view="distritos"><div class="ico">📍</div><strong>Distritos</strong><small>Visualizar distribuição territorial e responsáveis.</small></button>
+  </div></section>
+
+  <section class="section"><div class="section-head"><h3>Solicitações recentes</h3><span id="reqHint"></span></div><div id="recentRequests" class="card"><div class="empty">Carregando...</div></div></section>
+  <section class="section"><div class="section-head"><h3>Atividades recentes</h3><span>Auditoria</span></div><div id="recentAudit" class="card"><div class="empty">Carregando...</div></div></section>
+
+  <div class="footer-actions"><button id="openSystem">Abrir sistema operacional</button><button id="logout" class="danger">Sair</button></div>
+</main>
+
+<div class="overlay" id="createOverlay"><section class="sheet"><div class="sheet-head"><h3>Novo usuário</h3><button class="close" data-close="createOverlay">×</button></div><form id="createForm"><div class="field"><label>Nome</label><input id="nome" required></div><div class="field"><label>E-mail</label><input id="email" type="email" required></div><div class="field"><label>WhatsApp</label><input id="whatsapp" inputmode="tel"></div><div class="field"><label>Perfil</label><select id="role"><option value="vereador">Usuário / Vereador</option><option value="adm">Administrador</option></select></div><div class="field"><label>Senha temporária</label><input id="password" type="password" minlength="8" required placeholder="Mínimo 8 caracteres"></div><button class="save" id="createSubmit">Criar e liberar acesso</button><div id="createStatus" class="status"></div></form></section></div>
+<div class="overlay" id="requestsOverlay"><section class="sheet"><div class="sheet-head"><h3>Solicitações de senha</h3><button class="close" data-close="requestsOverlay">×</button></div><div id="allRequests" style="margin-top:12px"></div></section></div>
+<div class="overlay" id="auditOverlay"><section class="sheet"><div class="sheet-head"><h3>Auditoria recente</h3><button class="close" data-close="auditOverlay">×</button></div><div id="allAudit" style="margin-top:12px"></div></section></div>
+
+<script type="module">
+import{requireAuth,client,adminAction,signOut}from'./auth-gate.js';
+const u=await requireAuth();
+if(!u)throw new Error('auth');
+const role=u.vfProfile?.role||'';
+if(!['master','adm'].includes(role)){location.replace('./mobile-production.html');throw new Error('forbidden')}
+const name=u.vfProfile?.nome||u.email||'Administrador';
+document.getElementById('hello').textContent='Olá, '+name.split(' ')[0];
+document.getElementById('profileBtn').textContent=role==='master'?'MASTER':'ADM';
+const s=await client();
+let requests=[],users=[],audit=[];
+function esc(v){return String(v==null?'':v).replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]||c))}
+function open(id){document.getElementById(id)?.classList.add('show')}
+function close(id){document.getElementById(id)?.classList.remove('show')}
+document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>close(b.dataset.close));
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show')}));
+function go(view){sessionStorage.setItem('vf_admin_open_view',view);location.href='./mobile-production.html'}
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>go(b.dataset.view));
+document.getElementById('openSystem').onclick=()=>go('map');
+document.getElementById('newUser').onclick=()=>open('createOverlay');
+document.getElementById('passwordRequests').onclick=()=>open('requestsOverlay');
+document.getElementById('auditBtn').onclick=()=>open('auditOverlay');
+document.getElementById('profileBtn').onclick=()=>go('users');
+document.getElementById('logout').onclick=async()=>{if(confirm('Deseja sair da sua conta?'))await signOut()};
+async function resetPassword(id,nome){const p=prompt('Digite uma senha temporária para '+nome+' (mínimo 8 caracteres):');if(!p)return;if(p.length<8){alert('A senha precisa ter pelo menos 8 caracteres.');return}try{await adminAction('reset_password',{user_id:id,password:p});alert('Senha temporária definida. O usuário deverá criar uma nova senha no próximo acesso.');await load()}catch(e){alert('Não foi possível redefinir: '+(e.message||e))}}
+function renderRequests(){
+  const html=requests.length?requests.map(x=>{const p=x.perfis_usuarios||{};const n=p.nome||x.email;return '<div class="req"><strong>'+esc(n)+'</strong><span>'+esc(x.email)+' • '+new Date(x.solicitado_em).toLocaleString('pt-BR')+'</span><button data-reset="'+esc(x.user_id)+'" data-name="'+esc(n)+'">Definir senha temporária</button></div>'}).join(''):'<div class="empty">Nenhuma solicitação pendente.</div>';
+  document.getElementById('recentRequests').innerHTML=requests.length?requests.slice(0,3).map(x=>{const p=x.perfis_usuarios||{};return '<div class="req"><strong>'+esc(p.nome||x.email)+'</strong><span>'+new Date(x.solicitado_em).toLocaleString('pt-BR')+'</span></div>'}).join(''):'<div class="empty">Nenhuma solicitação pendente.</div>';
+  document.getElementById('allRequests').innerHTML=html;
+  document.querySelectorAll('#allRequests [data-reset]').forEach(b=>b.onclick=()=>resetPassword(b.dataset.reset,b.dataset.name));
+}
+function renderAudit(){const make=a=>'<div class="activity"><strong>'+esc(a.acao||a.tipo||'Atividade')+'</strong><span>'+new Date(a.criado_em).toLocaleString('pt-BR')+(a.detalhes?' • '+esc(a.detalhes):'')+'</span></div>';const html=audit.length?audit.map(make).join(''):'<div class="empty">Nenhuma atividade disponível.</div>';document.getElementById('recentAudit').innerHTML=audit.length?audit.slice(0,4).map(make).join(''):'<div class="empty">Nenhuma atividade disponível.</div>';document.getElementById('allAudit').innerHTML=html}
+async function load(){
+  try{
+    const [rr,uu,lc,aa]=await Promise.all([
+      adminAction('list_requests'),
+      adminAction('list_users'),
+      s.from('liderancas').select('id',{count:'exact',head:true}),
+      s.from('audit_logs').select('id,tipo,acao,detalhes,criado_em').order('criado_em',{ascending:false}).limit(20)
+    ]);
+    requests=rr.requests||[];users=uu.users||[];audit=aa.data||[];
+    document.getElementById('statUsers').textContent=users.length;
+    document.getElementById('statRequests').textContent=requests.length;
+    document.getElementById('statLeaders').textContent=lc.count??'—';
+    document.getElementById('statAudit').textContent=audit.length;
+    document.getElementById('reqBadge').textContent=requests.length;
+    document.getElementById('reqHint').textContent=requests.length?requests.length+' pendente'+(requests.length===1?'':'s'):'Tudo em dia';
+    renderRequests();renderAudit();
+  }catch(e){console.error(e);document.getElementById('recentRequests').innerHTML='<div class="empty">Não foi possível carregar os dados administrativos.</div>'}
+}
+document.getElementById('createForm').addEventListener('submit',async e=>{e.preventDefault();const b=document.getElementById('createSubmit'),st=document.getElementById('createStatus');b.disabled=true;b.textContent='Criando...';st.textContent='';st.className='status';try{await adminAction('create_user',{nome:document.getElementById('nome').value.trim(),email:document.getElementById('email').value.trim(),whatsapp:document.getElementById('whatsapp').value.trim(),role:document.getElementById('role').value,password:document.getElementById('password').value,cargo:document.getElementById('role').value==='adm'?'Administrador':'Usuário'});st.textContent='Usuário criado e liberado. A senha é temporária.';st.className='status ok';e.target.reset();await load();setTimeout(()=>close('createOverlay'),900)}catch(err){st.textContent='Erro: '+(err.message||err)}finally{b.disabled=false;b.textContent='Criar e liberar acesso'}});
+await load();
+</script>
+</body>
+</html>
