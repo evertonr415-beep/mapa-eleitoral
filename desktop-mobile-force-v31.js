@@ -1,7 +1,7 @@
 (function(){
   'use strict';
-  if(window.__vfDesktopMobileForceV315)return;
-  window.__vfDesktopMobileForceV315=true;
+  if(window.__vfDesktopMobileForceV316)return;
+  window.__vfDesktopMobileForceV316=true;
 
   function rewriteMobileMedia(css){
     return String(css||'')
@@ -85,6 +85,8 @@
       body.vf-desktop-mobile-mirror .vf-admin-user-row span,body.vf-desktop-mobile-mirror .vf-admin-request-row span{font-size:11px!important}\
       body.vf-desktop-mobile-mirror .vf-admin-row-btn{padding:9px 11px!important;font-size:11px!important}\
       body.vf-desktop-mobile-mirror .vf-admin-toolbar-btn{height:46px!important;font-size:13px!important}\
+      body.vf-desktop-mobile-mirror .vf-map-filter{min-width:118px!important;min-height:48px!important;height:48px!important;padding:0 16px!important;gap:9px!important;border-radius:14px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;font-size:14px!important;font-weight:850!important;box-shadow:0 8px 22px rgba(0,0,0,.22)!important}\
+      body.vf-desktop-mobile-mirror .vf-map-filter svg{width:20px!important;height:20px!important;flex:0 0 20px!important}\
       body.vf-desktop-mobile-mirror .vf29-wa-overlay{align-items:center!important;justify-content:center!important;padding:32px!important;overflow:hidden!important}\
       body.vf-desktop-mobile-mirror .vf29-wa-sheet{width:min(820px,calc(100vw - 96px))!important;max-width:820px!important;max-height:calc(100vh - 64px)!important;margin:0!important;border-radius:22px!important;overflow-y:auto!important;overflow-x:hidden!important}\
       body.vf-desktop-mobile-mirror .vf29-wa-head h2{font-size:22px!important}\
