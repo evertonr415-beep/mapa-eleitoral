@@ -1,6 +1,6 @@
 /* v32.6 - estabilidade de rolagem do painel administrativo no mobile */
 @media (max-width:900px){
-  body.vf-mobile.vf-admin-role.vf-admin-home-active .workspace-main{
+  body.vf-mobile:not(.vf-desktop-mobile-mirror).vf-admin-role.vf-admin-home-active .workspace-main{
     position:relative!important;
     display:block!important;
     width:100%!important;
@@ -11,7 +11,7 @@
     overscroll-behavior:none!important;
   }
 
-  body.vf-mobile.vf-admin-role.vf-admin-home-active #vf-admin-home{
+  body.vf-mobile:not(.vf-desktop-mobile-mirror).vf-admin-role.vf-admin-home-active #vf-admin-home{
     position:relative!important;
     display:block!important;
     width:100%!important;
@@ -26,16 +26,16 @@
     pointer-events:auto!important;
   }
 
-  body.vf-mobile:not(.vf-drawer-open) .vf-mobile-overlay{
+  body.vf-mobile:not(.vf-desktop-mobile-mirror):not(.vf-drawer-open) .vf-mobile-overlay{
     pointer-events:none!important;
   }
 
-  body.vf-mobile:not(.vf-leader-sheet-open) .vf-leader-overlay{
+  body.vf-mobile:not(.vf-desktop-mobile-mirror):not(.vf-leader-sheet-open) .vf-leader-overlay{
     pointer-events:none!important;
   }
 
-  .vf-admin-sheet-overlay:not(.show),
-  .vf32-audit-overlay:not(.show){
+  body.vf-mobile:not(.vf-desktop-mobile-mirror) .vf-admin-sheet-overlay:not(.show),
+  body.vf-mobile:not(.vf-desktop-mobile-mirror) .vf32-audit-overlay:not(.show){
     pointer-events:none!important;
   }
 }
