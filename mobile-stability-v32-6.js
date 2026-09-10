@@ -6,7 +6,7 @@
   var boundHome=null;
 
   function isMobile(){
-    return document.body&&document.body.classList.contains('vf-mobile')&&matchMedia('(max-width:900px)').matches;
+    return document.body&&document.body.classList.contains('vf-mobile')&&!document.body.classList.contains('vf-desktop-mobile-mirror')&&matchMedia('(max-width:900px)').matches;
   }
 
   function adminHomeActive(){
@@ -44,7 +44,7 @@
   }
 
   function releaseOverlayOverrides(){
-    if(!document.body)return;
+    if(!isMobile())return;
     if(document.body.classList.contains('vf-drawer-open')){
       var m=document.querySelector('.vf-mobile-overlay');if(m)m.style.removeProperty('pointer-events');
     }
