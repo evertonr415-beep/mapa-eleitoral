@@ -63,3 +63,107 @@
   body.vf-mobile .vf-mobile-profile-button{width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important}
   body.vf-mobile .vf-mobile-avatar{line-height:42px!important}
 }
+
+/* v32.4 - perfil compacto somente no mobile */
+@media (max-width:900px){
+  .vf-profile-sheet{
+    max-height:86dvh;
+    padding:10px 12px calc(12px + env(safe-area-inset-bottom));
+    border-radius:20px 20px 0 0;
+  }
+  .vf-profile-head{margin-bottom:8px;gap:9px}
+  .vf-profile-head strong{font-size:16px;line-height:1.05}
+  .vf-profile-head span{margin-top:1px;font-size:8.5px}
+  .vf-profile-close{width:34px;height:34px;border-radius:10px;font-size:19px}
+
+  .vf-profile-card{
+    grid-template-columns:58px minmax(0,1fr);
+    gap:10px;
+    padding:9px 10px;
+    border-radius:14px;
+  }
+  .vf-profile-photo{
+    width:58px;
+    height:58px;
+    overflow:visible;
+    font-size:17px;
+  }
+  .vf-profile-photo img{overflow:hidden}
+  .vf-profile-photo button{
+    inset:auto -3px -3px auto;
+    width:24px;
+    height:24px;
+    padding:0;
+    display:grid;
+    place-items:center;
+    border:2px solid #101b2d;
+    border-radius:50%;
+    background:#2563eb;
+    font-size:0;
+    line-height:1;
+    box-shadow:0 3px 10px rgba(0,0,0,.35);
+  }
+  .vf-profile-photo button::before{content:'📷';font-size:12px;line-height:1}
+  .vf-profile-name{font-size:14px;line-height:1.1}
+  .vf-profile-email{margin-top:3px;font-size:9px}
+  .vf-profile-role{margin-top:5px;padding:3px 6px;font-size:7px}
+
+  /* A troca de foto continua funcionando pelo botão na própria foto.
+     O bloco duplicado vira apenas área de feedback de sucesso/erro. */
+  .vf-profile-file + .vf-profile-section{
+    margin:0;
+    padding:0;
+    border:0;
+    border-radius:0;
+    background:transparent;
+  }
+  .vf-profile-file + .vf-profile-section .vf-profile-section-title,
+  .vf-profile-file + .vf-profile-section .vf-profile-section-sub,
+  .vf-profile-file + .vf-profile-section .vf-profile-choose-photo{display:none!important}
+  .vf-profile-file + .vf-profile-section .vf-profile-photo-status{margin-top:6px;padding:6px 8px;font-size:8px}
+
+  .vf-profile-section{
+    margin-top:8px;
+    padding:10px;
+    border-radius:14px;
+  }
+  .vf-profile-section-title{font-size:10.5px}
+  .vf-profile-section-sub{display:none}
+  .vf-profile-field{margin-top:8px}
+  .vf-profile-field label{margin:0 0 4px 1px;font-size:8px}
+  .vf-profile-input-wrap input{
+    height:38px;
+    padding:0 40px 0 10px;
+    border-radius:10px;
+    font-size:15px;
+  }
+  .vf-profile-eye{
+    right:4px;
+    top:4px;
+    width:30px;
+    height:30px;
+    border-radius:8px;
+    font-size:13px;
+  }
+  .vf-profile-primary{
+    min-height:38px;
+    margin-top:8px;
+    border-radius:10px;
+    font-size:10.5px;
+  }
+  .vf-profile-danger{
+    min-height:38px;
+    margin-top:8px;
+    margin-bottom:max(2px,env(safe-area-inset-bottom));
+    border-radius:10px;
+    font-size:10.5px;
+  }
+  .vf-profile-status{margin-top:6px;padding:6px 8px;font-size:8px}
+}
+
+@media (max-width:380px){
+  .vf-profile-sheet{padding-left:10px;padding-right:10px}
+  .vf-profile-card{grid-template-columns:54px minmax(0,1fr);padding:8px 9px}
+  .vf-profile-photo{width:54px;height:54px}
+  .vf-profile-input-wrap input{font-size:14px}
+}
