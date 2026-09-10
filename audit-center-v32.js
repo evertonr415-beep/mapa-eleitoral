@@ -32,15 +32,34 @@
     overlay.innerHTML='<section class="vf32-audit-sheet" role="dialog" aria-modal="true" aria-label="Auditoria do sistema">'
       +'<header class="vf32-audit-head"><div><div class="vf32-audit-kicker">Segurança e rastreabilidade</div><h2>Auditoria do sistema</h2><p>'+(role==='master'?'Master visualiza todas as movimentações registradas.':'Histórico administrativo permitido para este perfil.')+'</p></div><button type="button" class="vf32-audit-close" aria-label="Fechar">×</button></header>'
       +'<div class="vf32-audit-stats"><article><span>Total registrado</span><strong data-vf32-total>—</strong></article><article><span>Hoje</span><strong data-vf32-today>—</strong></article><article><span>Usuários com atividade</span><strong data-vf32-people>—</strong></article><article><span>Última atividade</span><strong class="small" data-vf32-last>—</strong></article></div>'
-      +'<div class="vf32-audit-tools"><label><span>Tipo</span><select data-vf32-type><option value="all">Todos</option><option value="login">Acesso</option><option value="usuario">Usuário</option><option value="senha">Senha</option><option value="lideranca">Liderança</option><option value="sistema">Sistema</option><option value="whatsapp">WhatsApp</option></select></label><label><span>Usuário</span><select data-vf32-user><option value="all">Todos os usuários</option></select></label><label><span>Período</span><select data-vf32-period><option value="all">Todo o histórico</option><option value="1">Hoje</option><option value="7">Últimos 7 dias</option><option value="30">Últimos 30 dias</option></select></label><label class="vf32-audit-search"><span>Buscar</span><input type="search" data-vf32-search placeholder="Ação, nome ou detalhe"></label><button type="button" class="vf32-audit-refresh">↻ Atualizar</button></div>'
+      +'<div class="vf32-audit-mobilebar"><button type="button" class="vf32-audit-filter-toggle" aria-expanded="false"><span>☰ Filtros</span><span class="vf32-audit-filter-count" data-vf32-filter-count></span></button><button type="button" class="vf32-audit-refresh vf32-audit-refresh-mobile">↻ Atualizar</button></div>'
+      +'<div class="vf32-audit-tools"><label><span>Tipo</span><select data-vf32-type><option value="all">Todos</option><option value="login">Acesso</option><option value="usuario">Usuário</option><option value="senha">Senha</option><option value="lideranca">Liderança</option><option value="sistema">Sistema</option><option value="whatsapp">WhatsApp</option></select></label><label><span>Usuário</span><select data-vf32-user><option value="all">Todos os usuários</option></select></label><label><span>Período</span><select data-vf32-period><option value="all">Todo o histórico</option><option value="1">Hoje</option><option value="7">Últimos 7 dias</option><option value="30">Últimos 30 dias</option></select></label><label class="vf32-audit-search"><span>Buscar</span><input type="search" data-vf32-search placeholder="Buscar atividade, usuário ou detalhe"></label><button type="button" class="vf32-audit-refresh vf32-audit-refresh-desktop">↻ Atualizar</button></div>'
       +'<div class="vf32-audit-meta"><span data-vf32-result>Carregando...</span><span class="vf32-audit-scope">'+(role==='master'?'MASTER • VISÃO GLOBAL':'ADMINISTRADOR')+'</span></div>'
       +'<div class="vf32-audit-list"><div class="vf32-audit-empty">Carregando histórico...</div></div>'
       +'</section>';
     document.body.appendChild(overlay);
     overlay.querySelector('.vf32-audit-close').addEventListener('click',close);
     overlay.addEventListener('click',function(e){if(e.target===overlay)close();});
-    overlay.querySelector('.vf32-audit-refresh').addEventListener('click',load);
+    overlay.querySelectorAll('.vf32-audit-refresh').forEach(function(b){b.addEventListener('click',load);});
+    var ft=overlay.querySelector('.vf32-audit-filter-toggle');if(ft)ft.addEventListener('click',function(){setFilterOpen(!overlay.classList.contains('filters-open'));});
     overlay.querySelectorAll('select,input').forEach(function(x){x.addEventListener(x.tagName==='INPUT'?'input':'change',render);});
+  }
+
+  function setFilterOpen(open){
+    if(!overlay)return;
+    overlay.classList.toggle('filters-open',!!open);
+    var b=overlay.querySelector('.vf32-audit-filter-toggle');if(b)b.setAttribute('aria-expanded',open?'true':'false');
+  }
+
+  function updateFilterUI(){
+    if(!overlay)return;
+    var type=overlay.querySelector('[data-vf32-type]'),usr=overlay.querySelector('[data-vf32-user]'),period=overlay.querySelector('[data-vf32-period]'),search=overlay.querySelector('[data-vf32-search]'),n=0;
+    if(type&&type.value!=='all')n++;
+    if(usr&&usr.value!=='all')n++;
+    if(period&&period.value!=='all')n++;
+    if(search&&String(search.value||'').trim())n++;
+    var badge=overlay.querySelector('[data-vf32-filter-count]');
+    if(badge){badge.textContent=String(n);badge.classList.toggle('show',n>0);}
   }
 
   function resetMasterFilters(){
@@ -50,6 +69,7 @@
     if(usr)usr.value='all';
     if(period)period.value='all';
     if(search)search.value='';
+    updateFilterUI();
   }
 
   function populateUsers(){
@@ -97,6 +117,7 @@
     overlay.querySelector('[data-vf32-people]').textContent=String(Object.keys(people).length);
     overlay.querySelector('[data-vf32-last]').textContent=allLogs.length?when(allLogs[0].criado_em):'—';
     overlay.querySelector('[data-vf32-result]').textContent=rows.length+' de '+total+' atividade'+(total===1?'':'s')+' exibida'+(rows.length===1?'':'s');
+    updateFilterUI();
     if(!rows.length){list.innerHTML='<div class="vf32-audit-empty">Nenhuma atividade encontrada com esses filtros.</div>';return;}
     list.innerHTML=rows.map(function(a){
       var actor=a.actor_user_id||a.user_id,target=a.target_user_id||(a.actor_user_id&&a.user_id!==a.actor_user_id?a.user_id:null),who=actorText(a),detail=a.detalhes||'',device=a.dispositivo||'Dispositivo não informado';
@@ -125,13 +146,14 @@
     build();
     document.querySelectorAll('.vf-admin-sheet-overlay.show').forEach(function(x){x.classList.remove('show');});
     document.body.classList.remove('vf-drawer-open');
+    setFilterOpen(false);
     resetMasterFilters();
     overlay.classList.add('show');overlay.setAttribute('aria-hidden','false');
     document.querySelectorAll('[data-vf-admin-nav="audit"]').forEach(function(b){b.classList.add('active');});
     await load();
     if(role==='master'){resetMasterFilters();render();}
   }
-  function close(){if(!overlay)return;overlay.classList.remove('show');overlay.setAttribute('aria-hidden','true');}
+  function close(){if(!overlay)return;overlay.classList.remove('show');overlay.setAttribute('aria-hidden','true');setFilterOpen(false);}
 
   document.addEventListener('click',function(e){
     var t=e.target&&e.target.closest?e.target.closest('[data-vf-admin-nav="audit"],[data-vf-admin-open="audit"],#tab-btn-audit,[data-vf-nav="audit"]'):null;
