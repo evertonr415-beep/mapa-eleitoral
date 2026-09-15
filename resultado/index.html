@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07182d">
+  <title>Resultado da Enquete | VotoForte Arapongas</title>
+  <style>
+    *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;background:#f3f6fb;color:#172033}body{min-height:100vh}
+    .hero{background:linear-gradient(145deg,#07182d,#0d2f55);color:#fff;padding:28px 16px 34px;text-align:center;box-shadow:0 5px 22px rgba(7,24,45,.18)}
+    .brand{display:inline-flex;align-items:center;gap:11px;margin-bottom:16px}.brand img{width:44px;height:44px;object-fit:contain;border-radius:10px;background:#fff;padding:3px}.brand strong{font-size:17px;letter-spacing:.01em}
+    .check{width:58px;height:58px;margin:0 auto 12px;border-radius:50%;display:grid;place-items:center;background:#16a36a;font-size:29px;font-weight:900;box-shadow:0 8px 24px rgba(22,163,106,.28)}
+    h1{margin:0;font-size:25px;line-height:1.16}.hero p{margin:8px auto 0;max-width:520px;color:#cbd9e9;font-size:13px;line-height:1.5}
+    main{width:min(720px,100%);margin:-18px auto 42px;padding:0 13px;position:relative}.summary{background:#fff;border:1px solid #dfe7f1;border-radius:18px;padding:17px;box-shadow:0 10px 30px rgba(15,23,42,.08);display:flex;align-items:center;justify-content:space-between;gap:14px}.summary small{display:block;color:#75839a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}.summary strong{display:block;font-size:27px;color:#0d3970;margin-top:2px}.live{display:flex;align-items:center;gap:7px;color:#49617e;font-size:11px;font-weight:700;text-align:right}.dot{width:8px;height:8px;border-radius:50%;background:#16a36a;box-shadow:0 0 0 4px rgba(22,163,106,.12)}
+    .intro{margin:18px 3px 12px;color:#5b6c82;font-size:12px;line-height:1.55}.section{background:#fff;border:1px solid #dfe7f1;border-radius:18px;margin:12px 0;overflow:hidden;box-shadow:0 4px 16px rgba(15,23,42,.04)}.section-head{padding:14px 15px 11px;border-bottom:1px solid #edf1f6;display:flex;align-items:center;justify-content:space-between;gap:10px}.section-head h2{margin:0;font-size:14px;color:#24344b}.section-head span{font-size:10px;color:#8290a5;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+    .rows{padding:7px 12px 11px}.row{padding:9px 2px}.row-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:6px}.name{min-width:0;font-size:12.5px;font-weight:750;color:#27364b;line-height:1.25}.numbers{white-space:nowrap;text-align:right}.pct{font-size:13px;font-weight:900;color:#174a85}.votes{font-size:10px;color:#8a97a9;margin-left:5px}.bar{height:7px;background:#edf2f7;border-radius:999px;overflow:hidden}.fill{height:100%;background:linear-gradient(90deg,#2563eb,#38a5e8);border-radius:999px;min-width:0;transition:width .45s ease}
+    .loading,.error{background:#fff;border:1px solid #dfe7f1;border-radius:18px;padding:24px;text-align:center;color:#65758b;font-size:13px;box-shadow:0 5px 18px rgba(15,23,42,.04)}.spinner{width:28px;height:28px;margin:0 auto 12px;border:3px solid #dce5ef;border-top-color:#2563eb;border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+    .retry{border:0;border-radius:10px;background:#2563eb;color:#fff;font-weight:800;padding:10px 15px;margin-top:12px}.foot{text-align:center;color:#8996a7;font-size:10px;line-height:1.5;margin-top:18px;padding:0 14px}.hidden{display:none!important}
+    @media(max-width:520px){.hero{padding-top:22px;padding-bottom:30px}.brand img{width:39px;height:39px}.brand strong{font-size:15px}h1{font-size:22px}.summary{padding:15px}.summary strong{font-size:23px}.section{border-radius:15px}.row{padding:8px 1px}.name{font-size:12px}}
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="brand"><img src="../assets/bandeira_arapongas.png" alt="Bandeira de Arapongas"><strong>VotoForte Arapongas</strong></div>
+    <div class="check">✓</div>
+    <h1>Voto registrado com sucesso</h1>
+    <p>Obrigado por participar. Abaixo estão os percentuais atualizados da enquete.</p>
+  </header>
+  <main>
+    <section class="summary">
+      <div><small>Participações</small><strong id="total">—</strong></div>
+      <div class="live"><i class="dot"></i><span>Resultados<br>atualizados</span></div>
+    </section>
+    <p class="intro">Os dados abaixo usam a mesma base de resultados do VotoForte Paraná e são atualizados conforme novas participações são registradas.</p>
+    <div id="loading" class="loading"><div class="spinner"></div>Carregando percentuais...</div>
+    <div id="error" class="error hidden">Não foi possível carregar os resultados agora.<br><button class="retry" type="button" onclick="loadResults()">Tentar novamente</button></div>
+    <div id="content" class="hidden"></div>
+    <div class="foot">Enquete de opinião. Os percentuais apresentados refletem apenas as respostas registradas nesta pesquisa e não constituem resultado eleitoral oficial.</div>
+  </main>
+<script>
+(function(){
+  const API = 'https://sistemavotoforte.com.br/api/public/enquete/arapongas-results';
+
+  const labels = {
+    lula_pt:'Lula',flavio_bolsonaro_pl:'Flávio Bolsonaro',augusto_cury_avante:'Augusto Cury',renan_santos_missao:'Renan Santos',ronaldo_caiado_psd:'Ronaldo Caiado',romeu_zema_novo:'Romeu Zema',
+    sergio_moro_pl:'Sergio Moro',requiao_filho_pdt:'Requião Filho',sandro_alex_psd:'Sandro Alex',luiz_franca_missao:'Luiz França',
+    alexandre_curi:'Alexandre Curi',cristina_graeml:'Cristina Graeml',deltan_dallagnol:'Deltan Dallagnol',filipe_barros:'Filipe Barros',gleisi:'Gleisi',dr_rosinha:'Dr Rosinha',
+    neto_santos:'Neto Santos',ricardo_barros:'Ricardo Barros',pedro_lupion:'Pedro Lupion',beto_preto:'Beto Preto',luciano_ducci:'Luciano Ducci',bonin:'Bonin',marco_brasil:'Marco Brasil',santin_roveda:'Santin Roveda',
+    pedro_paulo_bazana:'Pedro Paulo Bazana',sergio_onofre:'Sérgio Onofre',aline_franzon:'Aline Franzon',delegado_jacovos:'Delegado Jacovós',cobra_reporter:'Cobra Repórter',
+    outro:'Outro',branco_nulo:'Branco/Nulo',ainda_nao_sei:'Ainda não sei'
+  };
+  const groups = [
+    ['Avaliação da gestão','managementRanking'],
+    ['Presidente','presidentRanking'],
+    ['Governador do Paraná','governorRanking'],
+    ['Senador','senatorRanking'],
+    ['Deputado Federal','federalRanking'],
+    ['Deputado Estadual','stateRanking']
+  ];
+  const fmt = n => Number(n||0).toLocaleString('pt-BR');
+  const esc = s => String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function section(title,ranking){
+    if(!Array.isArray(ranking)||!ranking.length||!ranking.some(x=>Number(x.votes)>0))return '';
+    const rows=ranking.map(item=>{
+      const p=Math.max(0,Math.min(100,Number(item.percentage||0)));
+      const name=labels[item.candidate]||item.candidate;
+      return '<div class="row"><div class="row-top"><div class="name">'+esc(name)+'</div><div class="numbers"><span class="pct">'+p.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%</span><span class="votes">'+fmt(item.votes)+' votos</span></div></div><div class="bar"><div class="fill" style="width:'+p+'%"></div></div></div>';
+    }).join('');
+    return '<section class="section"><div class="section-head"><h2>'+esc(title)+'</h2><span>Resultado atual</span></div><div class="rows">'+rows+'</div></section>';
+  }
+  window.loadResults=async function(){
+    const loading=document.getElementById('loading'),error=document.getElementById('error'),content=document.getElementById('content');
+    loading.classList.remove('hidden');error.classList.add('hidden');content.classList.add('hidden');
+    try{
+      const r=await fetch(API+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);
+      const data=await r.json();if(!data||!data.success)throw new Error('Dados inválidos');
+      document.getElementById('total').textContent=fmt(data.totalResponses);
+      content.innerHTML=groups.map(g=>section(g[0],data[g[1]])).join('');
+      loading.classList.add('hidden');content.classList.remove('hidden');
+    }catch(e){console.error(e);loading.classList.add('hidden');error.classList.remove('hidden')}
+  };
+  loadResults();
+})();
+</script>
+</body>
+</html>
