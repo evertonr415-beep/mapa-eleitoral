@@ -1,9 +1,23 @@
 (function(){
   'use strict';
-  if(window.__vfMobileStabilityV326)return;
-  window.__vfMobileStabilityV326=true;
+  if(window.__vfMobileStabilityV327)return;
+  window.__vfMobileStabilityV327=true;
 
   var boundHome=null;
+
+  function loadOnce(src,id){
+    if(id&&document.getElementById(id))return;
+    var s=document.createElement('script');
+    if(id)s.id=id;
+    s.src=src;
+    s.async=false;
+    document.head.appendChild(s);
+  }
+
+  function ensureCandidateSupport(){
+    loadOnce(location.origin+'/candidate-picker-scroll-guard-v33.js?v=33.2','vf-candidate-scroll-guard-v33');
+    loadOnce(location.origin+'/mobile-politician-photos-v27-7.js?v=27.8','vf-politician-photos-v27-8');
+  }
 
   function isMobile(){
     return document.body&&document.body.classList.contains('vf-mobile')&&!document.body.classList.contains('vf-desktop-mobile-mirror')&&matchMedia('(max-width:900px)').matches;
@@ -21,13 +35,11 @@
   }
 
   function repair(){
+    ensureCandidateSupport();
     if(!adminHomeActive())return;
     var home=document.getElementById('vf-admin-home');
     if(!home)return;
-
-    /* O painel de lideranças pertence ao mapa e não deve ficar ativo atrás da visão geral. */
     document.body.classList.remove('vf-leader-sheet-open');
-
     bindHome(home);
     home.style.setProperty('overflow-y','auto','important');
     home.style.setProperty('overflow-x','hidden','important');
@@ -36,11 +48,10 @@
     home.style.setProperty('pointer-events','auto','important');
   }
 
-  function schedule(){
-    requestAnimationFrame(repair);
-  }
+  function schedule(){requestAnimationFrame(repair);}
 
   function boot(){
+    ensureCandidateSupport();
     schedule();
     if(document.body){
       var mo=new MutationObserver(schedule);
