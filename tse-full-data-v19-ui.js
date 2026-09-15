@@ -3,8 +3,22 @@
   if(window.__vfTseFullDataV19Ui)return;window.__vfTseFullDataV19Ui=true;
 
   var partyFix={dep_fed_angelica:'PROS',dep_est_pacheco:'REPUBLICANOS'};
+  var replacement={
+    oldKey:'70000',
+    key:'70123',
+    name:'Arnaldo do Povo',
+    fullName:'Arnaldo Aparecido Pereira',
+    party:'AVANTE',
+    partyNumber:'70',
+    ballotNumber:'70123',
+    municipality:'Arapongas - PR',
+    total:451,
+    category:'Suplente (451 votos)',
+    type:'suplente',
+    color:'#64748b',
+    optionText:'Arnaldo do Povo (Avante) - 451 votos (Suplente)'
+  };
 
-  // PREVIEW: números do arquivo enviado pelo usuário.
   var uploadedTotals={
     pref_cita:30557,
     pref_milani:27532,
@@ -13,6 +27,7 @@
     '55155':1720,
     '11234':1576,
     '44044':1212,
+    '70123':451,
     '40133':1102,
     '20120':1024,
     '11555':1010,
@@ -56,9 +71,86 @@
     return out;
   }
 
+  function migrateCandidateModel(){
+    if(typeof ELEICAO_2024_DATA==='undefined'||!ELEICAO_2024_DATA.candidates)return;
+
+    delete ELEICAO_2024_DATA.candidates[replacement.oldKey];
+    ELEICAO_2024_DATA.candidates[replacement.key]={
+      name:replacement.name,
+      fullName:replacement.fullName,
+      party:replacement.party,
+      partyNumber:replacement.partyNumber,
+      ballotNumber:replacement.ballotNumber,
+      municipality:replacement.municipality,
+      category:replacement.category,
+      type:replacement.type,
+      color:replacement.color,
+      tseOfficialTotal:replacement.total
+    };
+
+    var locais=Array.isArray(ELEICAO_2024_DATA.locais)?ELEICAO_2024_DATA.locais:[];
+    locais.forEach(function(loc){
+      if(loc&&loc.votes&&Object.prototype.hasOwnProperty.call(loc.votes,replacement.oldKey)){
+        delete loc.votes[replacement.oldKey];
+      }
+    });
+
+    try{
+      if(typeof state!=='undefined'&&state&&String(state.selectedCandidate||'')===replacement.oldKey){
+        state.selectedCandidate='ALL';
+      }
+    }catch(_){ }
+  }
+
+  function migrateFullData(){
+    var data=window.__vfTseFullDataV19;
+    if(!data)return;
+    if(data.totals){
+      delete data.totals[replacement.oldKey];
+      data.totals[replacement.key]=replacement.total;
+    }
+    if(data.votes&&Object.prototype.hasOwnProperty.call(data.votes,replacement.oldKey)){
+      delete data.votes[replacement.oldKey];
+    }
+  }
+
+  function migrateSelect(id){
+    var select=document.getElementById(id);
+    if(!select)return null;
+    var oldOpt=Array.from(select.options||[]).find(function(o){return String(o.value||'')===replacement.oldKey;});
+    var newOpt=Array.from(select.options||[]).find(function(o){return String(o.value||'')===replacement.key;});
+
+    if(oldOpt&&newOpt&&oldOpt!==newOpt){
+      oldOpt.remove();
+      oldOpt=null;
+    }
+    if(oldOpt){
+      oldOpt.value=replacement.key;
+      oldOpt.textContent=replacement.optionText;
+      newOpt=oldOpt;
+    }
+    if(newOpt){
+      newOpt.textContent=replacement.optionText;
+    }
+    return select;
+  }
+
+  function migrateRenderedPicker(){
+    document.querySelectorAll('.vf-mobile-candidate-option[data-value="'+replacement.oldKey+'"]').forEach(function(btn){
+      btn.remove();
+    });
+    document.querySelectorAll('.vf-mobile-candidate-option[data-value="'+replacement.key+'"]').forEach(function(btn){
+      var textEl=btn.querySelector('.vf-mobile-candidate-option-text');
+      if(textEl)textEl.textContent=replacement.optionText;
+    });
+  }
+
   function totals(){
     var base=(window.__vfTseFullDataV19&&window.__vfTseFullDataV19.totals)||{};
-    return Object.assign({},base,uploadedTotals);
+    var out=Object.assign({},base,uploadedTotals);
+    delete out[replacement.oldKey];
+    out[replacement.key]=replacement.total;
+    return out;
   }
 
   function syncModel(all){
@@ -73,13 +165,13 @@
   }
 
   function syncSelect(id,all){
-    var select=document.getElementById(id);
+    var select=migrateSelect(id);
     if(!select)return null;
     Array.from(select.options||[]).forEach(function(opt){
       var key=String(opt.value||'');
       if(!Object.prototype.hasOwnProperty.call(all,key))return;
       var c=(typeof ELEICAO_2024_DATA!=='undefined'&&ELEICAO_2024_DATA.candidates)?ELEICAO_2024_DATA.candidates[key]:null;
-      var next=replaceTotal(opt.textContent,all[key]);
+      var next=key===replacement.key?replacement.optionText:replaceTotal(opt.textContent,all[key]);
       if(c&&partyFix[key])next=next.replace(/\((?:REP|PP)\)/i,'('+c.party+')');
       if(opt.textContent!==next)opt.textContent=next;
     });
@@ -88,6 +180,7 @@
 
   function syncVisiblePicker(all,source){
     if(!source)return;
+    migrateRenderedPicker();
     document.querySelectorAll('.vf-mobile-candidate-option[data-value]').forEach(function(btn){
       var key=String(btn.getAttribute('data-value')||'');
       if(!Object.prototype.hasOwnProperty.call(all,key))return;
@@ -104,12 +197,15 @@
   function sync(){
     try{
       if(!window.__vfTseFullDataV19Ready||!window.__vfTseFullDataV19||typeof ELEICAO_2024_DATA==='undefined')return;
+      migrateFullData();
+      migrateCandidateModel();
       var all=totals();
       syncModel(all);
       var source=syncSelect('cand-select',all);
       syncSelect('vf-college-candidate-select',all);
       syncVisiblePicker(all,source);
       window.__vfUploadedResultsPreview={source:'arquivo-enviado',totals:uploadedTotals,aggregateOnly:true};
+      window.__vfCandidateReplacement={from:replacement.oldKey,to:replacement.key,name:replacement.name,total:replacement.total,status:'suplente'};
       window.__vfTseFullDataV19UiReady=true;
     }catch(e){console.error('TSE v19 UI sync failed',e);}
   }
