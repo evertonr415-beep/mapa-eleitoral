@@ -101,20 +101,24 @@
     var oldOpt=Array.from(select.options||[]).find(function(o){return String(o.value||'')===replacement.oldKey;});
     var newOpt=Array.from(select.options||[]).find(function(o){return String(o.value||'')===replacement.key;});
     if(oldOpt&&newOpt&&oldOpt!==newOpt){oldOpt.remove();oldOpt=null;}
-    if(oldOpt){oldOpt.value=replacement.key;oldOpt.textContent=replacement.optionText;newOpt=oldOpt;}
-    if(newOpt)newOpt.textContent=replacement.optionText;
+    if(oldOpt){
+      oldOpt.value=replacement.key;
+      if(oldOpt.textContent!==replacement.optionText)oldOpt.textContent=replacement.optionText;
+      newOpt=oldOpt;
+    }
+    if(newOpt&&newOpt.textContent!==replacement.optionText)newOpt.textContent=replacement.optionText;
     return select;
   }
 
   function migrateRenderedPicker(){
     document.querySelectorAll('.vf-mobile-candidate-option[data-value="'+replacement.oldKey+'"]').forEach(function(btn){
       btn.dataset.value=replacement.key;
-      var textEl=btn.querySelector('.vf-mobile-candidate-option-text');if(textEl)textEl.textContent=replacement.optionText;
-      var meta=btn.querySelector('.vf-mobile-candidate-option-meta');if(meta)meta.textContent='451 votos oficiais';
-      var status=btn.querySelector('.vf-mobile-candidate-status');if(status)status.textContent='Total';
+      var textEl=btn.querySelector('.vf-mobile-candidate-option-text');if(textEl&&textEl.textContent!==replacement.optionText)textEl.textContent=replacement.optionText;
+      var meta=btn.querySelector('.vf-mobile-candidate-option-meta');if(meta&&meta.textContent!=='451 votos oficiais')meta.textContent='451 votos oficiais';
+      var status=btn.querySelector('.vf-mobile-candidate-status');if(status&&status.textContent!=='Total')status.textContent='Total';
     });
     document.querySelectorAll('.vf-mobile-candidate-option[data-value="'+replacement.key+'"]').forEach(function(btn){
-      var textEl=btn.querySelector('.vf-mobile-candidate-option-text');if(textEl)textEl.textContent=replacement.optionText;
+      var textEl=btn.querySelector('.vf-mobile-candidate-option-text');if(textEl&&textEl.textContent!==replacement.optionText)textEl.textContent=replacement.optionText;
       var meta=btn.querySelector('.vf-mobile-candidate-option-meta');
       if(meta&&(/1\.210|João|Joao/i.test(meta.textContent)||!meta.textContent.trim()))meta.textContent='451 votos oficiais';
     });
@@ -182,10 +186,10 @@
     document.querySelectorAll('.vf-mobile-candidate-option[data-value="70000"],.vf-mobile-candidate-option[data-value="70123"]').forEach(function(row){
       row.dataset.value=replacement.key;
       var bg=row.querySelector('.vf-photo-v277-list');
-      if(bg)bg.style.setProperty('background-image','url("'+arnaldoPhoto+'")','important');
+      if(bg&&bg.style.backgroundImage!=='url("'+arnaldoPhoto+'")')bg.style.setProperty('background-image','url("'+arnaldoPhoto+'")','important');
       var img=row.querySelector('img');
       if(img){
-        img.style.setProperty('opacity','0','important');
+        if(img.style.opacity!=='0')img.style.setProperty('opacity','0','important');
         var p=img.parentElement;
         if(p){
           p.style.setProperty('background-image','url("'+arnaldoPhoto+'")','important');
@@ -195,7 +199,7 @@
       }
     });
     document.querySelectorAll('img[data-vf-key="70000"],img[data-vf-key="70123"]').forEach(function(img){
-      img.style.setProperty('opacity','0','important');
+      if(img.style.opacity!=='0')img.style.setProperty('opacity','0','important');
       var p=img.parentElement;
       if(p){
         p.style.setProperty('background-image','url("'+arnaldoPhoto+'")','important');
@@ -220,13 +224,13 @@
       t=t.replace(/1\.210 votos oficiais/g,'451 votos oficiais');
       t=t.replace(/1\.210 votos/g,'451 votos');
       t=t.replace(/\(Eleito\)/g,'(Suplente)');
-      n.nodeValue=t;
+      if(n.nodeValue!==t)n.nodeValue=t;
     });
     document.querySelectorAll('.vf-mobile-candidate-option').forEach(function(row){
       if(/Arnaldo do Povo|João Graça|Joao Graça/.test(row.textContent||'')){
         row.dataset.value=replacement.key;
-        var textEl=row.querySelector('.vf-mobile-candidate-option-text');if(textEl)textEl.textContent=replacement.optionText;
-        var meta=row.querySelector('.vf-mobile-candidate-option-meta');if(meta)meta.textContent='451 votos oficiais';
+        var textEl=row.querySelector('.vf-mobile-candidate-option-text');if(textEl&&textEl.textContent!==replacement.optionText)textEl.textContent=replacement.optionText;
+        var meta=row.querySelector('.vf-mobile-candidate-option-meta');if(meta&&meta.textContent!=='451 votos oficiais')meta.textContent='451 votos oficiais';
       }
     });
   }
