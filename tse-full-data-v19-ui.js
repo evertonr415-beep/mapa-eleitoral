@@ -5,8 +5,6 @@
   var partyFix={dep_fed_angelica:'PROS',dep_est_pacheco:'REPUBLICANOS'};
 
   // PREVIEW: números do arquivo enviado pelo usuário.
-  // Só substituímos candidatos que possuem correspondência segura no cadastro atual.
-  // Candidatos que não existem hoje no mapa permanecem inalterados até confirmação.
   var uploadedTotals={
     pref_cita:30557,
     pref_milani:27532,
@@ -43,7 +41,11 @@
     dep_est_curi:248
   };
 
-  function fmt(n){try{return Number(n).toLocaleString('pt-BR');}catch(_){return String(n);}}
+  function fmt(n){
+    try{return Number(n).toLocaleString('pt-BR');}
+    catch(_){return String(n);}
+  }
+
   function replaceTotal(text,total){
     text=String(text||'');
     var f=fmt(total);
@@ -54,50 +56,72 @@
     return out;
   }
 
-  function apply(){
-    try{
-      if(!window.__vfTseFullDataV19Ready||!window.__vfTseFullDataV19||typeof ELEICAO_2024_DATA==='undefined')return setTimeout(apply,70);
-
-      var totals=Object.assign({},window.__vfTseFullDataV19.totals||{},uploadedTotals);
-
-      Object.keys(totals).forEach(function(key){
-        var c=ELEICAO_2024_DATA.candidates&&ELEICAO_2024_DATA.candidates[key];
-        if(!c)return;
-        c.tseOfficialTotal=Number(totals[key]);
-        c.category=replaceTotal(c.category,c.tseOfficialTotal);
-        if(partyFix[key])c.party=partyFix[key];
-      });
-
-      // Mantém a porcentagem já exibida para prefeito, alterando apenas o total de votos.
-      // O arquivo enviado não contém distribuição por colégio para prefeito, portanto
-      // não inventamos nem rateamos votos locais nesta prévia.
-
-      var select=document.getElementById('cand-select');
-      if(!select)return setTimeout(apply,70);
-      Array.from(select.options||[]).forEach(function(opt){
-        var key=String(opt.value||'');
-        if(!Object.prototype.hasOwnProperty.call(totals,key))return;
-        var c=ELEICAO_2024_DATA.candidates&&ELEICAO_2024_DATA.candidates[key];
-        var text=replaceTotal(opt.textContent,totals[key]);
-        if(c&&partyFix[key]){
-          text=text.replace(/\((?:REP|PP)\)/i,'('+c.party+')');
-        }
-        opt.textContent=text;
-      });
-
-      var college=document.getElementById('vf-college-candidate-select');
-      if(college){
-        Array.from(college.options||[]).forEach(function(opt){
-          var key=String(opt.value||'');
-          if(Object.prototype.hasOwnProperty.call(totals,key))opt.textContent=replaceTotal(opt.textContent,totals[key]);
-        });
-      }
-
-      window.__vfUploadedResultsPreview={source:'arquivo-enviado',totals:uploadedTotals,aggregateOnly:true};
-      window.__vfTseFullDataV19UiReady=true;
-    }catch(e){console.error('TSE v19 UI sync failed',e);setTimeout(apply,120);}
+  function totals(){
+    var base=(window.__vfTseFullDataV19&&window.__vfTseFullDataV19.totals)||{};
+    return Object.assign({},base,uploadedTotals);
   }
 
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(apply,120)},{once:true});else setTimeout(apply,120);
-  setTimeout(apply,350);
+  function syncModel(all){
+    if(typeof ELEICAO_2024_DATA==='undefined'||!ELEICAO_2024_DATA.candidates)return;
+    Object.keys(all).forEach(function(key){
+      var c=ELEICAO_2024_DATA.candidates[key];
+      if(!c)return;
+      c.tseOfficialTotal=Number(all[key]);
+      c.category=replaceTotal(c.category,c.tseOfficialTotal);
+      if(partyFix[key])c.party=partyFix[key];
+    });
+  }
+
+  function syncSelect(id,all){
+    var select=document.getElementById(id);
+    if(!select)return null;
+    Array.from(select.options||[]).forEach(function(opt){
+      var key=String(opt.value||'');
+      if(!Object.prototype.hasOwnProperty.call(all,key))return;
+      var c=(typeof ELEICAO_2024_DATA!=='undefined'&&ELEICAO_2024_DATA.candidates)?ELEICAO_2024_DATA.candidates[key]:null;
+      var next=replaceTotal(opt.textContent,all[key]);
+      if(c&&partyFix[key])next=next.replace(/\((?:REP|PP)\)/i,'('+c.party+')');
+      if(opt.textContent!==next)opt.textContent=next;
+    });
+    return select;
+  }
+
+  function syncVisiblePicker(all,source){
+    if(!source)return;
+    document.querySelectorAll('.vf-mobile-candidate-option[data-value]').forEach(function(btn){
+      var key=String(btn.getAttribute('data-value')||'');
+      if(!Object.prototype.hasOwnProperty.call(all,key))return;
+      var src=Array.from(source.options||[]).find(function(o){return String(o.value||'')===key;});
+      var textEl=btn.querySelector('.vf-mobile-candidate-option-text');
+      if(src&&textEl&&textEl.textContent!==src.textContent)textEl.textContent=src.textContent;
+    });
+
+    var selected=source.options&&source.selectedIndex>=0?source.options[source.selectedIndex]:null;
+    var trigger=document.querySelector('.vf-mobile-candidate-trigger-text');
+    if(selected&&trigger&&trigger.textContent!==selected.textContent)trigger.textContent=selected.textContent;
+  }
+
+  function sync(){
+    try{
+      if(!window.__vfTseFullDataV19Ready||!window.__vfTseFullDataV19||typeof ELEICAO_2024_DATA==='undefined')return;
+      var all=totals();
+      syncModel(all);
+      var source=syncSelect('cand-select',all);
+      syncSelect('vf-college-candidate-select',all);
+      syncVisiblePicker(all,source);
+      window.__vfUploadedResultsPreview={source:'arquivo-enviado',totals:uploadedTotals,aggregateOnly:true};
+      window.__vfTseFullDataV19UiReady=true;
+    }catch(e){console.error('TSE v19 UI sync failed',e);}
+  }
+
+  function start(){
+    sync();
+    setTimeout(sync,120);
+    setTimeout(sync,350);
+    setTimeout(sync,900);
+    setInterval(sync,700);
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
+  else start();
 })();
