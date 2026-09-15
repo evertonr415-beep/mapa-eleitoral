@@ -1,8 +1,8 @@
 (function(){
   'use strict';
-  if(window.__vfPoliticianPhotosV277)return;window.__vfPoliticianPhotosV277=true;
+  if(window.__vfPoliticianPhotosV278)return;window.__vfPoliticianPhotosV278=true;
 
-  var ASSET_COMMIT='9afcb8d688dd161a7cc87ccde8578215f26bfc5a';
+  var ASSET_COMMIT='37bf4945981788caf0cb9ec5922e6a50d3c984fc';
   var CDN='https://cdn.jsdelivr.net/gh/evertonr415-beep/mapa-eleitoral@'+ASSET_COMMIT;
   var RAW='https://raw.githubusercontent.com/evertonr415-beep/mapa-eleitoral/'+ASSET_COMMIT;
   var paths={
@@ -18,34 +18,19 @@
   function cdnUrl(key){var p=pathFor(key);return p?CDN+p:'';}
   function rawUrl(key){var p=pathFor(key);return p?RAW+p:'';}
   function bgFor(key){var a=cdnUrl(key),b=rawUrl(key);return a?'url("'+a.replace(/"/g,'%22')+'"),url("'+b.replace(/"/g,'%22')+'")':'';}
-  function norm(s){
-    try{return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,' ').trim();}
-    catch(_){return String(s||'').toUpperCase().replace(/[^A-Z0-9]+/g,' ').trim();}
-  }
+  function norm(s){try{return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,' ').trim();}catch(_){return String(s||'').toUpperCase().replace(/[^A-Z0-9]+/g,' ').trim();}}
 
-  function clearAvatar(el){
-    if(!el)return;
-    el.classList.remove('vf-photo-v277');
-    el.style.removeProperty('background-image');
-    var img=el.querySelector('img.vf-photo-v277-img');if(img)img.remove();
-  }
-
+  function clearAvatar(el){if(!el)return;el.classList.remove('vf-photo-v277');el.style.removeProperty('background-image');var img=el.querySelector('img.vf-photo-v277-img');if(img)img.remove();}
   function paintAvatar(el,key){
     if(!el)return;
     if(!key||key==='ALL'||!pathFor(key)){clearAvatar(el);return;}
     el.classList.remove('vf-brand-flag-avatar');
     var brand=el.querySelector('img[data-vf-brand-flag="1"]');if(brand)brand.remove();
-    el.style.removeProperty('background-image');
     el.classList.add('vf-photo-v277');
     var img=el.querySelector('img.vf-photo-v277-img');
-    if(!img){
-      el.textContent='';
-      img=document.createElement('img');img.className='vf-photo-v277-img';img.alt='';img.decoding='async';el.appendChild(img);
-    }
+    if(!img){el.textContent='';img=document.createElement('img');img.className='vf-photo-v277-img';img.alt='';img.decoding='async';img.loading='eager';el.appendChild(img);}
     var wanted=cdnUrl(key);
-    if(img.dataset.vfKey!==key||img.getAttribute('src')!==wanted){
-      img.dataset.vfKey=key;img.onerror=function(){var fallback=rawUrl(key);if(this.src!==fallback)this.src=fallback;};img.src=wanted;
-    }
+    if(img.dataset.vfKey!==key||img.getAttribute('src')!==wanted){img.dataset.vfKey=key;img.onerror=function(){var fallback=rawUrl(key);if(this.src!==fallback)this.src=fallback;};img.src=wanted;}
   }
 
   function syncMain(){paintAvatar(document.querySelector('.vf-college-candidate-avatar'),getMainKey());}
@@ -56,8 +41,8 @@
       var key=String(btn.dataset.value||''),old=btn.querySelector('.vf-photo-v277-list');
       if(!pathFor(key)||key==='ALL'){if(old)old.remove();btn.classList.remove('vf-photo-v277-option');return;}
       if(!old){old=document.createElement('span');old.className='vf-photo-v277-list';old.setAttribute('aria-hidden','true');btn.appendChild(old);}
-      var nextBg=bgFor(key);
-      if(old.style.backgroundImage!==nextBg)old.style.backgroundImage=nextBg;
+      var wanted=bgFor(key);
+      if(old.dataset.vfPhotoKey!==key){old.dataset.vfPhotoKey=key;old.style.backgroundImage=wanted;}
       btn.classList.add('vf-photo-v277-option');
     });
   }
@@ -67,41 +52,38 @@
     var strong=btn.querySelector('strong'),label=norm(strong&&strong.textContent||'');
     if(!label||label==='VISAO GERAL TERRITORIAL')return 'ALL';
     var found='';
-    try{
-      Object.keys(paths).some(function(key){
-        var c=(typeof ELEICAO_2024_DATA!=='undefined'&&ELEICAO_2024_DATA.candidates)?ELEICAO_2024_DATA.candidates[key]:null;
-        if(c&&norm(c.name)===label){found=key;return true;}
-        return false;
-      });
-    }catch(_){ }
+    try{Object.keys(paths).some(function(key){var c=(typeof ELEICAO_2024_DATA!=='undefined'&&ELEICAO_2024_DATA.candidates)?ELEICAO_2024_DATA.candidates[key]:null;if(c&&norm(c.name)===label){found=key;return true;}return false;});}catch(_){ }
     return found;
   }
 
   function decorateDistrictPicker(){
     document.querySelectorAll('.vf24-option').forEach(function(btn){
       var key=keyForDistrictOption(btn),old=btn.querySelector('.vf-photo-v278-district');
-      if(!key||key==='ALL'||!pathFor(key)){
-        if(old)old.remove();
-        btn.classList.remove('vf-photo-v278-district-option');
-        return;
-      }
-      if(!old){
-        old=document.createElement('span');
-        old.className='vf-photo-v278-district';
-        old.setAttribute('aria-hidden','true');
-        btn.insertBefore(old,btn.firstChild);
-      }
-      var nextBg=bgFor(key);
-      if(old.style.backgroundImage!==nextBg)old.style.backgroundImage=nextBg;
+      if(!key||key==='ALL'||!pathFor(key)){if(old)old.remove();btn.classList.remove('vf-photo-v278-district-option');return;}
+      if(!old){old=document.createElement('span');old.className='vf-photo-v278-district';old.setAttribute('aria-hidden','true');btn.insertBefore(old,btn.firstChild);}
+      if(old.dataset.vfPhotoKey!==key){old.dataset.vfPhotoKey=key;old.style.backgroundImage=bgFor(key);}
       btn.classList.add('vf-photo-v278-district-option');
     });
   }
 
-  function sync(){syncMain();syncDistrict();decoratePicker();decorateDistrictPicker();}
-  window.__vfPoliticianPhotosV277Map={};Object.keys(paths).forEach(function(k){window.__vfPoliticianPhotosV277Map[k]=cdnUrl(k);});
+  var scheduled=false;
+  function sync(){scheduled=false;syncMain();syncDistrict();decoratePicker();decorateDistrictPicker();}
+  function schedule(){if(scheduled)return;scheduled=true;requestAnimationFrame(sync);}
 
-  document.addEventListener('click',function(ev){var t=ev.target&&ev.target.closest?ev.target.closest('.vf-mobile-candidate-trigger,.vf-mobile-candidate-option,.vf24-candidate-trigger,.vf24-option'):null;if(t){setTimeout(sync,0);setTimeout(sync,80);setTimeout(sync,220);}},true);
-  document.addEventListener('change',function(ev){var id=ev.target&&ev.target.id||'';if(id==='cand-select'||id==='vf-college-candidate-select'){setTimeout(sync,0);setTimeout(sync,80);setTimeout(sync,220);}},true);
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(sync,0);},{once:true});else setTimeout(sync,0);
-  setTimeout(sync,300);setTimeout(sync,900);setInterval(sync,500);
+  window.__vfPoliticianPhotosV277Map={};Object.keys(paths).forEach(function(k){window.__vfPoliticianPhotosV277Map[k]=cdnUrl(k);});
+  window.__vfPoliticianPhotoCoverage={expected:Object.keys(paths).length,keys:Object.keys(paths)};
+
+  document.addEventListener('click',function(ev){var t=ev.target&&ev.target.closest?ev.target.closest('.vf-mobile-candidate-trigger,.vf-mobile-candidate-option,.vf24-candidate-trigger,.vf24-option'):null;if(t){schedule();setTimeout(schedule,80);setTimeout(schedule,220);}},true);
+  document.addEventListener('change',function(ev){var id=ev.target&&ev.target.id||'';if(id==='cand-select'||id==='vf-college-candidate-select'){schedule();setTimeout(schedule,80);setTimeout(schedule,220);}},true);
+
+  function bootObserver(){
+    if(!document.body)return;
+    var mo=new MutationObserver(function(records){
+      var relevant=records.some(function(r){return Array.prototype.some.call(r.addedNodes||[],function(n){return n&&n.nodeType===1&&((n.matches&&n.matches('.vf-mobile-candidate-option,.vf24-option,.vf-college-candidate-avatar,.vf24-candidate-avatar'))||(n.querySelector&&n.querySelector('.vf-mobile-candidate-option,.vf24-option,.vf-college-candidate-avatar,.vf24-candidate-avatar')));});});
+      if(relevant)schedule();
+    });
+    mo.observe(document.body,{childList:true,subtree:true});
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){bootObserver();schedule();setTimeout(schedule,250);setTimeout(schedule,900);},{once:true});else{bootObserver();schedule();setTimeout(schedule,250);setTimeout(schedule,900);}
 })();
