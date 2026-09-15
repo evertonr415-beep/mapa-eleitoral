@@ -1,9 +1,23 @@
 (function(){
   'use strict';
-  if(window.__vfDesktopStabilityV326)return;
-  window.__vfDesktopStabilityV326=true;
+  if(window.__vfDesktopStabilityV327)return;
+  window.__vfDesktopStabilityV327=true;
 
   var switchTimer=0,lastAdminState=null,revealed=false;
+
+  function loadOnce(src,id){
+    if(id&&document.getElementById(id))return;
+    var s=document.createElement('script');
+    if(id)s.id=id;
+    s.src=src;
+    s.async=false;
+    document.head.appendChild(s);
+  }
+
+  function ensureCandidateSupport(){
+    loadOnce(location.origin+'/candidate-picker-scroll-guard-v33.js?v=33.2','vf-desktop-candidate-scroll-guard-v33');
+    loadOnce(location.origin+'/mobile-politician-photos-v27-7.js?v=27.8','vf-desktop-politician-photos-v27-8');
+  }
 
   function desktop(){
     return !!(document.body&&(document.body.classList.contains('vf-desktop-mobile-mirror')||window.innerWidth>900));
@@ -26,12 +40,12 @@
 
   function wrapSwitch(){
     var fn=window.switchView;
-    if(typeof fn!=='function'||fn.__vfDesktopStability326)return;
+    if(typeof fn!=='function'||fn.__vfDesktopStability327)return;
     var wrapped=function(){
       beginSwitch();
       try{return fn.apply(this,arguments);}finally{finishSwitch(80);}
     };
-    wrapped.__vfDesktopStability326=true;
+    wrapped.__vfDesktopStability327=true;
     wrapped.__vfDesktopStabilityOriginal=fn;
     window.switchView=wrapped;
   }
@@ -52,6 +66,7 @@
   }
 
   function tick(){
+    ensureCandidateSupport();
     wrapSwitch();
     reveal(false);
     if(!document.body)return;
@@ -61,6 +76,7 @@
   }
 
   function boot(){
+    ensureCandidateSupport();
     var mo=new MutationObserver(tick);
     mo.observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
     tick();
