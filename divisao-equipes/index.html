@@ -1,32 +1,10 @@
 <!doctype html>
-<html lang="pt-BR">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>Divisão de Equipes</title>
-  <style>html,body{margin:0;min-height:100%;background:#061b4d;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.loading{min-height:100vh;display:grid;place-items:center;color:#fff;text-align:center;padding:24px}.loading b{display:block;font-size:18px;margin-bottom:8px}.loading span{font-size:14px;opacity:.8}</style>
-</head>
-<body>
-<div class="loading" id="loading"><div><b>Carregando Divisão de Equipes…</b><span>Aguarde um instante.</span></div></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
-<script>
-(async function(){
-  try{
-    if(!window.pako) throw new Error('Falha ao carregar compatibilidade');
-    const source='https://raw.githubusercontent.com/evertonr415-beep/mapa-eleitoral/098e0821c7d025cf1aaadefd7b2787fae69ee1b5/divisao-equipes/index.html';
-    const r=await fetch(source,{cache:'no-store'});
-    if(!r.ok) throw new Error('Falha ao carregar página');
-    const t=await r.text();
-    const m=t.match(/const b='([^']+)'/);
-    if(!m) throw new Error('Conteúdo não encontrado');
-    const bytes=Uint8Array.from(atob(m[1]),c=>c.charCodeAt(0));
-    const html=window.pako.ungzip(bytes,{to:'string'});
-    document.open();document.write(html);document.close();
-  }catch(e){
-    console.error(e);
-    document.getElementById('loading').innerHTML='<div><b>Não foi possível carregar.</b><span>Atualize a página e tente novamente.</span></div>';
-  }
-})();
-</script>
-</body>
-</html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Divisão de Equipes</title><style>html,body{margin:0;min-height:100%;background:#061b4d;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.loading{min-height:100vh;display:grid;place-items:center;color:#fff;text-align:center;padding:24px}.loading b{display:block;font-size:18px;margin-bottom:8px}.loading span{font-size:14px;opacity:.8}</style></head><body><div class="loading" id="loading"><div><b>Carregando Divisão de Equipes…</b><span>Aguarde um instante.</span></div></div><script>
+(async()=>{try{
+const source='https://raw.githubusercontent.com/evertonr415-beep/mapa-eleitoral/098e0821c7d025cf1aaadefd7b2787fae69ee1b5/divisao-equipes/index.html';
+const r=await fetch(source,{cache:'no-store'});if(!r.ok)throw Error('fonte '+r.status);const t=await r.text();const m=t.match(/const b='([^']+)'/);if(!m)throw Error('payload');
+const bin=atob(m[1]);const bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+if(!('DecompressionStream' in window))throw Error('decompress');
+const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));const html=await new Response(stream).text();if(!html.includes('Qual é a sua região?'))throw Error('conteudo');document.open();document.write(html);document.close();
+}catch(e){console.error('V19:',e);document.getElementById('loading').innerHTML='<div><b>Não foi possível carregar.</b><span>Falha: '+String(e.message||e)+'</span></div>'}})();
+</script></body></html>
