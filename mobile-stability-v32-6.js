@@ -1,7 +1,7 @@
 (function(){
   'use strict';
-  if(window.__vfMobileStabilityV329)return;
-  window.__vfMobileStabilityV329=true;
+  if(window.__vfMobileStabilityV330)return;
+  window.__vfMobileStabilityV330=true;
 
   var boundHome=null;
 
@@ -17,7 +17,7 @@
   function ensureCandidateSupport(){
     loadOnce(location.origin+'/candidate-picker-scroll-guard-v33.js?v=33.2','vf-candidate-scroll-guard-v33');
     loadOnce(location.origin+'/mobile-politician-photos-v27-7.js?v=27.8','vf-politician-photos-v27-8');
-    loadOnce(location.origin+'/leadership-electors-v34.js?v=36','vf-leadership-electors-v36');
+    loadOnce(location.origin+'/leadership-electors-v34.js?v=37','vf-leadership-electors-v37');
   }
 
   function isMobile(){
