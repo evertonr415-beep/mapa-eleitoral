@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#080d17">
+  <title>VotoForte • Painel da Liderança</title>
+  <link rel="icon" type="image/png" href="./assets/favicon.png">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQ3yS20rYp+YdY4MZ4m2c7c9M0x4Q5M=" crossorigin="">
+  <link rel="stylesheet" href="./lideranca-eleitores.css?v=34">
+</head>
+<body>
+  <main class="vf-leader-app">
+    <header class="vf-leader-top">
+      <div class="vf-leader-brand">
+        <img src="./assets/bandeira_arapongas.png" alt="Arapongas">
+        <div><strong>VotoForte Arapongas</strong><span>Painel da Liderança • Eleitores</span></div>
+      </div>
+      <div class="vf-leader-spacer"></div>
+      <div id="vfUser" class="vf-leader-user">Carregando...</div>
+      <button id="vfExit" class="vf-leader-exit" type="button">Sair</button>
+    </header>
+
+    <section class="vf-leader-main">
+      <section class="vf-leader-hero">
+        <div class="vf-leader-hero-copy">
+          <div class="vf-leader-kicker">Rede da liderança</div>
+          <h1 id="vfLeaderName">Carregando liderança...</h1>
+          <p id="vfLeaderMeta">Eleitores georreferenciados no mapa.</p>
+        </div>
+        <div class="vf-leader-select">
+          <label for="vfLeadership">Visualizar liderança</label>
+          <select id="vfLeadership"><option>Carregando...</option></select>
+        </div>
+      </section>
+
+      <div class="vf-preview-note" hidden></div>
+
+      <section class="vf-leader-stats">
+        <article class="vf-leader-stat"><span>Eleitores cadastrados</span><strong id="vfTotal">0</strong></article>
+        <article class="vf-leader-stat"><span>Alfinetes no mapa</span><strong id="vfMapped">0</strong></article>
+        <article class="vf-leader-stat"><span>Lideranças acessíveis</span><strong id="vfLeaderCount">0</strong></article>
+      </section>
+
+      <section class="vf-leader-work">
+        <article class="vf-map-card">
+          <header class="vf-card-head">
+            <div><strong>Mapa de eleitores</strong><span>Toque ou clique no mapa para definir o ponto do novo eleitor.</span></div>
+            <button id="vfLocate" class="vf-card-action" type="button">◎ Minha localização</button>
+          </header>
+          <div id="vfMap" class="vf-map"></div>
+        </article>
+
+        <aside class="vf-side">
+          <form id="vfForm" class="vf-form-card">
+            <h2>＋ Cadastrar eleitor</h2>
+            <p>O cadastro ficará automaticamente vinculado à liderança selecionada e ao vereador responsável.</p>
+            <div class="vf-grid">
+              <div class="vf-field full"><label for="vfName">Nome *</label><input id="vfName" maxlength="120" required placeholder="Nome do eleitor"></div>
+              <div class="vf-field"><label for="vfWhatsapp">WhatsApp</label><input id="vfWhatsapp" inputmode="tel" maxlength="24" placeholder="(43) 99999-9999"></div>
+              <div class="vf-field"><label for="vfBairro">Bairro</label><input id="vfBairro" maxlength="100" placeholder="Bairro"></div>
+              <div class="vf-field full"><label for="vfLogradouro">Rua / logradouro</label><input id="vfLogradouro" maxlength="180" placeholder="Rua, avenida..."></div>
+              <div class="vf-field"><label for="vfNumero">Número</label><input id="vfNumero" maxlength="24" placeholder="Nº"></div>
+              <div class="vf-field"><label for="vfCep">CEP</label><input id="vfCep" inputmode="numeric" maxlength="10" placeholder="00000-000"></div>
+              <div class="vf-field full"><label>Alfinete</label><div class="vf-coords"><input id="vfLat" readonly aria-label="Latitude"><input id="vfLng" readonly aria-label="Longitude"></div></div>
+              <div class="vf-field full"><label for="vfObs">Observações</label><textarea id="vfObs" maxlength="500" placeholder="Observação interna opcional"></textarea></div>
+            </div>
+            <button id="vfSave" class="vf-save" type="submit">Cadastrar eleitor</button>
+            <div id="vfStatus" class="vf-status" aria-live="polite"></div>
+          </form>
+
+          <section class="vf-list-card">
+            <h2>Eleitores da liderança</h2>
+            <div class="vf-list-tools"><input id="vfSearch" type="search" placeholder="Buscar eleitor, bairro ou rua"></div>
+            <div id="vfList" class="vf-voter-list"><div class="vf-empty">Carregando...</div></div>
+          </section>
+        </aside>
+      </section>
+    </section>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script type="module" src="./lideranca-eleitores.js?v=34"></script>
+</body>
+</html>
