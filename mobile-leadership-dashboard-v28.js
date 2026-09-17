@@ -12,7 +12,7 @@
     }
   }catch(_){ }
 
-  var view=null,shell=null,searchInput=null,categorySelect=null,lastSignature='';
+  var view=null,shell=null,searchInput=null,categorySelect=null,lastSignature='',activeSubtab='leaders';
   function mobile(){return document.body.classList.contains('vf-mobile')||matchMedia('(max-width:900px)').matches;}
   function esc(s){return String(s==null?'':s).replace(/[&<>\"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]||c;});}
   function fmt(n){try{return Number(n||0).toLocaleString('pt-BR');}catch(_){return String(n||0);}}
@@ -20,6 +20,15 @@
   function list(){try{return Array.isArray(state.liderancas)?state.liderancas:[];}catch(_){return [];}}
   function categoryColor(cat){var s=String(cat||'').toLowerCase();if(s.indexOf('relig')>-1)return '#a78bfa';if(s.indexOf('esport')>-1)return '#22c55e';if(s.indexOf('comér')>-1||s.indexOf('comer')>-1)return '#f59e0b';if(s.indexOf('saúde')>-1||s.indexOf('saude')>-1)return '#06b6d4';if(s.indexOf('educ')>-1)return '#60a5fa';if(s.indexOf('familiar')>-1)return '#f472b6';return '#3b82f6';}
   function geolocated(l){return Number.isFinite(Number(l&&l.lat))&&Number.isFinite(Number(l&&l.lng))&&Math.abs(Number(l.lat))>0&&Math.abs(Number(l.lng))>0;}
+  function switchSubtab(which){
+    activeSubtab=which==='admin'?'admin':'leaders';
+    if(!shell)return;
+    shell.querySelectorAll('[data-vf28-subtab]').forEach(function(b){b.classList.toggle('active',b.dataset.vf28Subtab===activeSubtab);});
+    var leadersPane=shell.querySelector('.vf28-pane-leaders');
+    var adminPane=shell.querySelector('.vf28-pane-admin');
+    if(leadersPane)leadersPane.hidden=activeSubtab!=='leaders';
+    if(adminPane)adminPane.hidden=activeSubtab!=='admin';
+  }
   function ensure(){
     if(!mobile())return false;
     view=document.getElementById('view-table-liderancas');if(!view)return false;
@@ -28,21 +37,35 @@
     shell=document.createElement('section');shell.className='vf28-leadership-shell';
     shell.innerHTML='\
       <header class="vf28-leadership-head"><h2>Lideranças</h2><p>Contatos, metas e geolocalização</p></header>\
-      <div class="vf28-leadership-stats">\
-        <article class="vf28-leadership-stat"><span>Lideranças</span><strong data-vf28-total>0</strong></article>\
-        <article class="vf28-leadership-stat"><span>Meta de votos</span><strong data-vf28-meta>+0</strong></article>\
-        <article class="vf28-leadership-stat"><span>Localizadas</span><strong data-vf28-geo>0</strong></article>\
-      </div>\
-      <div class="vf28-leadership-tools">\
-        <label class="vf28-leadership-search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg><input type="search" placeholder="Buscar por nome, bairro ou vereador" autocomplete="off"></label>\
-        <select class="vf28-category-select"></select>\
-        <div class="vf28-leadership-actions"><button type="button" class="vf28-new">+ Nova Liderança</button><button type="button" class="vf28-export">📥 Exportar</button></div>\
-      </div>\
-      <div class="vf28-leadership-list"></div>';
+      <nav class="vf28-subtabs" aria-label="Navegação de Lideranças">\
+        <button type="button" class="active" data-vf28-subtab="leaders">Lideranças</button>\
+        <button type="button" data-vf28-subtab="admin">ADM de Lideranças</button>\
+      </nav>\
+      <section class="vf28-pane vf28-pane-leaders">\
+        <div class="vf28-leadership-stats">\
+          <article class="vf28-leadership-stat"><span>Lideranças</span><strong data-vf28-total>0</strong></article>\
+          <article class="vf28-leadership-stat"><span>Meta de votos</span><strong data-vf28-meta>+0</strong></article>\
+          <article class="vf28-leadership-stat"><span>Localizadas</span><strong data-vf28-geo>0</strong></article>\
+        </div>\
+        <div class="vf28-leadership-tools">\
+          <label class="vf28-leadership-search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg><input type="search" placeholder="Buscar por nome, bairro ou vereador" autocomplete="off"></label>\
+          <select class="vf28-category-select"></select>\
+          <div class="vf28-leadership-actions"><button type="button" class="vf28-new">+ Nova Liderança</button><button type="button" class="vf28-export">📥 Exportar</button></div>\
+        </div>\
+        <div class="vf28-leadership-list"></div>\
+      </section>\
+      <section class="vf28-pane vf28-pane-admin" hidden>\
+        <div class="vf28-admin-placeholder">\
+          <div class="vf28-admin-icon">⚙️</div>\
+          <strong>ADM de Lideranças</strong>\
+          <span>Área criada. As funções serão adicionadas passo a passo.</span>\
+        </div>\
+      </section>';
     view.appendChild(shell);
     searchInput=shell.querySelector('input');categorySelect=shell.querySelector('select');
     var original=document.getElementById('sel-category-filter');
     if(original){categorySelect.innerHTML=original.innerHTML;categorySelect.value=original.value||'ALL';}
+    shell.querySelectorAll('[data-vf28-subtab]').forEach(function(b){b.addEventListener('click',function(){switchSubtab(b.dataset.vf28Subtab);});});
     searchInput.addEventListener('input',function(){render(true);});
     categorySelect.addEventListener('change',function(){
       var o=document.getElementById('sel-category-filter');if(o)o.value=categorySelect.value;
@@ -51,6 +74,7 @@
     });
     shell.querySelector('.vf28-new').addEventListener('click',function(){try{openModalNewLideranca();}catch(_){ }});
     shell.querySelector('.vf28-export').addEventListener('click',function(){try{exportLiderancasCSV();}catch(_){ }});
+    switchSubtab(activeSubtab);
     render(true);return true;
   }
   function visibleList(){
