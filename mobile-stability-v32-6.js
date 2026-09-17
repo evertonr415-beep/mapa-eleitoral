@@ -17,6 +17,7 @@
   function ensureCandidateSupport(){
     loadOnce(location.origin+'/candidate-picker-scroll-guard-v33.js?v=33.2','vf-candidate-scroll-guard-v33');
     loadOnce(location.origin+'/mobile-politician-photos-v27-7.js?v=27.8','vf-politician-photos-v27-8');
+    loadOnce(location.origin+'/leadership-electors-v34.js?v=34','vf-leadership-electors-v34');
   }
 
   function isMobile(){
