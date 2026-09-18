@@ -70,15 +70,23 @@
       var ox=0,oy=0;
       if(total>1){
         var angle=(Math.PI*2*idx/total)-Math.PI/2;
-        var radiusPx=18;
+        var radiusPx=isLeader?22:19;
         ox=Math.round(Math.cos(angle)*radiusPx);
         oy=Math.round(Math.sin(angle)*radiusPx);
       }
-      var html='<div class="vf40-map-pin '+(isLeader?'leader':'elector')+'" style="--vf40-team:'+color+';--vf40-ox:'+ox+'px;--vf40-oy:'+oy+'px"><span>'+(isLeader?'◆':'●')+'</span></div>';
-      var icon=L.divIcon({className:'vf40-map-pin-wrap',html:html,iconSize:[34,34],iconAnchor:[17,30],popupAnchor:[0,-28]});
-      var marker=L.marker([lat,lng],{icon:icon,zIndexOffset:isLeader?900:800});
+      var pinClass=isLeader?'vf41-pin-leader':'vf41-pin-elector';
+      var pinSymbol=isLeader?'L':'';
+      var html='<div class="vf41-pin '+pinClass+'" style="--vf41-team:'+color+';--vf41-ox:'+ox+'px;--vf41-oy:'+oy+'px"><span class="vf41-pin-core">'+pinSymbol+'</span></div>';
+      var icon=L.divIcon({
+        className:'vf41-pin-wrap '+(isLeader?'vf41-leader-wrap':'vf41-elector-wrap'),
+        html:html,
+        iconSize:isLeader?[38,38]:[30,30],
+        iconAnchor:isLeader?[19,19]:[15,15],
+        popupAnchor:isLeader?[0,-23]:[0,-19]
+      });
+      var marker=L.marker([lat,lng],{icon:icon,zIndexOffset:isLeader?1000:850});
       var role=isLeader?'Líder':'Eleitor';
-      marker.bindTooltip('<b>'+esc(m.nome)+'</b><br><small>'+role+' • '+esc(m.bairro||'')+'</small>',{direction:'top',offset:[0,-28]});
+      marker.bindTooltip('<b>'+(isLeader?'◆ ':'● ')+esc(m.nome)+'</b><br><small>'+role+' • '+esc(m.bairro||'')+'</small>',{direction:'top',offset:isLeader?[0,-22]:[0,-18]});
       marker.bindPopup('<div class="popup-lideranca-card"><div class="popup-title">'+esc(m.nome)+'</div><div class="popup-detail-row"><strong>'+role+'</strong> • Equipe '+esc(db&&db.nome_lideranca||'Liderança')+'</div><div class="popup-detail-row">🏡 '+esc(m.bairro||'')+(m.logradouro?' • '+esc(m.logradouro):'')+(m.numero?', '+esc(m.numero):'')+'</div>'+(m.whatsapp?'<div class="popup-detail-row">📞 '+esc(m.whatsapp)+'</div>':'')+'</div>');
       layer.addLayer(marker);
     });
