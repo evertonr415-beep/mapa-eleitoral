@@ -5,7 +5,9 @@
   var mod;
   try{ mod=await import('./auth-gate.js'); }catch(e){ console.warn('Membros liderança: auth indisponível',e); return; }
   var sb=await mod.client();
-  var members=[], dbLeaders=[], memberLayer=null, photoLayer=null, photoZoomBound=false, activeForm=null, pendingMapPick=null;
+  var authUser=await mod.currentUser();
+  var authProfile=authUser&&authUser.vfProfile?authUser.vfProfile:null;
+  var members=[], dbLeaders=[], memberLayer=null, photoLayer=null, photoZoomBound=false, accessHookBound=false, activeForm=null, pendingMapPick=null;
   var palette=['#2563eb','#16a34a','#f97316','#a855f7','#e11d48','#0891b2','#ca8a04','#4f46e5','#db2777','#0f766e'];
 
   function esc(v){return String(v==null?'':v).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
@@ -29,15 +31,112 @@
     return members.filter(function(m){return String(m.lideranca_id)===String(db.id)&&m.tipo===type;}).length;
   }
 
+  function hasGlobalScope(){
+    return !!(authProfile&&authProfile.ativo!==false&&authProfile.acesso_global===true&&(authProfile.role==='master'||authProfile.role==='adm'));
+  }
+  function bridgeAuthenticatedUser(){
+    if(!authProfile)return;
+    try{
+      if(typeof state==='undefined'||!state)return;
+      var legacy=state.currentUser||null;
+      if(!legacy&&window.SupabaseService&&typeof window.SupabaseService.getAllUsersRaw==='function'){
+        var users=window.SupabaseService.getAllUsersRaw()||[];
+        legacy=users.find(function(u){
+          return norm(u&&u.email)===norm(authProfile.email)||norm(u&&u.nome)===norm(authProfile.nome);
+        })||null;
+      }
+      state.currentUser=Object.assign({},legacy||{},{
+        id:(legacy&&legacy.id)||authProfile.id,
+        authId:authProfile.id,
+        nome:authProfile.nome||(legacy&&legacy.nome)||authProfile.email||'Usuário',
+        email:authProfile.email||(legacy&&legacy.email)||'',
+        role:authProfile.role||'vereador',
+        acesso_global:hasGlobalScope()
+      });
+    }catch(e){console.warn('Escopo de acesso:',e);}
+  }
+  function dbLeaderToFrontend(db){
+    return {
+      id:db.id,
+      vereadorId:db.vereador_id,
+      vereadorNome:db.vereador_nome||'',
+      partido:db.partido||'',
+      nome:db.nome_lideranca||'Liderança',
+      whatsapp:db.whatsapp||'',
+      telefone:db.telefone||'',
+      cep:db.cep||'',
+      bairro:db.bairro||'',
+      logradouro:db.logradouro||'',
+      numero:db.numero||'',
+      lat:Number(db.lat),
+      lng:Number(db.lng),
+      colegioNome:db.colegio_nome||'',
+      metaVotos:Number(db.meta_votos)||0,
+      categoria:db.categoria||'',
+      statusContato:db.status_contato||'',
+      observacoes:db.observacoes||''
+    };
+  }
+  function applyAccessScope(){
+    try{
+      bridgeAuthenticatedUser();
+      if(typeof state==='undefined'||!state||!Array.isArray(state.liderancas))return;
+      var global=hasGlobalScope();
+      var allowedIds=new Set(dbLeaders.map(function(x){return String(x.id);}));
+      var allowedNames=new Set(dbLeaders.map(function(x){return norm(x.nome_lideranca);}));
+      var pName=norm(authProfile&&authProfile.nome);
+      var authId=String(authProfile&&authProfile.id||'');
+      var legacyId=String(state.currentUser&&state.currentUser.id||'');
+      var current=state.liderancas.slice();
+
+      if(!global){
+        current=current.filter(function(l){
+          var ownerId=String(l&&l.vereadorId||'');
+          var ownerName=norm(l&&l.vereadorNome);
+          return allowedIds.has(String(l&&l.id||''))||
+                 allowedNames.has(norm(l&&l.nome))||
+                 (!!authId&&ownerId===authId)||
+                 (!!legacyId&&ownerId===legacyId)||
+                 (!!pName&&ownerName===pName);
+        });
+      }
+
+      dbLeaders.forEach(function(db){
+        var exists=current.some(function(l){
+          return String(l&&l.id||'')===String(db.id)||
+            (norm(l&&l.nome)===norm(db.nome_lideranca)&&norm(l&&l.bairro)===norm(db.bairro));
+        });
+        if(!exists)current.push(dbLeaderToFrontend(db));
+      });
+
+      state.liderancas=current;
+      if(typeof renderMapLiderancas==='function')renderMapLiderancas();
+      if(typeof renderTableLiderancas==='function')renderTableLiderancas();
+      if(typeof populateCandidateSelect==='function')populateCandidateSelect();
+      document.body&&document.body.setAttribute('data-vf-access-scope',global?'global':'own');
+    }catch(e){console.warn('Aplicação de escopo:',e);}
+  }
+  function bindAccessScopeHook(){
+    if(accessHookBound)return;accessHookBound=true;
+    bridgeAuthenticatedUser();
+    try{
+      var prev=window.onCloudDataUpdated;
+      window.onCloudDataUpdated=function(){
+        if(typeof prev==='function')prev.apply(this,arguments);
+        setTimeout(applyAccessScope,0);
+      };
+    }catch(_){}
+  }
+
   async function loadData(){
     try{
       var r=await Promise.all([
-        sb.from('liderancas').select('id,vereador_id,nome_lideranca,bairro,lat,lng,foto_url'),
+        sb.from('liderancas').select('id,vereador_id,vereador_nome,partido,nome_lideranca,whatsapp,telefone,cep,bairro,logradouro,numero,lat,lng,colegio_nome,meta_votos,categoria,status_contato,observacoes,foto_url'),
         sb.from('lideranca_membros').select('id,lideranca_id,vereador_id,tipo,nome,whatsapp,cep,logradouro,numero,bairro,lat,lng,observacoes,criado_em').order('criado_em',{ascending:true})
       ]);
       if(r[0].error)throw r[0].error;if(r[1].error)throw r[1].error;
       dbLeaders=r[0].data||[];members=r[1].data||[];
-      syncUI(); renderPins(); renderLeadershipPhotos();
+      applyAccessScope(); syncUI(); renderPins(); renderLeadershipPhotos();
     }catch(e){console.warn('Membros liderança:',e);}
   }
 
@@ -405,6 +504,8 @@
   };
 
   function boot(){
+    bindAccessScopeHook();
+    bridgeAuthenticatedUser();
     loadData();
     var tries=0,t=setInterval(function(){tries++;if(ensureLayer()){renderPins();renderLeadershipPhotos();clearInterval(t);}else if(tries>40)clearInterval(t);},250);
   }
