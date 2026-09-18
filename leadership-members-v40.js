@@ -11,7 +11,7 @@
   function esc(v){return String(v==null?'':v).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function norm(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();}
   function validCoord(lat,lng){lat=Number(lat);lng=Number(lng);return Number.isFinite(lat)&&Number.isFinite(lng)&&lat>=-23.50&&lat<=-23.34&&lng>=-51.55&&lng<=-51.32;}
-  function leadershipColor(l){var key=String((l&&l.id)||'')+'|'+String((l&&l.nome)||'');var h=0;for(var i=0;i<key.length;i++)h=((h<<5)-h)+key.charCodeAt(i)|0;return palette[Math.abs(h)%palette.length];}
+  function leadershipColor(l){var name=norm((l&&((l.nome_lideranca||l.nome)))||'');var vereador=String((l&&((l.vereador_id||l.vereadorId)))||'');var key=vereador+'|'+name;var h=0;for(var i=0;i<key.length;i++)h=((h<<5)-h)+key.charCodeAt(i)|0;return palette[Math.abs(h)%palette.length];}
   function frontendLeaders(){try{return Array.isArray(state.liderancas)?state.liderancas:[];}catch(_){return [];}}
   function dbLeaderForFrontend(l){
     if(!l)return null;
@@ -62,7 +62,7 @@
     members.forEach(function(m){
       if(!validCoord(m.lat,m.lng))return;
       var fl=frontendForDbLeaderId(m.lideranca_id), db=dbLeaders.find(function(x){return String(x.id)===String(m.lideranca_id);});
-      var color=leadershipColor(fl||{id:m.lideranca_id,nome:db&&db.nome_lideranca});
+      var color=leadershipColor(fl||db||{vereador_id:m.vereador_id,nome_lideranca:db&&db.nome_lideranca});
       var isLeader=m.tipo==='lider';
       var lat=Number(m.lat),lng=Number(m.lng);
       var ckey=lat.toFixed(6)+','+lng.toFixed(6), total=coordCounts[ckey]||1, idx=coordIndex[ckey]||0;
