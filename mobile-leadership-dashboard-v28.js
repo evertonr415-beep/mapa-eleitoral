@@ -20,7 +20,7 @@
   function list(){try{return Array.isArray(state.liderancas)?state.liderancas:[];}catch(_){return [];}}
   function categoryColor(cat){var s=String(cat||'').toLowerCase();if(s.indexOf('relig')>-1)return '#a78bfa';if(s.indexOf('esport')>-1)return '#22c55e';if(s.indexOf('comér')>-1||s.indexOf('comer')>-1)return '#f59e0b';if(s.indexOf('saúde')>-1||s.indexOf('saude')>-1)return '#06b6d4';if(s.indexOf('educ')>-1)return '#60a5fa';if(s.indexOf('familiar')>-1)return '#f472b6';return '#3b82f6';}
   var teamPalette=['#2563eb','#16a34a','#f97316','#a855f7','#e11d48','#0891b2','#ca8a04','#4f46e5','#db2777','#0f766e'];
-  function leadershipColor(l){var key=String((l&&l.id)||'')+'|'+String((l&&l.nome)||'');var h=0;for(var i=0;i<key.length;i++)h=((h<<5)-h)+key.charCodeAt(i)|0;return teamPalette[Math.abs(h)%teamPalette.length];}
+  function leadershipColor(l){var name=String((l&&l.nome)||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();var key=String((l&&l.vereadorId)||'')+'|'+name;var h=0;for(var i=0;i<key.length;i++)h=((h<<5)-h)+key.charCodeAt(i)|0;return teamPalette[Math.abs(h)%teamPalette.length];}
   function geolocated(l){return Number.isFinite(Number(l&&l.lat))&&Number.isFinite(Number(l&&l.lng))&&Math.abs(Number(l.lat))>0&&Math.abs(Number(l.lng))>0;}
   function switchSubtab(which){
     activeSubtab=which==='admin'?'admin':'leaders';
