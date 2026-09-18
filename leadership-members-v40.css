@@ -52,3 +52,17 @@
   border-bottom:4px solid #fff;
   border-radius:2px;
 }
+
+.vf42-photo-control{--vf42-team:#2563eb;display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 11px;border:1px solid color-mix(in srgb,var(--vf42-team) 24%,rgba(148,163,184,.12));border-radius:13px;background:color-mix(in srgb,var(--vf42-team) 7%,#0e1d31)}
+.vf42-photo-preview{width:48px;height:48px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:color-mix(in srgb,var(--vf42-team) 18%,#132238);border:3px solid var(--vf42-team);box-shadow:0 0 0 2px #fff2}
+.vf42-photo-preview img{width:100%;height:100%;object-fit:cover;display:block}.vf42-photo-preview span{color:#fff;font-size:13px;font-weight:950}
+.vf42-photo-copy{min-width:0}.vf42-photo-copy small{display:block;color:#7890aa;font-size:6.5px;font-weight:850;text-transform:uppercase;letter-spacing:.05em}.vf42-photo-copy strong{display:block;margin-top:2px;color:#fff;font-size:10px}.vf42-photo-copy span{display:block;margin-top:3px;color:#8397af;font-size:7.5px;line-height:1.35}
+.vf42-photo-btn{min-height:36px;padding:0 11px;border:1px solid color-mix(in srgb,var(--vf42-team) 36%,rgba(148,163,184,.14));border-radius:9px;background:color-mix(in srgb,var(--vf42-team) 12%,#15263d);color:#fff;font-size:8px;font-weight:900;white-space:nowrap}
+.vf42-photo-btn:disabled{opacity:.6}
+.vf42-photo-pin-wrap{background:transparent!important;border:0!important;overflow:visible!important}
+.vf42-photo-pin{--vf42-team:#2563eb;position:relative;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:#0e1d31;border:4px solid #fff;box-shadow:0 0 0 4px var(--vf42-team),0 7px 18px rgba(0,0,0,.34);overflow:visible}
+.vf42-photo-pin img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
+.vf42-photo-pin span{width:100%;height:100%;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,color-mix(in srgb,var(--vf42-team) 78%,white),var(--vf42-team));color:#fff;font-size:14px;font-weight:950}
+.vf42-photo-pin i{position:absolute;z-index:-1;left:50%;bottom:-8px;width:14px;height:14px;transform:translateX(-50%) rotate(45deg);background:var(--vf42-team);border-right:4px solid #fff;border-bottom:4px solid #fff;border-radius:2px}
+.vf42-photo-pin:hover{filter:brightness(1.04)}
+@media(max-width:520px){.vf42-photo-control{grid-template-columns:46px minmax(0,1fr)}.vf42-photo-preview{width:42px;height:42px}.vf42-photo-btn{grid-column:1/-1;width:100%}}
