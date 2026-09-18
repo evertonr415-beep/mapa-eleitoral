@@ -5,7 +5,7 @@
   var mod;
   try{ mod=await import('./auth-gate.js'); }catch(e){ console.warn('Membros liderança: auth indisponível',e); return; }
   var sb=await mod.client();
-  var members=[], dbLeaders=[], memberLayer=null, photoLayer=null, activeForm=null, pendingMapPick=null;
+  var members=[], dbLeaders=[], memberLayer=null, photoLayer=null, photoZoomBound=false, activeForm=null, pendingMapPick=null;
   var palette=['#2563eb','#16a34a','#f97316','#a855f7','#e11d48','#0891b2','#ca8a04','#4f46e5','#db2777','#0f766e'];
 
   function esc(v){return String(v==null?'':v).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
@@ -48,10 +48,26 @@
       return memberLayer;
     }catch(_){return null;}
   }
+  function syncLeadershipPhotoZoom(){
+    try{
+      if(!state.map)return;
+      var container=state.map.getContainer&&state.map.getContainer();
+      if(!container)return;
+      var zoom=Number(state.map.getZoom&&state.map.getZoom())||0;
+      container.classList.toggle('vf43-show-leadership-photo',zoom>=14);
+      container.classList.toggle('vf43-compact-leadership-photo',zoom<14);
+    }catch(_){}
+  }
   function ensurePhotoLayer(){
     try{
       if(!state.map||typeof L==='undefined')return null;
       if(!photoLayer){photoLayer=L.layerGroup().addTo(state.map);state.vfLeadershipPhotoLayer=photoLayer;}
+      if(!photoZoomBound){
+        photoZoomBound=true;
+        state.map.on('zoomend',syncLeadershipPhotoZoom);
+        state.map.on('viewreset',syncLeadershipPhotoZoom);
+      }
+      syncLeadershipPhotoZoom();
       return photoLayer;
     }catch(_){return null;}
   }
@@ -61,10 +77,13 @@
   }
   function photoMarkerHtml(db,color){
     var name=db&&db.nome_lideranca||'Liderança';
-    if(db&&db.foto_url){
-      return '<div class="vf42-photo-pin" style="--vf42-team:'+color+'"><img src="'+esc(db.foto_url)+'" alt="'+esc(name)+'"><i></i></div>';
-    }
-    return '<div class="vf42-photo-pin fallback" style="--vf42-team:'+color+'"><span>'+esc(initials(name))+'</span><i></i></div>';
+    var face=db&&db.foto_url
+      ? '<img src="'+esc(db.foto_url)+'" alt="'+esc(name)+'">'
+      : '<span class="vf43-initials">'+esc(initials(name))+'</span>';
+    return '<div class="vf43-leadership-pin" style="--vf43-team:'+color+'">'+
+      '<div class="vf43-leadership-compact"><span>★</span></div>'+
+      '<div class="vf43-leadership-avatar">'+face+'<b>★</b></div>'+
+      '</div>';
   }
   function renderLeadershipPhotos(){
     var layer=ensurePhotoLayer();if(!layer)return;
@@ -74,14 +93,14 @@
       var fl=frontendForDbLeaderId(db.id);
       var color=leadershipColor(fl||db);
       var icon=L.divIcon({
-        className:'vf42-photo-pin-wrap',
+        className:'vf42-photo-pin-wrap vf43-photo-pin-wrap',
         html:photoMarkerHtml(db,color),
-        iconSize:[36,40],
-        iconAnchor:[18,36],
-        popupAnchor:[0,-34]
+        iconSize:[44,44],
+        iconAnchor:[22,22],
+        popupAnchor:[0,-24]
       });
       var marker=L.marker([Number(db.lat),Number(db.lng)],{icon:icon,zIndexOffset:1500});
-      marker.bindTooltip('<b>'+esc(db.nome_lideranca||'Liderança')+'</b><br><small>Liderança</small>',{direction:'top',offset:[0,-32]});
+      marker.bindTooltip('<b>'+esc(db.nome_lideranca||'Liderança')+'</b><br><small>Liderança</small>',{direction:'top',offset:[0,-24]});
       var f=fl;
       if(f&&typeof buildLiderancaPopup==='function')marker.bindPopup(buildLiderancaPopup(f));
       else marker.bindPopup('<div class="popup-lideranca-card"><div class="popup-title">'+esc(db.nome_lideranca||'Liderança')+'</div><div class="popup-detail-row"><strong>Liderança</strong></div></div>');
