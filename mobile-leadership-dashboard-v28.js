@@ -159,6 +159,7 @@
       if(text)text.textContent='Os eleitores vinculados a esta liderança aparecerão aqui.';
       if(icon)icon.textContent='●';
     }
+    if(window.VFLeadershipMembers&&typeof window.VFLeadershipMembers.syncUI==='function')setTimeout(function(){window.VFLeadershipMembers.syncUI();},0);
   }
   function previewNextStep(type,leadership){
     var detail=shell&&shell.querySelector('.vf28-adm-detail');
