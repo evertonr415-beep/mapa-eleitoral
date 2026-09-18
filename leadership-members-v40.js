@@ -96,16 +96,16 @@
       var icon=L.divIcon({
         className:'vf42-photo-pin-wrap vf43-photo-pin-wrap',
         html:photoMarkerHtml(db,color),
-        iconSize:[44,44],
-        iconAnchor:[22,22],
-        popupAnchor:[0,-24]
+        iconSize:[54,54],
+        iconAnchor:[27,27],
+        popupAnchor:[0,-30]
       });
       var marker=L.marker([Number(db.lat),Number(db.lng)],{icon:icon,zIndexOffset:1500});
       marker.on('mouseover',function(){var el=marker.getElement&&marker.getElement();var p=el&&el.querySelector('.vf43-leadership-pin');if(p)p.classList.add('vf44-active');});
       marker.on('mouseout',function(){var el=marker.getElement&&marker.getElement();var p=el&&el.querySelector('.vf43-leadership-pin');if(p&&!marker.isPopupOpen())p.classList.remove('vf44-active');});
       marker.on('popupopen',function(){var el=marker.getElement&&marker.getElement();var p=el&&el.querySelector('.vf43-leadership-pin');if(p)p.classList.add('vf44-active');});
       marker.on('popupclose',function(){var el=marker.getElement&&marker.getElement();var p=el&&el.querySelector('.vf43-leadership-pin');if(p)p.classList.remove('vf44-active');});
-      marker.bindTooltip('<b>'+esc(db.nome_lideranca||'Liderança')+'</b><br><small>Liderança</small>',{direction:'top',offset:[0,-24],opacity:0});
+      marker.bindTooltip('<b>'+esc(db.nome_lideranca||'Liderança')+'</b><br><small>Liderança</small>',{direction:'top',offset:[0,-28],opacity:0});
       var f=fl;
       if(f&&typeof buildLiderancaPopup==='function')marker.bindPopup(buildLiderancaPopup(f));
       else marker.bindPopup('<div class="popup-lideranca-card"><div class="popup-title">'+esc(db.nome_lideranca||'Liderança')+'</div><div class="popup-detail-row"><strong>Liderança</strong></div></div>');
