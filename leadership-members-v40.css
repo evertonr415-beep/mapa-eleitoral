@@ -4,8 +4,8 @@
 .vf41-pin-leadership{width:42px;height:42px;border:4px solid #fff;border-radius:50%;background:linear-gradient(145deg,color-mix(in srgb,var(--vf41-team) 78%,white),var(--vf41-team));box-shadow:0 0 0 5px color-mix(in srgb,var(--vf41-team) 22%,transparent),inset 0 2px 5px rgba(255,255,255,.28)}
 .vf41-pin-leadership .vf41-pin-core{font-size:19px;text-shadow:0 1px 2px rgba(0,0,0,.28)}
 .vf41-pin-leadership .vf41-pin-tail{position:absolute;z-index:0;left:50%;bottom:-8px;width:15px;height:15px;transform:translateX(-50%) rotate(45deg);border-right:4px solid #fff;border-bottom:4px solid #fff;background:var(--vf41-team);border-radius:2px}
-.vf41-pin-leader{width:34px;height:34px;border:3px solid #fff;border-radius:9px;background:linear-gradient(145deg,color-mix(in srgb,var(--vf41-team) 82%,white),var(--vf41-team));transform:rotate(45deg);box-shadow:0 0 0 3px color-mix(in srgb,var(--vf41-team) 18%,transparent),inset 0 2px 4px rgba(255,255,255,.22)}
-.vf41-pin-leader .vf41-pin-core{width:100%;height:100%;transform:rotate(-45deg);font-size:13px;letter-spacing:-.02em}
+.vf41-pin-leader{width:28px;height:28px;border:2px solid #fff;border-radius:8px;background:linear-gradient(145deg,color-mix(in srgb,var(--vf41-team) 82%,white),var(--vf41-team));transform:rotate(45deg);box-shadow:0 0 0 3px color-mix(in srgb,var(--vf41-team) 18%,transparent),inset 0 2px 4px rgba(255,255,255,.22)}
+.vf41-pin-leader .vf41-pin-core{width:100%;height:100%;transform:rotate(-45deg);font-size:11px;letter-spacing:-.02em}
 .vf41-pin-elector{width:24px;height:24px;border:3px solid #fff;border-radius:50%;background:var(--vf41-team);box-shadow:0 0 0 2px color-mix(in srgb,var(--vf41-team) 15%,transparent),inset 0 2px 3px rgba(255,255,255,.2)}
 .vf41-pin-elector .vf41-pin-core{width:7px;height:7px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.22)}
 .vf41-pin:hover{filter:drop-shadow(0 7px 10px rgba(0,0,0,.38)) brightness(1.05)}
