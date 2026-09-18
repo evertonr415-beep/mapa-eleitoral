@@ -25,7 +25,7 @@ const ELEICAO_2024_DATA = {
         "22777": { name: "Diretora Marilsa Staub", party: "PL", category: "Vereador Eleito (858 votos)", type: "vereador", color: "#eab308" },
         "44190": { name: "Pardini", party: "União Brasil", category: "Vereador Eleito (853 votos)", type: "vereador", color: "#10b981" },
         "55120": { name: "Cecéu", party: "PSD", category: "Vereador Eleito (849 votos)", type: "vereador", color: "#3b82f6" },
-        "12500": { name: "Meiry Farias Proteção Animal", party: "PDT", category: "Vereador Eleito (832 votos)", type: "vereador", color: "#ec4899" },
+        "12500": { name: "Meiry Farias Proteção Animal", party: "PDT", category: "Vereador Eleito (832 votos)", type: "vereador", color: "#16a34a" },
         
         // SUPLENTES 2024 (OFICIAL TSE)
         "11500": { name: "Marcos Antonio de Souza", party: "PP", category: "Suplente (782 votos)", type: "suplente", color: "#64748b" },
@@ -653,6 +653,24 @@ function buildColegioPopup(loc, candId, v, pct) {
     `;
 }
 
+function vfNormTeamName(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();}
+function vfFixedVereadorColor(name){
+    const v=vfNormTeamName(name);
+    if(v==='marcelo junio')return '#f97316';
+    if(v==='meiry farias'||v.indexOf('meiry farias ')===0)return '#16a34a';
+    return null;
+}
+function vfTeamColor(lid){
+    const fixed=vfFixedVereadorColor(lid&&lid.vereadorNome);
+    if(fixed)return fixed;
+    const palette=['#2563eb','#16a34a','#f97316','#a855f7','#e11d48','#0891b2','#ca8a04','#4f46e5','#db2777','#0f766e'];
+    const teamName=vfNormTeamName(lid&&lid.nome);
+    const key=String((lid&&lid.vereadorId)||'')+'|'+teamName;
+    let h=0;
+    for(let i=0;i<key.length;i++)h=((h<<5)-h)+key.charCodeAt(i)|0;
+    return palette[Math.abs(h)%palette.length];
+}
+
 // 7. ALFINETES DAS LIDERANÇAS NO MAPA
 function renderMapLiderancas() {
     if (!state.liderancasLayerGroup) return;
@@ -666,13 +684,8 @@ function renderMapLiderancas() {
     }
 
     list.forEach(lid => {
-        // Cor fixa da equipe: a mesma usada por Líderes e Eleitores vinculados.
-        const vfTeamPalette = ['#2563eb','#16a34a','#f97316','#a855f7','#e11d48','#0891b2','#ca8a04','#4f46e5','#db2777','#0f766e'];
-        const vfTeamName = String(lid.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
-        const vfTeamKey = String(lid.vereadorId || '') + '|' + vfTeamName;
-        let vfTeamHash = 0;
-        for (let i = 0; i < vfTeamKey.length; i++) vfTeamHash = ((vfTeamHash << 5) - vfTeamHash) + vfTeamKey.charCodeAt(i) | 0;
-        const pinBg = vfTeamPalette[Math.abs(vfTeamHash) % vfTeamPalette.length];
+        // A cor manual do vereador tem prioridade e se propaga para toda a equipe.
+        const pinBg = vfTeamColor(lid);
 
         const customIcon = L.divIcon({
             className: 'vf41-pin-wrap vf41-leadership-wrap',
@@ -706,7 +719,7 @@ function buildLiderancaPopup(lid) {
             <div class="popup-header">
                 <div>
                     <div class="popup-title">📍 ${lid.nome}</div>
-                    <div style="font-size:0.72rem; color:var(--primary); font-weight:700;">Vereador: ${lid.vereadorNome} (${lid.partido})</div>
+                    <div style="font-size:0.72rem; color:${vfTeamColor(lid)}; font-weight:700;">Vereador: ${lid.vereadorNome} (${lid.partido})</div>
                 </div>
                 <span class="popup-category-badge">${lid.categoria}</span>
             </div>
@@ -783,7 +796,7 @@ function renderSidebar() {
                 <div class="card-name">📍 ${lid.nome}</div>
                 <span class="popup-category-badge">${lid.categoria}</span>
             </div>
-            <div class="card-vereador" onclick="focusLiderancaInMap('${lid.id}')">${lid.vereadorNome} &bull; ${lid.partido}</div>
+            <div class="card-vereador" style="color:${vfTeamColor(lid)}" onclick="focusLiderancaInMap('${lid.id}')">${lid.vereadorNome} &bull; ${lid.partido}</div>
             <div class="card-meta" onclick="focusLiderancaInMap('${lid.id}')">🏡 ${lid.bairro} &bull; 🏫 ${lid.colegioNome ? lid.colegioNome.split(' ').slice(0, 3).join(' ') : 'Sem Colégio'}</div>
             <div class="card-bottom">
                 <span style="font-size:0.75rem; color:var(--accent-emerald); font-weight:700;">+${lid.metaVotos} votos</span>
@@ -923,7 +936,7 @@ function renderTableLiderancas() {
         tr.innerHTML = `
             <td><strong>${idx + 1}</strong></td>
             <td><strong>📍 ${lid.nome}</strong></td>
-            <td>${lid.vereadorNome} (${lid.partido})</td>
+            <td style="color:${vfTeamColor(lid)};font-weight:700;">${lid.vereadorNome} (${lid.partido})</td>
             <td>${lid.bairro}</td>
             <td>
                 <button class="btn-secondary" style="font-size:0.7rem; padding:2px 6px; background:rgba(37,211,102,0.15); border-color:rgba(37,211,102,0.4); color:#4ade80;" onclick="openWhatsAppSenderModal('${lid.id}')">

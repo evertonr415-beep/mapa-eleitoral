@@ -13,7 +13,8 @@
   function esc(v){return String(v==null?'':v).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function norm(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();}
   function validCoord(lat,lng){lat=Number(lat);lng=Number(lng);return Number.isFinite(lat)&&Number.isFinite(lng)&&lat>=-23.50&&lat<=-23.34&&lng>=-51.55&&lng<=-51.32;}
-  function leadershipColor(l){var name=norm((l&&((l.nome_lideranca||l.nome)))||'');var vereador=String((l&&((l.vereador_id||l.vereadorId)))||'');var key=vereador+'|'+name;var h=0;for(var i=0;i<key.length;i++)h=((h<<5)-h)+key.charCodeAt(i)|0;return palette[Math.abs(h)%palette.length];}
+  function fixedVereadorColor(l){var v=norm((l&&((l.vereador_nome||l.vereadorNome)))||'');if(v==='marcelo junio')return '#f97316';if(v==='meiry farias'||v.indexOf('meiry farias ')===0)return '#16a34a';return null;}
+  function leadershipColor(l){var fixed=fixedVereadorColor(l);if(fixed)return fixed;var name=norm((l&&((l.nome_lideranca||l.nome)))||'');var vereador=String((l&&((l.vereador_id||l.vereadorId)))||'');var key=vereador+'|'+name;var h=0;for(var i=0;i<key.length;i++)h=((h<<5)-h)+key.charCodeAt(i)|0;return palette[Math.abs(h)%palette.length];}
   function frontendLeaders(){try{return Array.isArray(state.liderancas)?state.liderancas:[];}catch(_){return [];}}
   function dbLeaderForFrontend(l){
     if(!l)return null;
@@ -189,33 +190,54 @@
     var layer=ensurePhotoLayer();if(!layer)return;
     layer.clearLayers();
     dbLeaders.forEach(function(db){
-      if(!db||!db.foto_url||!validCoord(db.lat,db.lng))return;
+      if(!db||!validCoord(db.lat,db.lng))return;
       var fl=frontendForDbLeaderId(db.id);
-      var color=leadershipColor(fl||db);
-      var icon=L.divIcon({
-        className:'vf42-photo-pin-wrap vf43-photo-pin-wrap',
-        html:photoMarkerHtml(db,color),
-        iconSize:[54,54],
-        iconAnchor:[27,27],
-        popupAnchor:[0,-30]
-      });
+      var source=fl||db;
+      var fixed=fixedVereadorColor(source);
+      if(!db.foto_url&&!fixed)return;
+      var color=leadershipColor(source);
+      var icon;
+      if(db.foto_url){
+        icon=L.divIcon({
+          className:'vf42-photo-pin-wrap vf43-photo-pin-wrap',
+          html:photoMarkerHtml(db,color),
+          iconSize:[54,54],
+          iconAnchor:[27,27],
+          popupAnchor:[0,-30]
+        });
+      }else{
+        icon=L.divIcon({
+          className:'vf41-pin-wrap vf41-leadership-wrap',
+          html:'<div class="vf41-pin vf41-pin-leadership" style="--vf41-team:'+color+';" title="'+esc(db.nome_lideranca||'Liderança')+'"><span class="vf41-pin-core">★</span><i class="vf41-pin-tail"></i></div>',
+          iconSize:[46,54],
+          iconAnchor:[23,50],
+          popupAnchor:[0,-46]
+        });
+      }
       var marker=L.marker([Number(db.lat),Number(db.lng)],{icon:icon,zIndexOffset:1500});
-      marker.on('mouseover',function(){var el=marker.getElement&&marker.getElement();var p=el&&el.querySelector('.vf43-leadership-pin');if(p)p.classList.add('vf44-active');});
-      marker.on('mouseout',function(){var el=marker.getElement&&marker.getElement();var p=el&&el.querySelector('.vf43-leadership-pin');if(p&&!marker.isPopupOpen())p.classList.remove('vf44-active');});
-      marker.on('popupopen',function(){var el=marker.getElement&&marker.getElement();var p=el&&el.querySelector('.vf43-leadership-pin');if(p)p.classList.add('vf44-active');});
-      marker.on('popupclose',function(){var el=marker.getElement&&marker.getElement();var p=el&&el.querySelector('.vf43-leadership-pin');if(p)p.classList.remove('vf44-active');});
-      marker.bindTooltip('<b>'+esc(db.nome_lideranca||'Liderança')+'</b><br><small>Liderança</small>',{direction:'top',offset:[0,-28],opacity:0});
-      var f=fl;
-      if(f&&typeof buildLiderancaPopup==='function')marker.bindPopup(buildLiderancaPopup(f));
+      if(db.foto_url){
+        marker.on('mouseover',function(){var el=marker.getElement&&marker.getElement();var p=el&&el.querySelector('.vf43-leadership-pin');if(p)p.classList.add('vf44-active');});
+        marker.on('mouseout',function(){var el=marker.getElement&&marker.getElement();var p=el&&el.querySelector('.vf43-leadership-pin');if(p&&!marker.isPopupOpen())p.classList.remove('vf44-active');});
+        marker.on('popupopen',function(){var el=marker.getElement&&marker.getElement();var p=el&&el.querySelector('.vf43-leadership-pin');if(p)p.classList.add('vf44-active');});
+        marker.on('popupclose',function(){var el=marker.getElement&&marker.getElement();var p=el&&el.querySelector('.vf43-leadership-pin');if(p)p.classList.remove('vf44-active');});
+        marker.bindTooltip('<b>'+esc(db.nome_lideranca||'Liderança')+'</b><br><small>Liderança</small>',{direction:'top',offset:[0,-28],opacity:0});
+      }else{
+        marker.bindTooltip('<b>★ '+esc(db.nome_lideranca||'Liderança')+'</b><br><small>Liderança</small>',{direction:'top',offset:[0,-46]});
+      }
+      var front=fl;
+      if(front&&typeof buildLiderancaPopup==='function')marker.bindPopup(buildLiderancaPopup(front));
       else marker.bindPopup('<div class="popup-lideranca-card"><div class="popup-title">'+esc(db.nome_lideranca||'Liderança')+'</div><div class="popup-detail-row"><strong>Liderança</strong></div></div>');
       layer.addLayer(marker);
     });
     setTimeout(function(){
       document.querySelectorAll('.pin-lideranca-marker').forEach(function(el){
         var title=norm(el.getAttribute('title')||'');
-        var hasPhoto=dbLeaders.some(function(db){return !!db.foto_url&&title.indexOf(norm(db.nome_lideranca||''))>-1;});
-        el.style.opacity=hasPhoto?'0':'1';
-        el.style.pointerEvents=hasPhoto?'none':'';
+        var replaced=dbLeaders.some(function(db){
+          var source=frontendForDbLeaderId(db.id)||db;
+          return (!!db.foto_url||!!fixedVereadorColor(source))&&title.indexOf(norm(db.nome_lideranca||''))>-1;
+        });
+        el.style.opacity=replaced?'0':'1';
+        el.style.pointerEvents=replaced?'none':'';
       });
     },0);
   }
