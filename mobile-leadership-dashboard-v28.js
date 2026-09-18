@@ -12,7 +12,7 @@
     }
   }catch(_){ }
 
-  var view=null,shell=null,searchInput=null,categorySelect=null,lastSignature='',activeSubtab='leaders';
+  var view=null,shell=null,searchInput=null,categorySelect=null,lastSignature='',activeSubtab='leaders',selectedAdminLeadershipId=null,activeAdminMemberTab='leaders';
   function mobile(){return document.body.classList.contains('vf-mobile')||matchMedia('(max-width:900px)').matches;}
   function esc(s){return String(s==null?'':s).replace(/[&<>\"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]||c;});}
   function fmt(n){try{return Number(n||0).toLocaleString('pt-BR');}catch(_){return String(n||0);}}
@@ -30,7 +30,7 @@
     var adminPane=shell.querySelector('.vf28-pane-admin');
     if(leadersPane)leadersPane.hidden=activeSubtab!=='leaders';
     if(adminPane)adminPane.hidden=activeSubtab!=='admin';
-    if(activeSubtab==='admin')renderAdmin();
+    if(activeSubtab==='admin'){renderAdmin();var selected=adminLeadershipById(selectedAdminLeadershipId);if(selected)openAdminLeadership(selected);}
   }
   function ensure(){
     if(!mobile())return false;
@@ -58,15 +58,18 @@
         <div class="vf28-leadership-list"></div>\
       </section>\
       <section class="vf28-pane vf28-pane-admin" hidden>\
-        <div class="vf28-admin-head">\
-          <div><strong>Organização das equipes</strong><span>Selecione uma liderança para gerenciar sua rede de líderes e eleitores.</span></div>\
+        <div class="vf28-adm-overview">\
+          <div class="vf28-admin-head">\
+            <div><strong>Organização das equipes</strong><span>Selecione uma liderança para gerenciar sua rede de líderes e eleitores.</span></div>\
+          </div>\
+          <div class="vf28-admin-stats">\
+            <article><small>Lideranças</small><b data-vf28-adm-leaders>0</b></article>\
+            <article><small>Líderes</small><b data-vf28-adm-coords>0</b></article>\
+            <article><small>Eleitores</small><b data-vf28-adm-electors>0</b></article>\
+          </div>\
+          <div class="vf28-admin-list"></div>\
         </div>\
-        <div class="vf28-admin-stats">\
-          <article><small>Lideranças</small><b data-vf28-adm-leaders>0</b></article>\
-          <article><small>Líderes</small><b data-vf28-adm-coords>0</b></article>\
-          <article><small>Eleitores</small><b data-vf28-adm-electors>0</b></article>\
-        </div>\
-        <div class="vf28-admin-list"></div>\
+        <div class="vf28-adm-detail" hidden></div>\
       </section>';
     view.appendChild(shell);
     searchInput=shell.querySelector('input');categorySelect=shell.querySelector('select');
@@ -117,11 +120,88 @@
       '</div>'+
       '<button type="button" class="vf28-adm-manage">Gerenciar <span>›</span></button>';
       card.querySelector('.vf28-adm-manage').addEventListener('click',function(){
-        card.classList.add('vf28-adm-preview-selected');
-        setTimeout(function(){card.classList.remove('vf28-adm-preview-selected');},500);
+        selectedAdminLeadershipId=String(l.id||'');
+        activeAdminMemberTab='leaders';
+        openAdminLeadership(l);
       });
       listBox.appendChild(card);
     });
+  }
+  function adminLeadershipById(id){
+    return list().find(function(l){return String(l&&l.id||'')===String(id||'');})||null;
+  }
+  function showAdminOverview(){
+    selectedAdminLeadershipId=null;
+    var overview=shell&&shell.querySelector('.vf28-adm-overview');
+    var detail=shell&&shell.querySelector('.vf28-adm-detail');
+    if(overview)overview.hidden=false;
+    if(detail){detail.hidden=true;detail.innerHTML='';}
+    renderAdmin();
+  }
+  function setAdminMemberTab(which){
+    activeAdminMemberTab=which==='electors'?'electors':'leaders';
+    var detail=shell&&shell.querySelector('.vf28-adm-detail');
+    if(!detail)return;
+    detail.querySelectorAll('[data-vf28-member-tab]').forEach(function(btn){
+      btn.classList.toggle('active',btn.dataset.vf28MemberTab===activeAdminMemberTab);
+    });
+    var title=detail.querySelector('[data-vf28-member-empty-title]');
+    var text=detail.querySelector('[data-vf28-member-empty-text]');
+    var icon=detail.querySelector('[data-vf28-member-empty-icon]');
+    if(activeAdminMemberTab==='leaders'){
+      if(title)title.textContent='Nenhum líder cadastrado';
+      if(text)text.textContent='Os líderes vinculados a esta liderança aparecerão aqui.';
+      if(icon)icon.textContent='◆';
+    }else{
+      if(title)title.textContent='Nenhum eleitor cadastrado';
+      if(text)text.textContent='Os eleitores vinculados a esta liderança aparecerão aqui.';
+      if(icon)icon.textContent='●';
+    }
+  }
+  function previewNextStep(type,leadership){
+    var detail=shell&&shell.querySelector('.vf28-adm-detail');
+    if(!detail)return;
+    var note=detail.querySelector('.vf28-adm-step-note');
+    if(!note)return;
+    note.hidden=false;
+    note.innerHTML='<strong>Próxima etapa</strong><span>O formulário de cadastro de '+esc(type)+' para '+esc((leadership&&leadership.nome)||'esta liderança')+' será conectado aqui.</span>';
+    clearTimeout(previewNextStep._t);
+    previewNextStep._t=setTimeout(function(){if(note)note.hidden=true;},3200);
+  }
+  function openAdminLeadership(l){
+    if(!shell||!l)return;
+    var overview=shell.querySelector('.vf28-adm-overview');
+    var detail=shell.querySelector('.vf28-adm-detail');
+    if(!detail)return;
+    var color=leadershipColor(l);
+    if(overview)overview.hidden=true;
+    detail.hidden=false;
+    detail.style.setProperty('--vf28-team',color);
+    detail.innerHTML='<div class="vf28-adm-detail-top">'+
+      '<button type="button" class="vf28-adm-back">‹ <span>Voltar</span></button>'+
+      '<div class="vf28-adm-detail-ident"><div class="vf28-adm-detail-color"><i></i></div><div><small>Liderança</small><strong>'+esc(l.nome||'Liderança')+'</strong><span>'+esc(l.bairro||'Região não informada')+'</span></div></div>'+
+      '<div class="vf28-adm-detail-tag"><i></i> Equipe</div>'+
+    '</div>'+
+    '<div class="vf28-adm-detail-summary">'+
+      '<article><small>Líderes</small><b>0</b></article>'+
+      '<article><small>Eleitores</small><b>0</b></article>'+
+      '<article><small>Cor da equipe</small><b class="vf28-adm-detail-colorlabel"><i></i> definida</b></article>'+
+    '</div>'+
+    '<div class="vf28-adm-create-actions">'+
+      '<button type="button" class="vf28-adm-create-leader"><span>◆</span><div><small>Novo cadastro</small><strong>+ Cadastrar Líder</strong></div></button>'+
+      '<button type="button" class="vf28-adm-create-elector"><span>●</span><div><small>Novo cadastro</small><strong>+ Cadastrar Eleitor</strong></div></button>'+
+    '</div>'+
+    '<div class="vf28-adm-member-tabs">'+
+      '<button type="button" class="active" data-vf28-member-tab="leaders">Líderes <b>0</b></button>'+
+      '<button type="button" data-vf28-member-tab="electors">Eleitores <b>0</b></button>'+
+    '</div>'+
+    '<div class="vf28-adm-member-empty"><div data-vf28-member-empty-icon>◆</div><strong data-vf28-member-empty-title>Nenhum líder cadastrado</strong><span data-vf28-member-empty-text>Os líderes vinculados a esta liderança aparecerão aqui.</span></div>'+
+    '<div class="vf28-adm-step-note" hidden></div>';
+    detail.querySelector('.vf28-adm-back').addEventListener('click',showAdminOverview);
+    detail.querySelector('.vf28-adm-create-leader').addEventListener('click',function(){previewNextStep('Líder',l);});
+    detail.querySelector('.vf28-adm-create-elector').addEventListener('click',function(){previewNextStep('Eleitor',l);});
+    detail.querySelectorAll('[data-vf28-member-tab]').forEach(function(btn){btn.addEventListener('click',function(){setAdminMemberTab(btn.dataset.vf28MemberTab);});});
+    setAdminMemberTab(activeAdminMemberTab);
   }
   function visibleList(){
     var q=String(searchInput&&searchInput.value||'').trim().toLowerCase(),cat=String(categorySelect&&categorySelect.value||'ALL');
