@@ -76,12 +76,12 @@
       var icon=L.divIcon({
         className:'vf42-photo-pin-wrap',
         html:photoMarkerHtml(db,color),
-        iconSize:[50,56],
-        iconAnchor:[25,52],
-        popupAnchor:[0,-48]
+        iconSize:[36,40],
+        iconAnchor:[18,36],
+        popupAnchor:[0,-34]
       });
       var marker=L.marker([Number(db.lat),Number(db.lng)],{icon:icon,zIndexOffset:1500});
-      marker.bindTooltip('<b>'+esc(db.nome_lideranca||'Liderança')+'</b><br><small>Liderança</small>',{direction:'top',offset:[0,-46]});
+      marker.bindTooltip('<b>'+esc(db.nome_lideranca||'Liderança')+'</b><br><small>Liderança</small>',{direction:'top',offset:[0,-32]});
       var f=fl;
       if(f&&typeof buildLiderancaPopup==='function')marker.bindPopup(buildLiderancaPopup(f));
       else marker.bindPopup('<div class="popup-lideranca-card"><div class="popup-title">'+esc(db.nome_lideranca||'Liderança')+'</div><div class="popup-detail-row"><strong>Liderança</strong></div></div>');
