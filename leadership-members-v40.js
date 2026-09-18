@@ -5,7 +5,7 @@
   var mod;
   try{ mod=await import('./auth-gate.js'); }catch(e){ console.warn('Membros liderança: auth indisponível',e); return; }
   var sb=await mod.client();
-  var members=[], dbLeaders=[], memberLayer=null, activeForm=null, pendingMapPick=null;
+  var members=[], dbLeaders=[], memberLayer=null, photoLayer=null, activeForm=null, pendingMapPick=null;
   var palette=['#2563eb','#16a34a','#f97316','#a855f7','#e11d48','#0891b2','#ca8a04','#4f46e5','#db2777','#0f766e'];
 
   function esc(v){return String(v==null?'':v).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
@@ -32,12 +32,12 @@
   async function loadData(){
     try{
       var r=await Promise.all([
-        sb.from('liderancas').select('id,vereador_id,nome_lideranca,bairro'),
+        sb.from('liderancas').select('id,vereador_id,nome_lideranca,bairro,lat,lng,foto_url'),
         sb.from('lideranca_membros').select('id,lideranca_id,vereador_id,tipo,nome,whatsapp,cep,logradouro,numero,bairro,lat,lng,observacoes,criado_em').order('criado_em',{ascending:true})
       ]);
       if(r[0].error)throw r[0].error;if(r[1].error)throw r[1].error;
       dbLeaders=r[0].data||[];members=r[1].data||[];
-      syncUI(); renderPins();
+      syncUI(); renderPins(); renderLeadershipPhotos();
     }catch(e){console.warn('Membros liderança:',e);}
   }
 
@@ -47,6 +47,93 @@
       if(!memberLayer){memberLayer=L.layerGroup().addTo(state.map); state.vfLeadershipMembersLayer=memberLayer;}
       return memberLayer;
     }catch(_){return null;}
+  }
+  function ensurePhotoLayer(){
+    try{
+      if(!state.map||typeof L==='undefined')return null;
+      if(!photoLayer){photoLayer=L.layerGroup().addTo(state.map);state.vfLeadershipPhotoLayer=photoLayer;}
+      return photoLayer;
+    }catch(_){return null;}
+  }
+  function initials(name){
+    var p=String(name||'').trim().split(/\s+/).filter(Boolean);
+    return ((p[0]||'L')[0]+(p.length>1?p[p.length-1][0]:'')).toUpperCase();
+  }
+  function photoMarkerHtml(db,color){
+    var name=db&&db.nome_lideranca||'Liderança';
+    if(db&&db.foto_url){
+      return '<div class="vf42-photo-pin" style="--vf42-team:'+color+'"><img src="'+esc(db.foto_url)+'" alt="'+esc(name)+'"><i></i></div>';
+    }
+    return '<div class="vf42-photo-pin fallback" style="--vf42-team:'+color+'"><span>'+esc(initials(name))+'</span><i></i></div>';
+  }
+  function renderLeadershipPhotos(){
+    var layer=ensurePhotoLayer();if(!layer)return;
+    layer.clearLayers();
+    dbLeaders.forEach(function(db){
+      if(!db||!db.foto_url||!validCoord(db.lat,db.lng))return;
+      var fl=frontendForDbLeaderId(db.id);
+      var color=leadershipColor(fl||db);
+      var icon=L.divIcon({
+        className:'vf42-photo-pin-wrap',
+        html:photoMarkerHtml(db,color),
+        iconSize:[50,56],
+        iconAnchor:[25,52],
+        popupAnchor:[0,-48]
+      });
+      var marker=L.marker([Number(db.lat),Number(db.lng)],{icon:icon,zIndexOffset:1500});
+      marker.bindTooltip('<b>'+esc(db.nome_lideranca||'Liderança')+'</b><br><small>Liderança</small>',{direction:'top',offset:[0,-46]});
+      var f=fl;
+      if(f&&typeof buildLiderancaPopup==='function')marker.bindPopup(buildLiderancaPopup(f));
+      else marker.bindPopup('<div class="popup-lideranca-card"><div class="popup-title">'+esc(db.nome_lideranca||'Liderança')+'</div><div class="popup-detail-row"><strong>Liderança</strong></div></div>');
+      layer.addLayer(marker);
+    });
+  }
+  function compressPhoto(file){
+    return new Promise(function(resolve,reject){
+      if(!file||!/^image\//.test(file.type||''))return reject(new Error('Selecione uma imagem válida.'));
+      if(file.size>8*1024*1024)return reject(new Error('A imagem deve ter no máximo 8 MB.'));
+      var url=URL.createObjectURL(file),img=new Image();
+      img.onload=function(){
+        try{
+          var size=Math.min(img.naturalWidth||img.width,img.naturalHeight||img.height);
+          var sx=((img.naturalWidth||img.width)-size)/2,sy=((img.naturalHeight||img.height)-size)/2;
+          var canvas=document.createElement('canvas');canvas.width=180;canvas.height=180;
+          var ctx=canvas.getContext('2d');
+          ctx.drawImage(img,sx,sy,size,size,0,0,180,180);
+          var data=canvas.toDataURL('image/jpeg',0.82);
+          URL.revokeObjectURL(url);resolve(data);
+        }catch(e){URL.revokeObjectURL(url);reject(e);}
+      };
+      img.onerror=function(){URL.revokeObjectURL(url);reject(new Error('Não foi possível ler a imagem.'));};
+      img.src=url;
+    });
+  }
+  function ensurePhotoControl(l){
+    var detail=document.querySelector('.vf28-adm-detail:not([hidden])');if(!detail||!l)return;
+    var db=dbLeaderForFrontend(l);if(!db)return;
+    var existing=detail.querySelector('.vf42-photo-control');if(existing)existing.remove();
+    var color=leadershipColor(l),wrap=document.createElement('div');
+    wrap.className='vf42-photo-control';wrap.style.setProperty('--vf42-team',color);
+    wrap.innerHTML='<div class="vf42-photo-preview">'+
+      (db.foto_url?'<img src="'+esc(db.foto_url)+'" alt="'+esc(l.nome||db.nome_lideranca||'Liderança')+'">':'<span>'+esc(initials(l.nome||db.nome_lideranca))+'</span>')+
+      '</div><div class="vf42-photo-copy"><small>Foto da liderança</small><strong>'+(db.foto_url?'Foto configurada':'Adicionar foto no mapa')+'</strong><span>Será exibida somente no marcador da Liderança principal.</span></div>'+
+      '<button type="button" class="vf42-photo-btn">'+(db.foto_url?'Trocar foto':'Adicionar foto')+'</button><input type="file" accept="image/*" class="vf42-photo-input" hidden>';
+    var anchor=detail.querySelector('.vf28-adm-detail-summary');
+    if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(wrap,anchor.nextSibling);else detail.appendChild(wrap);
+    var input=wrap.querySelector('.vf42-photo-input'),btn=wrap.querySelector('.vf42-photo-btn');
+    btn.onclick=function(){input.click();};
+    input.onchange=async function(){
+      var file=input.files&&input.files[0];if(!file)return;
+      btn.disabled=true;btn.textContent='Salvando...';
+      try{
+        var data=await compressPhoto(file);
+        var r=await sb.from('liderancas').update({foto_url:data}).eq('id',db.id).select('id,foto_url').single();
+        if(r.error)throw r.error;
+        db.foto_url=r.data&&r.data.foto_url||data;
+        ensurePhotoControl(l);renderLeadershipPhotos();
+      }catch(e){alert('Não foi possível salvar a foto: '+(e.message||e));}
+      finally{btn.disabled=false;}
+    };
   }
 
   function renderPins(){
@@ -273,20 +360,21 @@
   document.addEventListener('click',function(e){
     var tab=e.target.closest&&e.target.closest('[data-vf28-member-tab]');if(tab)setTimeout(syncUI,0);
     var mapNav=e.target.closest&&e.target.closest('[data-vf-nav="map"],#tab-btn-map,[data-view="map"]');
-    if(mapNav)setTimeout(renderPins,180);
+    if(mapNav)setTimeout(function(){renderPins();renderLeadershipPhotos();},180);
   },true);
 
   window.VFLeadershipMembers={
     openForm:openForm,
-    onDetailOpened:function(){setTimeout(syncUI,0);},
+    onDetailOpened:function(l){setTimeout(function(){syncUI();ensurePhotoControl(l);},0);},
     refresh:loadData,
     renderPins:renderPins,
+    renderLeadershipPhotos:renderLeadershipPhotos,
     syncUI:syncUI
   };
 
   function boot(){
     loadData();
-    var tries=0,t=setInterval(function(){tries++;if(ensureLayer()){renderPins();clearInterval(t);}else if(tries>40)clearInterval(t);},250);
+    var tries=0,t=setInterval(function(){tries++;if(ensureLayer()){renderPins();renderLeadershipPhotos();clearInterval(t);}else if(tries>40)clearInterval(t);},250);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
