@@ -115,8 +115,8 @@
         '<div class="vf28-adm-teamtag"><i></i><span>Equipe</span></div>'+
       '</div>'+
       '<div class="vf28-adm-counts">'+
-        '<div><small>Líderes</small><b>0</b></div>'+
-        '<div><small>Eleitores</small><b>0</b></div>'+
+        '<div><small>Líderes</small><b data-vf40-card-leaders>0</b></div>'+
+        '<div><small>Eleitores</small><b data-vf40-card-electors>0</b></div>'+
         '<div><small>Cor no mapa</small><b class="vf28-adm-colorname"><i></i> definida</b></div>'+
       '</div>'+
       '<button type="button" class="vf28-adm-manage">Gerenciar <span>›</span></button>';
