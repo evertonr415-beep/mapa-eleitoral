@@ -169,6 +169,7 @@
     var b=document.getElementById('vf40-cep-btn');b.disabled=true;b.textContent='Buscando...';
     try{
       var r=await fetch('https://viacep.com.br/ws/'+cep+'/json/');var d=await r.json();if(d.erro)throw new Error('CEP não encontrado');
+      if((d.localidade&&norm(d.localidade)!=='arapongas')||(d.uf&&String(d.uf).toUpperCase()!=='PR'))throw new Error('CEP fora de Arapongas/PR');
       if(d.logradouro)document.getElementById('vf40-street').value=d.logradouro;
       if(d.bairro)document.getElementById('vf40-neighborhood').value=d.bairro;
       await geocodeCurrentForm();
