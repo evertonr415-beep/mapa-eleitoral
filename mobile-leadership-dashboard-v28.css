@@ -1,4 +1,4 @@
-@media (max-width:900px){
+@media (max-width:900px), (min-width:901px){
   body.vf-mobile #view-table-liderancas.vf28-leadership-ready{padding:16px 14px 30px!important;background:linear-gradient(180deg,#080d17,#0a111d)!important}
   body.vf-mobile #view-table-liderancas.vf28-leadership-ready>div:first-child,
   body.vf-mobile #view-table-liderancas.vf28-leadership-ready>table.custom-table{display:none!important}
