@@ -81,3 +81,43 @@
 .vf43-show-leadership-photo .vf43-leadership-pin:hover .vf43-leadership-avatar{transform:translate(-50%,-50%) scale(1.12)!important}
 .vf43-compact-leadership-photo .vf43-leadership-avatar{opacity:0!important;pointer-events:none!important}
 .vf43-compact-leadership-photo .vf43-leadership-compact{opacity:1!important}
+
+/* v44 — destaque interativo da Liderança sem poluir o mapa */
+.vf44-leadership-label{
+  position:absolute!important;
+  left:calc(50% + 24px)!important;
+  top:50%!important;
+  transform:translateY(-50%) translateX(-5px)!important;
+  min-width:92px!important;
+  max-width:150px!important;
+  padding:6px 8px!important;
+  border:1px solid color-mix(in srgb,var(--vf43-team) 40%,rgba(255,255,255,.18))!important;
+  border-radius:9px!important;
+  background:rgba(9,21,37,.94)!important;
+  box-shadow:0 6px 18px rgba(0,0,0,.26)!important;
+  backdrop-filter:blur(5px)!important;
+  opacity:0!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+  transition:opacity .16s ease,transform .16s ease,visibility .16s ease!important;
+  white-space:nowrap!important;
+  z-index:6!important;
+}
+.vf44-leadership-label strong{display:block!important;color:#fff!important;font-size:10px!important;line-height:1.15!important;font-weight:900!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.vf44-leadership-label span{display:block!important;margin-top:2px!important;color:var(--vf43-team)!important;font-size:7px!important;line-height:1!important;font-weight:850!important;text-transform:uppercase!important;letter-spacing:.05em!important}
+.vf43-show-leadership-photo .vf43-leadership-pin.vf44-active .vf43-leadership-avatar,
+.vf43-show-leadership-photo .vf43-leadership-pin:hover .vf43-leadership-avatar{
+  transform:translate(-50%,-50%) scale(1.26)!important;
+  box-shadow:0 0 0 3px var(--vf43-team),0 8px 20px rgba(0,0,0,.38)!important;
+}
+.vf43-show-leadership-photo .vf43-leadership-pin.vf44-active .vf44-leadership-label,
+.vf43-show-leadership-photo .vf43-leadership-pin:hover .vf44-leadership-label{
+  opacity:1!important;
+  visibility:visible!important;
+  transform:translateY(-50%) translateX(0)!important;
+}
+.vf43-compact-leadership-photo .vf44-leadership-label{display:none!important}
+@media (hover:none){
+  .vf43-show-leadership-photo .vf43-leadership-pin:hover .vf44-leadership-label{opacity:0!important;visibility:hidden!important}
+  .vf43-show-leadership-photo .vf43-leadership-pin.vf44-active .vf44-leadership-label{opacity:1!important;visibility:visible!important}
+}
