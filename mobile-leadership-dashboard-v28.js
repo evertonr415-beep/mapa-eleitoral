@@ -19,6 +19,8 @@
   function initials(name){var p=String(name||'').trim().split(/\s+/).filter(Boolean);return ((p[0]||'L')[0]+(p.length>1?p[p.length-1][0]:'')).toUpperCase();}
   function list(){try{return Array.isArray(state.liderancas)?state.liderancas:[];}catch(_){return [];}}
   function categoryColor(cat){var s=String(cat||'').toLowerCase();if(s.indexOf('relig')>-1)return '#a78bfa';if(s.indexOf('esport')>-1)return '#22c55e';if(s.indexOf('comér')>-1||s.indexOf('comer')>-1)return '#f59e0b';if(s.indexOf('saúde')>-1||s.indexOf('saude')>-1)return '#06b6d4';if(s.indexOf('educ')>-1)return '#60a5fa';if(s.indexOf('familiar')>-1)return '#f472b6';return '#3b82f6';}
+  var teamPalette=['#2563eb','#16a34a','#f97316','#a855f7','#e11d48','#0891b2','#ca8a04','#4f46e5','#db2777','#0f766e'];
+  function leadershipColor(l){var key=String((l&&l.id)||'')+'|'+String((l&&l.nome)||'');var h=0;for(var i=0;i<key.length;i++)h=((h<<5)-h)+key.charCodeAt(i)|0;return teamPalette[Math.abs(h)%teamPalette.length];}
   function geolocated(l){return Number.isFinite(Number(l&&l.lat))&&Number.isFinite(Number(l&&l.lng))&&Math.abs(Number(l.lat))>0&&Math.abs(Number(l.lng))>0;}
   function switchSubtab(which){
     activeSubtab=which==='admin'?'admin':'leaders';
@@ -28,6 +30,7 @@
     var adminPane=shell.querySelector('.vf28-pane-admin');
     if(leadersPane)leadersPane.hidden=activeSubtab!=='leaders';
     if(adminPane)adminPane.hidden=activeSubtab!=='admin';
+    if(activeSubtab==='admin')renderAdmin();
   }
   function ensure(){
     if(!mobile())return false;
@@ -55,11 +58,15 @@
         <div class="vf28-leadership-list"></div>\
       </section>\
       <section class="vf28-pane vf28-pane-admin" hidden>\
-        <div class="vf28-admin-placeholder">\
-          <div class="vf28-admin-icon">⚙️</div>\
-          <strong>ADM de Lideranças</strong>\
-          <span>Área criada. As funções serão adicionadas passo a passo.</span>\
+        <div class="vf28-admin-head">\
+          <div><strong>Organização das equipes</strong><span>Selecione uma liderança para gerenciar sua rede de líderes e eleitores.</span></div>\
         </div>\
+        <div class="vf28-admin-stats">\
+          <article><small>Lideranças</small><b data-vf28-adm-leaders>0</b></article>\
+          <article><small>Líderes</small><b data-vf28-adm-coords>0</b></article>\
+          <article><small>Eleitores</small><b data-vf28-adm-electors>0</b></article>\
+        </div>\
+        <div class="vf28-admin-list"></div>\
       </section>';
     view.appendChild(shell);
     searchInput=shell.querySelector('input');categorySelect=shell.querySelector('select');
@@ -77,6 +84,45 @@
     switchSubtab(activeSubtab);
     render(true);return true;
   }
+  function renderAdmin(){
+    if(!shell)return;
+    var all=list();
+    var listBox=shell.querySelector('.vf28-admin-list');
+    var leadersTotal=shell.querySelector('[data-vf28-adm-leaders]');
+    var coordsTotal=shell.querySelector('[data-vf28-adm-coords]');
+    var electorsTotal=shell.querySelector('[data-vf28-adm-electors]');
+    if(leadersTotal)leadersTotal.textContent=fmt(all.length);
+    if(coordsTotal)coordsTotal.textContent='0';
+    if(electorsTotal)electorsTotal.textContent='0';
+    if(!listBox)return;
+    listBox.innerHTML='';
+    if(!all.length){
+      listBox.innerHTML='<div class="vf28-adm-empty"><strong>Nenhuma liderança cadastrada</strong><span>Cadastre uma liderança na aba Lideranças para ela aparecer aqui.</span></div>';
+      return;
+    }
+    all.forEach(function(l){
+      var color=leadershipColor(l);
+      var card=document.createElement('article');
+      card.className='vf28-adm-card';
+      card.style.setProperty('--vf28-team',color);
+      card.innerHTML='<div class="vf28-adm-card-main">'+
+        '<div class="vf28-adm-color"><span></span></div>'+
+        '<div class="vf28-adm-copy"><small>Liderança</small><strong>'+esc(l.nome||'Liderança')+'</strong><span>'+esc(l.bairro||'Região não informada')+'</span></div>'+
+        '<div class="vf28-adm-teamtag"><i></i><span>Equipe</span></div>'+
+      '</div>'+
+      '<div class="vf28-adm-counts">'+
+        '<div><small>Líderes</small><b>0</b></div>'+
+        '<div><small>Eleitores</small><b>0</b></div>'+
+        '<div><small>Cor no mapa</small><b class="vf28-adm-colorname"><i></i> definida</b></div>'+
+      '</div>'+
+      '<button type="button" class="vf28-adm-manage">Gerenciar <span>›</span></button>';
+      card.querySelector('.vf28-adm-manage').addEventListener('click',function(){
+        card.classList.add('vf28-adm-preview-selected');
+        setTimeout(function(){card.classList.remove('vf28-adm-preview-selected');},500);
+      });
+      listBox.appendChild(card);
+    });
+  }
   function visibleList(){
     var q=String(searchInput&&searchInput.value||'').trim().toLowerCase(),cat=String(categorySelect&&categorySelect.value||'ALL');
     return list().filter(function(l){
@@ -93,6 +139,7 @@
     shell.querySelector('[data-vf28-total]').textContent=fmt(all.length);
     shell.querySelector('[data-vf28-meta]').textContent='+'+fmt(meta);
     shell.querySelector('[data-vf28-geo]').textContent=fmt(geo)+'/'+fmt(all.length);
+    renderAdmin();
     var box=shell.querySelector('.vf28-leadership-list');box.innerHTML='';
     if(!filtered.length){box.innerHTML='<div class="vf28-empty"><div class="vf28-empty-icon">📍</div><strong>Nenhuma liderança encontrada</strong><span>Ajuste a busca ou o filtro de categoria, ou cadastre uma nova liderança.</span></div>';return;}
     filtered.forEach(function(l){
