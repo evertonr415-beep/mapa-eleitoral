@@ -668,7 +668,8 @@ function renderMapLiderancas() {
     list.forEach(lid => {
         // Cor fixa da equipe: a mesma usada por Líderes e Eleitores vinculados.
         const vfTeamPalette = ['#2563eb','#16a34a','#f97316','#a855f7','#e11d48','#0891b2','#ca8a04','#4f46e5','#db2777','#0f766e'];
-        const vfTeamKey = String(lid.id || '') + '|' + String(lid.nome || '');
+        const vfTeamName = String(lid.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
+        const vfTeamKey = String(lid.vereadorId || '') + '|' + vfTeamName;
         let vfTeamHash = 0;
         for (let i = 0; i < vfTeamKey.length; i++) vfTeamHash = ((vfTeamHash << 5) - vfTeamHash) + vfTeamKey.charCodeAt(i) | 0;
         const pinBg = vfTeamPalette[Math.abs(vfTeamHash) % vfTeamPalette.length];
