@@ -64,18 +64,19 @@
       var fl=frontendForDbLeaderId(m.lideranca_id), db=dbLeaders.find(function(x){return String(x.id)===String(m.lideranca_id);});
       var color=leadershipColor(fl||{id:m.lideranca_id,nome:db&&db.nome_lideranca});
       var isLeader=m.tipo==='lider';
-      var html='<div class="vf40-map-pin '+(isLeader?'leader':'elector')+'" style="--vf40-team:'+color+'"><span>'+(isLeader?'◆':'●')+'</span></div>';
-      var icon=L.divIcon({className:'vf40-map-pin-wrap',html:html,iconSize:[34,34],iconAnchor:[17,30],popupAnchor:[0,-28]});
       var lat=Number(m.lat),lng=Number(m.lng);
       var ckey=lat.toFixed(6)+','+lng.toFixed(6), total=coordCounts[ckey]||1, idx=coordIndex[ckey]||0;
       coordIndex[ckey]=idx+1;
+      var ox=0,oy=0;
       if(total>1){
         var angle=(Math.PI*2*idx/total)-Math.PI/2;
-        var radius=0.000055;
-        lat+=Math.sin(angle)*radius;
-        lng+=Math.cos(angle)*radius;
+        var radiusPx=18;
+        ox=Math.round(Math.cos(angle)*radiusPx);
+        oy=Math.round(Math.sin(angle)*radiusPx);
       }
-      var marker=L.marker([lat,lng],{icon:icon});
+      var html='<div class="vf40-map-pin '+(isLeader?'leader':'elector')+'" style="--vf40-team:'+color+';--vf40-ox:'+ox+'px;--vf40-oy:'+oy+'px"><span>'+(isLeader?'◆':'●')+'</span></div>';
+      var icon=L.divIcon({className:'vf40-map-pin-wrap',html:html,iconSize:[34,34],iconAnchor:[17,30],popupAnchor:[0,-28]});
+      var marker=L.marker([lat,lng],{icon:icon,zIndexOffset:isLeader?900:800});
       var role=isLeader?'Líder':'Eleitor';
       marker.bindTooltip('<b>'+esc(m.nome)+'</b><br><small>'+role+' • '+esc(m.bairro||'')+'</small>',{direction:'top',offset:[0,-28]});
       marker.bindPopup('<div class="popup-lideranca-card"><div class="popup-title">'+esc(m.nome)+'</div><div class="popup-detail-row"><strong>'+role+'</strong> • Equipe '+esc(db&&db.nome_lideranca||'Liderança')+'</div><div class="popup-detail-row">🏡 '+esc(m.bairro||'')+(m.logradouro?' • '+esc(m.logradouro):'')+(m.numero?', '+esc(m.numero):'')+'</div>'+(m.whatsapp?'<div class="popup-detail-row">📞 '+esc(m.whatsapp)+'</div>':'')+'</div>');
