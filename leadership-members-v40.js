@@ -70,7 +70,7 @@
       var ox=0,oy=0;
       if(total>1){
         var angle=(Math.PI*2*idx/total)-Math.PI/2;
-        var radiusPx=isLeader?22:19;
+        var radiusPx=isLeader?20:19;
         ox=Math.round(Math.cos(angle)*radiusPx);
         oy=Math.round(Math.sin(angle)*radiusPx);
       }
@@ -80,13 +80,13 @@
       var icon=L.divIcon({
         className:'vf41-pin-wrap '+(isLeader?'vf41-leader-wrap':'vf41-elector-wrap'),
         html:html,
-        iconSize:isLeader?[38,38]:[30,30],
-        iconAnchor:isLeader?[19,19]:[15,15],
-        popupAnchor:isLeader?[0,-23]:[0,-19]
+        iconSize:isLeader?[32,32]:[30,30],
+        iconAnchor:isLeader?[16,16]:[15,15],
+        popupAnchor:isLeader?[0,-20]:[0,-19]
       });
       var marker=L.marker([lat,lng],{icon:icon,zIndexOffset:isLeader?1000:850});
       var role=isLeader?'Líder':'Eleitor';
-      marker.bindTooltip('<b>'+(isLeader?'◆ ':'● ')+esc(m.nome)+'</b><br><small>'+role+' • '+esc(m.bairro||'')+'</small>',{direction:'top',offset:isLeader?[0,-22]:[0,-18]});
+      marker.bindTooltip('<b>'+(isLeader?'◆ ':'● ')+esc(m.nome)+'</b><br><small>'+role+' • '+esc(m.bairro||'')+'</small>',{direction:'top',offset:isLeader?[0,-19]:[0,-18]});
       marker.bindPopup('<div class="popup-lideranca-card"><div class="popup-title">'+esc(m.nome)+'</div><div class="popup-detail-row"><strong>'+role+'</strong> • Equipe '+esc(db&&db.nome_lideranca||'Liderança')+'</div><div class="popup-detail-row">🏡 '+esc(m.bairro||'')+(m.logradouro?' • '+esc(m.logradouro):'')+(m.numero?', '+esc(m.numero):'')+'</div>'+(m.whatsapp?'<div class="popup-detail-row">📞 '+esc(m.whatsapp)+'</div>':'')+'</div>');
       layer.addLayer(marker);
     });
