@@ -10,3 +10,45 @@
 .vf41-pin-elector .vf41-pin-core{width:7px;height:7px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.22)}
 .vf41-pin:hover{filter:drop-shadow(0 7px 10px rgba(0,0,0,.38)) brightness(1.05)}
 .vf40-member-list{display:grid;gap:7px}.vf40-member-row{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:9px;align-items:center;padding:9px;border:1px solid rgba(148,163,184,.1);border-radius:11px;background:rgba(8,18,32,.52)}.vf40-member-symbol{width:32px;height:32px;display:grid;place-items:center;border-radius:9px;background:color-mix(in srgb,var(--vf28-team,#2563eb) 14%,#132238);color:var(--vf28-team,#2563eb);font-size:12px}.vf40-member-row strong{display:block;color:#f8fafc;font-size:10px}.vf40-member-row small{display:block;margin-top:2px;color:#7f93ac;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.vf40-member-row button{min-height:30px;padding:0 10px;border:1px solid rgba(96,165,250,.22);border-radius:8px;background:#15263d;color:#dbeafe;font-size:8px;font-weight:850}@media(max-width:520px){.vf40-location-actions{grid-template-columns:1fr}.vf40-grid.two{grid-template-columns:1fr 1fr}.vf40-modal{padding:0}.vf40-sheet{border-radius:18px 18px 0 0;max-height:94vh}}
+/* Compatibilidade visual com o marcador original de Liderança do mapa base. */
+.custom-pin-container{background:transparent!important;border:0!important;overflow:visible!important}
+.pin-lideranca-marker{
+  position:relative!important;
+  width:36px!important;
+  height:36px!important;
+  display:grid!important;
+  place-items:center!important;
+  box-sizing:border-box!important;
+  border:4px solid #fff!important;
+  border-radius:50%!important;
+  color:#fff!important;
+  font-size:0!important;
+  line-height:1!important;
+  box-shadow:0 0 0 5px color-mix(in srgb,currentColor 0%,transparent),0 6px 15px rgba(0,0,0,.3)!important;
+  transform:translate(-2px,-3px)!important;
+  overflow:visible!important;
+}
+.pin-lideranca-marker:before{
+  content:"★";
+  position:relative;
+  z-index:2;
+  color:#fff;
+  font-size:17px;
+  font-weight:950;
+  line-height:1;
+  text-shadow:0 1px 2px rgba(0,0,0,.32);
+}
+.pin-lideranca-marker:after{
+  content:"";
+  position:absolute;
+  z-index:0;
+  left:50%;
+  bottom:-7px;
+  width:13px;
+  height:13px;
+  transform:translateX(-50%) rotate(45deg);
+  background:inherit;
+  border-right:4px solid #fff;
+  border-bottom:4px solid #fff;
+  border-radius:2px;
+}
