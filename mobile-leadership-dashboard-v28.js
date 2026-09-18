@@ -107,6 +107,7 @@
       var color=leadershipColor(l);
       var card=document.createElement('article');
       card.className='vf28-adm-card';
+      card.dataset.vf28Lid=String(l.id||'');
       card.style.setProperty('--vf28-team',color);
       card.innerHTML='<div class="vf28-adm-card-main">'+
         '<div class="vf28-adm-color"><span></span></div>'+
@@ -126,6 +127,7 @@
       });
       listBox.appendChild(card);
     });
+    if(window.VFLeadershipMembers&&typeof window.VFLeadershipMembers.refresh==='function')setTimeout(function(){window.VFLeadershipMembers.refresh();},0);
   }
   function adminLeadershipById(id){
     return list().find(function(l){return String(l&&l.id||'')===String(id||'');})||null;
@@ -176,6 +178,7 @@
     var color=leadershipColor(l);
     if(overview)overview.hidden=true;
     detail.hidden=false;
+    detail.dataset.vf28Lid=String(l.id||'');
     detail.style.setProperty('--vf28-team',color);
     detail.innerHTML='<div class="vf28-adm-detail-top">'+
       '<button type="button" class="vf28-adm-back">‹ <span>Voltar</span></button>'+
@@ -198,10 +201,11 @@
     '<div class="vf28-adm-member-empty"><div data-vf28-member-empty-icon>◆</div><strong data-vf28-member-empty-title>Nenhum líder cadastrado</strong><span data-vf28-member-empty-text>Os líderes vinculados a esta liderança aparecerão aqui.</span></div>'+
     '<div class="vf28-adm-step-note" hidden></div>';
     detail.querySelector('.vf28-adm-back').addEventListener('click',showAdminOverview);
-    detail.querySelector('.vf28-adm-create-leader').addEventListener('click',function(){previewNextStep('Líder',l);});
-    detail.querySelector('.vf28-adm-create-elector').addEventListener('click',function(){previewNextStep('Eleitor',l);});
+    detail.querySelector('.vf28-adm-create-leader').addEventListener('click',function(){if(window.VFLeadershipMembers&&typeof window.VFLeadershipMembers.openForm==='function')window.VFLeadershipMembers.openForm('lider',l);else previewNextStep('Líder',l);});
+    detail.querySelector('.vf28-adm-create-elector').addEventListener('click',function(){if(window.VFLeadershipMembers&&typeof window.VFLeadershipMembers.openForm==='function')window.VFLeadershipMembers.openForm('eleitor',l);else previewNextStep('Eleitor',l);});
     detail.querySelectorAll('[data-vf28-member-tab]').forEach(function(btn){btn.addEventListener('click',function(){setAdminMemberTab(btn.dataset.vf28MemberTab);});});
     setAdminMemberTab(activeAdminMemberTab);
+    if(window.VFLeadershipMembers&&typeof window.VFLeadershipMembers.onDetailOpened==='function')window.VFLeadershipMembers.onDetailOpened(l);
   }
   function visibleList(){
     var q=String(searchInput&&searchInput.value||'').trim().toLowerCase(),cat=String(categorySelect&&categorySelect.value||'ALL');
