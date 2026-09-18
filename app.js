@@ -666,14 +666,12 @@ function renderMapLiderancas() {
     }
 
     list.forEach(lid => {
-        // Cor do pin baseada no vereador/partido
-        let pinBg = '#10b981';
-        if (lid.partido === 'PSD') pinBg = '#3b82f6';
-        else if (lid.partido === 'PODE') pinBg = '#8b5cf6';
-        else if (lid.partido === 'PP') pinBg = '#06b6d4';
-        else if (lid.partido === 'União Brasil') pinBg = '#10b981';
-        else if (lid.partido === 'PL') pinBg = '#f59e0b';
-        else if (lid.partido === 'Gestão Central') pinBg = '#e11d48';
+        // Cor fixa da equipe: a mesma usada por Líderes e Eleitores vinculados.
+        const vfTeamPalette = ['#2563eb','#16a34a','#f97316','#a855f7','#e11d48','#0891b2','#ca8a04','#4f46e5','#db2777','#0f766e'];
+        const vfTeamKey = String(lid.id || '') + '|' + String(lid.nome || '');
+        let vfTeamHash = 0;
+        for (let i = 0; i < vfTeamKey.length; i++) vfTeamHash = ((vfTeamHash << 5) - vfTeamHash) + vfTeamKey.charCodeAt(i) | 0;
+        const pinBg = vfTeamPalette[Math.abs(vfTeamHash) % vfTeamPalette.length];
 
         const customIcon = L.divIcon({
             className: 'custom-pin-container',
