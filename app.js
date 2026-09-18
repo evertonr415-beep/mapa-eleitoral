@@ -666,32 +666,32 @@ function renderMapLiderancas() {
     }
 
     list.forEach(lid => {
-        // Cor do pin baseada no vereador/partido
-        let pinBg = '#10b981';
-        if (lid.partido === 'PSD') pinBg = '#3b82f6';
-        else if (lid.partido === 'PODE') pinBg = '#8b5cf6';
-        else if (lid.partido === 'PP') pinBg = '#06b6d4';
-        else if (lid.partido === 'União Brasil') pinBg = '#10b981';
-        else if (lid.partido === 'PL') pinBg = '#f59e0b';
-        else if (lid.partido === 'Gestão Central') pinBg = '#e11d48';
+        // Cor fixa da equipe: a mesma usada por Líderes e Eleitores vinculados.
+        const vfTeamPalette = ['#2563eb','#16a34a','#f97316','#a855f7','#e11d48','#0891b2','#ca8a04','#4f46e5','#db2777','#0f766e'];
+        const vfTeamName = String(lid.nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
+        const vfTeamKey = String(lid.vereadorId || '') + '|' + vfTeamName;
+        let vfTeamHash = 0;
+        for (let i = 0; i < vfTeamKey.length; i++) vfTeamHash = ((vfTeamHash << 5) - vfTeamHash) + vfTeamKey.charCodeAt(i) | 0;
+        const pinBg = vfTeamPalette[Math.abs(vfTeamHash) % vfTeamPalette.length];
 
         const customIcon = L.divIcon({
-            className: 'custom-pin-container',
+            className: 'vf41-pin-wrap vf41-leadership-wrap',
             html: `
-                <div class="pin-lideranca-marker" style="background:${pinBg};" title="${lid.nome} (${lid.vereadorNome})">
-                    📍
+                <div class="vf41-pin vf41-pin-leadership" style="--vf41-team:${pinBg};" title="${lid.nome} (${lid.vereadorNome})">
+                    <span class="vf41-pin-core">★</span>
+                    <i class="vf41-pin-tail"></i>
                 </div>
             `,
-            iconSize: [32, 32],
-            iconAnchor: [16, 32],
-            popupAnchor: [0, -30]
+            iconSize: [46, 54],
+            iconAnchor: [23, 50],
+            popupAnchor: [0, -46]
         });
 
-        const marker = L.marker([lid.lat, lid.lng], { icon: customIcon });
+        const marker = L.marker([lid.lat, lid.lng], { icon: customIcon, zIndexOffset: 1200 });
 
-        marker.bindTooltip(`<b>📍 ${lid.nome}</b><br><small>${lid.bairro} &bull; Meta: +${lid.metaVotos}v</small>`, {
+        marker.bindTooltip(`<b>★ ${lid.nome}</b><br><small>Liderança • ${lid.bairro}</small>`, {
             direction: 'top',
-            offset: [0, -32]
+            offset: [0, -46]
         });
 
         marker.bindPopup(buildLiderancaPopup(lid));
