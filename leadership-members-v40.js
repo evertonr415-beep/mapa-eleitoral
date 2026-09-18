@@ -52,6 +52,13 @@
   function renderPins(){
     var layer=ensureLayer(); if(!layer)return;
     layer.clearLayers();
+    var coordCounts={};
+    members.forEach(function(m){
+      if(!validCoord(m.lat,m.lng))return;
+      var key=Number(m.lat).toFixed(6)+','+Number(m.lng).toFixed(6);
+      coordCounts[key]=(coordCounts[key]||0)+1;
+    });
+    var coordIndex={};
     members.forEach(function(m){
       if(!validCoord(m.lat,m.lng))return;
       var fl=frontendForDbLeaderId(m.lideranca_id), db=dbLeaders.find(function(x){return String(x.id)===String(m.lideranca_id);});
@@ -59,7 +66,16 @@
       var isLeader=m.tipo==='lider';
       var html='<div class="vf40-map-pin '+(isLeader?'leader':'elector')+'" style="--vf40-team:'+color+'"><span>'+(isLeader?'◆':'●')+'</span></div>';
       var icon=L.divIcon({className:'vf40-map-pin-wrap',html:html,iconSize:[34,34],iconAnchor:[17,30],popupAnchor:[0,-28]});
-      var marker=L.marker([Number(m.lat),Number(m.lng)],{icon:icon});
+      var lat=Number(m.lat),lng=Number(m.lng);
+      var ckey=lat.toFixed(6)+','+lng.toFixed(6), total=coordCounts[ckey]||1, idx=coordIndex[ckey]||0;
+      coordIndex[ckey]=idx+1;
+      if(total>1){
+        var angle=(Math.PI*2*idx/total)-Math.PI/2;
+        var radius=0.000055;
+        lat+=Math.sin(angle)*radius;
+        lng+=Math.cos(angle)*radius;
+      }
+      var marker=L.marker([lat,lng],{icon:icon});
       var role=isLeader?'Líder':'Eleitor';
       marker.bindTooltip('<b>'+esc(m.nome)+'</b><br><small>'+role+' • '+esc(m.bairro||'')+'</small>',{direction:'top',offset:[0,-28]});
       marker.bindPopup('<div class="popup-lideranca-card"><div class="popup-title">'+esc(m.nome)+'</div><div class="popup-detail-row"><strong>'+role+'</strong> • Equipe '+esc(db&&db.nome_lideranca||'Liderança')+'</div><div class="popup-detail-row">🏡 '+esc(m.bairro||'')+(m.logradouro?' • '+esc(m.logradouro):'')+(m.numero?', '+esc(m.numero):'')+'</div>'+(m.whatsapp?'<div class="popup-detail-row">📞 '+esc(m.whatsapp)+'</div>':'')+'</div>');
@@ -93,14 +109,14 @@
     });
     var active=d.querySelector('[data-vf28-member-tab].active');
     var arr=active&&active.dataset.vf28MemberTab==='electors'?electors:leaders;
-    var box=d.querySelector('.vf28-adm-member-empty');if(!box)return;
+    var box=d.querySelector('[data-vf40-member-box]')||d.querySelector('.vf28-adm-member-empty')||d.querySelector('.vf40-member-list');if(!box)return;
     if(!arr.length){
       var isE=active&&active.dataset.vf28MemberTab==='electors';
-      box.className='vf28-adm-member-empty';
+      box.className='vf28-adm-member-empty';box.setAttribute('data-vf40-member-box','1');
       box.innerHTML='<div>'+(isE?'●':'◆')+'</div><strong>'+(isE?'Nenhum eleitor cadastrado':'Nenhum líder cadastrado')+'</strong><span>'+(isE?'Os eleitores vinculados a esta liderança aparecerão aqui.':'Os líderes vinculados a esta liderança aparecerão aqui.')+'</span>';
       return;
     }
-    box.className='vf40-member-list';
+    box.className='vf40-member-list';box.setAttribute('data-vf40-member-box','1');
     box.innerHTML=arr.map(function(m){
       return '<article class="vf40-member-row"><span class="vf40-member-symbol">'+(m.tipo==='lider'?'◆':'●')+'</span><div><strong>'+esc(m.nome)+'</strong><small>'+esc(m.bairro||'')+(m.logradouro?' • '+esc(m.logradouro):'')+(m.numero?', '+esc(m.numero):'')+'</small></div><button type="button" data-vf40-focus="'+esc(m.id)+'">Mapa</button></article>';
     }).join('');
@@ -247,13 +263,16 @@
 
   document.addEventListener('click',function(e){
     var tab=e.target.closest&&e.target.closest('[data-vf28-member-tab]');if(tab)setTimeout(syncUI,0);
+    var mapNav=e.target.closest&&e.target.closest('[data-vf-nav="map"],#tab-btn-map,[data-view="map"]');
+    if(mapNav)setTimeout(renderPins,180);
   },true);
 
   window.VFLeadershipMembers={
     openForm:openForm,
     onDetailOpened:function(){setTimeout(syncUI,0);},
     refresh:loadData,
-    renderPins:renderPins
+    renderPins:renderPins,
+    syncUI:syncUI
   };
 
   function boot(){
