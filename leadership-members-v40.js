@@ -87,6 +87,14 @@
       else marker.bindPopup('<div class="popup-lideranca-card"><div class="popup-title">'+esc(db.nome_lideranca||'Liderança')+'</div><div class="popup-detail-row"><strong>Liderança</strong></div></div>');
       layer.addLayer(marker);
     });
+    setTimeout(function(){
+      document.querySelectorAll('.pin-lideranca-marker').forEach(function(el){
+        var title=norm(el.getAttribute('title')||'');
+        var hasPhoto=dbLeaders.some(function(db){return !!db.foto_url&&title.indexOf(norm(db.nome_lideranca||''))>-1;});
+        el.style.opacity=hasPhoto?'0':'1';
+        el.style.pointerEvents=hasPhoto?'none':'';
+      });
+    },0);
   }
   function compressPhoto(file){
     return new Promise(function(resolve,reject){
